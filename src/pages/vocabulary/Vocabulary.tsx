@@ -4,6 +4,7 @@ import { Loader2, Search, BookOpen, ChevronLeft, ChevronRight } from 'lucide-rea
 import type { LangCode } from '@/services/vocabulary/types';
 import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Vocabulary() {
   const [selectedLanguage, setSelectedLanguage] = useState<LangCode>('es');
@@ -131,15 +132,16 @@ export function Vocabulary() {
       {/* Filters */}
       <div className="flex items-center gap-4 mb-8">
         {/* Language selector */}
-        <select
-          className="px-4 py-2 border border-gray-300 rounded-lg"
-          value={selectedLanguage}
-          onChange={(e) => handleLanguageChange(e.target.value as LangCode)}
-        >
-          <option value="es">Spanish</option>
-          <option value="en">English</option>
-          <option value="fr">French</option>
-        </select>
+        <Select value={selectedLanguage} onValueChange={(value) => handleLanguageChange(value as LangCode)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="es">Spanish</SelectItem>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="fr">French</SelectItem>
+          </SelectContent>
+        </Select>
 
         {/* Search */}
         <div className="relative flex-1 max-w-md">
@@ -247,16 +249,17 @@ export function Vocabulary() {
             {/* Items per page selector */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Show:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
+              <Select value={String(itemsPerPage)} onValueChange={(value) => handleItemsPerPageChange(Number(value))}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
               <span className="text-sm text-gray-600">per page</span>
             </div>
 

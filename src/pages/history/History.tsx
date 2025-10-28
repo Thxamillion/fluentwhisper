@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAllSessions, useDeleteSession } from '@/hooks/sessions';
 import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function History() {
   const navigate = useNavigate();
@@ -54,16 +55,17 @@ export function History() {
 
       {/* Filters */}
       <div className="flex items-center space-x-4 mb-8">
-        <select
-          className="px-4 py-2 border border-gray-300 rounded-lg"
-          value={selectedLanguage}
-          onChange={(e) => setSelectedLanguage(e.target.value)}
-        >
-          <option value="all">All Languages</option>
-          <option value="es">Spanish</option>
-          <option value="en">English</option>
-          <option value="fr">French</option>
-        </select>
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Languages</SelectItem>
+            <SelectItem value="es">Spanish</SelectItem>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="fr">French</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Sessions List */}
