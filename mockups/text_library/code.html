@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>LinguaLeap - Library</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #137fec;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+<div class="flex min-h-screen">
+<aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+<div class="flex items-center gap-3 p-4 border-b border-gray-200">
+<svg class="w-8 h-8 text-[var(--primary-color)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
+</svg>
+<h1 class="text-xl font-bold text-gray-800">LinguaLeap</h1>
+</div>
+<nav class="flex-1 p-4 space-y-2">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined">exercise</span>
+<span>Practice</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-blue-50 text-[var(--primary-color)] rounded-md font-semibold" href="#">
+<span class="material-symbols-outlined">local_library</span>
+<span>Library</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Community</span>
+</a>
+</nav>
+<div class="p-4 border-t border-gray-200">
+<button class="w-full flex items-center justify-center gap-2 h-10 px-4 bg-[var(--primary-color)] text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">
+<span class="material-symbols-outlined">add</span>
+<span>Import Content</span>
+</button>
+</div>
+</aside>
+<div class="flex-1 flex flex-col">
+<header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200">
+<div class="flex items-center gap-4">
+<h2 class="text-2xl font-bold text-gray-800">Library</h2>
+<span class="text-gray-500">Explore and manage your practice materials.</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-gray-100 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:bg-white" placeholder="Search library..." type="search"/>
+</div>
+<button class="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-gray-700">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDforwmEHk9414QNE3-v8KCMSOjhGDqcwwfW42Vj3xJjpZY2_sx2E01fD_F6DcrO-4ZVzNnz3AzOmq-ObGCigEoUfzk5XZSV2EKJ-WNnRHupkBTP8gZkPcqJVtU-e6LvYjFNVeHv2b9HOl0iOp4tEgH-MfTWmMGzgGofGSYIsSK776DHXiRHjM_IyLmYLqK4ju_F-wAMwhfDmMrJZlfoMx8vb--3C3wdfbv3m2IMeZB0dZMXSo3297BTYb9wMyrbbV4a6w68w5zlgT8");'></div>
+</div>
+</header>
+<main class="flex-1 p-6">
+<div class="flex gap-6">
+<div class="w-56 flex-shrink-0">
+<h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Categories</h3>
+<div class="mt-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 rounded-md font-medium bg-gray-200" href="#">
+<span class="material-symbols-outlined text-gray-600">inbox</span>
+<span>All</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-800" href="#">
+<span class="material-symbols-outlined">hourglass_top</span>
+<span>In Progress</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-800" href="#">
+<span class="material-symbols-outlined">task_alt</span>
+<span>Completed</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-800" href="#">
+<span class="material-symbols-outlined">star</span>
+<span>Favorites</span>
+</a>
+</div>
+</div>
+<div class="flex-1">
+<div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-6">
+<div class="group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md transition-shadow duration-300 group-hover:shadow-lg" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAbF2pIxCKGd-HOWP2GiR1CM2GGINxgKD463j-L1DjzWJl9yu-ynt0B8rEs6Ckn6aFBOWp3JdpB0AF04dRisyW1K-L7CmN_VfofmPHGy9bs2QW1kZXc3U-DKsgKH58NcXIH7ANTztQq_uY9u52vts3yE1xNksGO1CwKXUAYUGcbG_dvvRLJPg5uLO0aR2MDJuSgqsGohQl-J7Szq8Mu68Ottd9DhNpNBs5cQtLKJHznq23CHS31HhRpH77Ct_zWyalr45Tv6i0RsQSf");'></div>
+<button class="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-[var(--primary-color)] opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="mt-2">
+<p class="text-gray-800 font-semibold truncate">The Secret Garden</p>
+<p class="text-gray-500 text-sm">Frances Hodgson Burnett</p>
+</div>
+</div>
+<div class="group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md transition-shadow duration-300 group-hover:shadow-lg" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDisKyeQUGkkOZuaCMJIR5UIuuKr_T0xaSokQbKKk4lxj4Cfxyvq1JlYk0JuXOwvLVGoadlXiNZNHDKqdreLgHRNeOiZUPgRD06AhcpBHbbttZrS-UG-T7bobdR2fNA8RpiJqXaXHYhHXPgcAXiF5TQTj3MgfJi0s3bSOzOh5d_8_MN3p_gf-4jCZnK4kKtdxfQbEY2bO61bfJwPUmTf9ulErSTwoCU9nOPnfH6sC6VwW-tUZagmoQMJQt6oNuoLdmCnaaRBkptz3cz");'></div>
+<button class="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-[var(--primary-color)] opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="mt-2">
+<p class="text-gray-800 font-semibold truncate">The Little Prince</p>
+<p class="text-gray-500 text-sm">Antoine de Saint-Exupéry</p>
+</div>
+</div>
+<div class="group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md transition-shadow duration-300 group-hover:shadow-lg" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIaxbE5X0kSw6eWqVwFkYQ9bBCIXizMqv2UYoxfT_fpgVTLsVVG7mg7TgUysTv21l7aRK4BTiwudk7v_szmjkYxzusn6y9GPR7hcDxUjGv9ZzSLMzOA7KZik0TD8rb0CaoZWsCuDdby6-_9wt_snzbctvXyak3G8O4rtdIKAUfDBhe6Q1_AGes5_JfEXBnCCe8LxWD9F1KBkll5KhjwXxJna6LVOoLRcO1poePPRoxqSXoJ4BxQjaejhbQk9Tkg1CEcF0x0SWq0VaZ");'></div>
+<button class="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-[var(--primary-color)] opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="mt-2">
+<p class="text-gray-800 font-semibold truncate">Don Quixote</p>
+<p class="text-gray-500 text-sm">Miguel de Cervantes</p>
+</div>
+</div>
+<div class="group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md transition-shadow duration-300 group-hover:shadow-lg" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAJacad70CmS8m07vxOJtWkdjRJW8mDhOrnX7lLnmsGznMydNumaTnbcA3RZ095gE1rtSYPi3dtOfHlpV1AlTlvuI1R5fTVSjJ8cxfTkcxsxrFZBMK4jCWFVLGacjLdyA0NmgkK1ahLGTQB7q4J4C8sJl1uCgavp9WR_WHjcJhKQiXF5uuv5YCzx-AJzVcaqJoqImRk-7blZi_Z0PgRyzXZUpDpyppd6lNcYhzEtuGPTa6-tKvWOGmfqtmErjJtv86oEVecSvP72PN5");'></div>
+<button class="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-[var(--primary-color)] opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="mt-2">
+<p class="text-gray-800 font-semibold truncate">Pride and Prejudice</p>
+<p class="text-gray-500 text-sm">Jane Austen</p>
+</div>
+</div>
+<div class="group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md transition-shadow duration-300 group-hover:shadow-lg" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBtq-oV1eyc2P9waJ7LiqKJa-VaHYiMYPk7vOkdiWxPPCQKh2WSCqmJ5FM8352ZUgID-3TRM0zVRtA-QYt61oXPjy-xVZv6RCZGKCfwqm19Y181fuB3KtjlqPyyKRJ_SgsfTt-oueY2Ds2fjM_Zkwf9K0qlg3f-6Rmr_wwR9MLblaBfGZdGabh3K1L4FQXm_d8QoBnNMSd8B1BlQczri494xHVYU7SSAeKdmD-9dbmlNE6mKQuPozvVhqVtkPU8aVm6XKAwYNJLbmHM");'></div>
+<button class="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-[var(--primary-color)] opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="mt-2">
+<p class="text-gray-800 font-semibold truncate">Crime and Punishment</p>
+<p class="text-gray-500 text-sm">Fyodor Dostoevsky</p>
+</div>
+</div>
+<div class="group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md transition-shadow duration-300 group-hover:shadow-lg" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDHUAPUZi23NE_hZvY10XSKdkzaSdObHZ0QuvnQntyE85PKJVPfGQ1HATKzPqlOZgeuM8dztns9oetQK5hQoTTspylt8gPPdafonPGvOYG9SiUyLDt2GUdP1DxuZL6Zxcy_Z0JsveRNJ_2M55hK_MRk5brAl5tvlfyQ8Afu8zQxDSoT15RapeNuSkQbY6SAX8utOXRJldXHAkU7UsdBool_USwSIfLRHm93xneHRnu5Gfk7cLFywBZrXUjFFoOD9W6GOgWF2_aQEZX4");'></div>
+<button class="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-[var(--primary-color)] opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="mt-2">
+<p class="text-gray-800 font-semibold truncate">One Hundred Years of Solitude</p>
+<p class="text-gray-500 text-sm">Gabriel Garcia Marquez</p>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-center mt-8">
+<nav aria-label="Pagination" class="flex items-center space-x-2">
+<a class="inline-flex items-center justify-center size-9 rounded-md text-gray-500 hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined">chevron_left</span>
+</a>
+<a aria-current="page" class="inline-flex items-center justify-center size-9 rounded-md bg-[var(--primary-color)] text-white font-medium" href="#">1</a>
+<a class="inline-flex items-center justify-center size-9 rounded-md text-gray-500 hover:bg-gray-100" href="#">2</a>
+<a class="inline-flex items-center justify-center size-9 rounded-md text-gray-500 hover:bg-gray-100" href="#">3</a>
+<span class="inline-flex items-center justify-center size-9 text-gray-500">...</span>
+<a class="inline-flex items-center justify-center size-9 rounded-md text-gray-500 hover:bg-gray-100" href="#">10</a>
+<a class="inline-flex items-center justify-center size-9 rounded-md text-gray-500 hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined">chevron_right</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

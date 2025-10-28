@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50">
+<div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="flex h-full grow">
+<div class="flex flex-col w-64 bg-white border-r border-gray-200">
+<div class="flex items-center justify-center h-16 border-b border-gray-200">
+<div class="flex flex-col text-center">
+<h1 class="text-xl font-bold text-gray-800">LinguaLeap</h1>
+<p class="text-sm text-gray-500">Learn Spanish</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-6 space-y-2">
+<a class="flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined mr-3">home</span>
+              Home
+            </a>
+<a class="flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined mr-3">book_2</span>
+              Lessons
+            </a>
+<a class="flex items-center px-4 py-2 text-white bg-blue-600 rounded-md" href="#">
+<span class="material-symbols-outlined mr-3">style</span>
+              Vocabulary
+            </a>
+<a class="flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined mr-3">spellcheck</span>
+              Grammar
+            </a>
+<a class="flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+              Settings
+            </a>
+</nav>
+</div>
+<div class="flex-1">
+<header class="flex items-center justify-between p-6 border-b border-gray-200">
+<h1 class="text-3xl font-bold text-gray-900">Vocabulary</h1>
+<button class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+<span class="material-symbols-outlined mr-2 -ml-1">add</span>
+              Add New Word
+            </button>
+</header>
+<main class="p-6">
+<div class="flex items-center justify-between mb-6">
+<div class="w-1/2">
+<label class="sr-only" for="search">Search</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+<span class="material-symbols-outlined text-gray-400">search</span>
+</div>
+<input class="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" id="search" name="search" placeholder="Search vocabulary" type="text"/>
+</div>
+</div>
+<div class="flex space-x-1 border border-gray-300 rounded-md p-0.5">
+<button class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-transparent rounded-md focus:outline-none focus:z-10 focus:ring-2 focus:ring-blue-500">All</button>
+<button class="px-3 py-1 text-sm font-medium text-gray-500 border border-transparent rounded-md hover:text-gray-700 focus:outline-none focus:z-10 focus:ring-2 focus:ring-blue-500">Mastered</button>
+<button class="px-3 py-1 text-sm font-medium text-gray-500 border border-transparent rounded-md hover:text-gray-700 focus:outline-none focus:z-10 focus:ring-2 focus:ring-blue-500">Learning</button>
+</div>
+</div>
+<div class="overflow-x-auto bg-white border border-gray-200 rounded-lg">
+<table class="min-w-full divide-y divide-gray-200">
+<thead class="bg-gray-50">
+<tr>
+<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase" scope="col">Word</th>
+<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase" scope="col">Definition</th>
+<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase" scope="col">Mastery</th>
+<th class="relative px-6 py-3" scope="col">
+<span class="sr-only">Edit</span>
+</th>
+</tr>
+</thead>
+<tbody class="bg-white divide-y divide-gray-200">
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-medium text-gray-900">Hola</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-500">Hello</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="w-24 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 50%"></div>
+</div>
+<span class="ml-3 text-sm font-medium text-gray-500">50%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+<a class="text-blue-600 hover:text-blue-900" href="#">Edit</a>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-medium text-gray-900">Gracias</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-500">Thank you</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="w-24 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 75%"></div>
+</div>
+<span class="ml-3 text-sm font-medium text-gray-500">75%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+<a class="text-blue-600 hover:text-blue-900" href="#">Edit</a>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-medium text-gray-900">Por favor</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-500">Please</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="w-24 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 25%"></div>
+</div>
+<span class="ml-3 text-sm font-medium text-gray-500">25%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+<a class="text-blue-600 hover:text-blue-900" href="#">Edit</a>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-medium text-gray-900">De nada</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-500">You're welcome</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="w-24 bg-green-200 rounded-full h-1.5 dark:bg-gray-700">
+<div class="bg-green-500 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+<span class="ml-3 text-sm font-medium text-green-600">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+<a class="text-blue-600 hover:text-blue-900" href="#">Edit</a>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm font-medium text-gray-900">Si</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-500">Yes</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="w-24 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 60%"></div>
+</div>
+<span class="ml-3 text-sm font-medium text-gray-500">60%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+<a class="text-blue-600 hover:text-blue-900" href="#">Edit</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body></html>

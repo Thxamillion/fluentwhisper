@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B600%3B700&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #137fec;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+<div class="flex h-screen">
+<aside class="flex flex-col w-64 border-r border-gray-200 bg-white">
+<div class="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
+<div class="w-8 h-8 text-blue-600">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
+</svg>
+</div>
+<h1 class="text-xl font-bold">LinguaTrack</h1>
+</div>
+<nav class="flex-1 p-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+            Dashboard
+          </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md" href="#">
+<span class="material-symbols-outlined">school</span>
+            Lessons
+          </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md" href="#">
+<span class="material-symbols-outlined">exercise</span>
+            Practice
+          </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md" href="#">
+<span class="material-symbols-outlined">groups</span>
+            Community
+          </a>
+</nav>
+<div class="p-4 border-t border-gray-200">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDQyGZ-69K79DFvIyovN2LWHkC6FrczTIoUviRmzvMXSRSpzDjOv-jBMmK7Dgn1vTYGQAEi-ixf0kC-W58k7-9trMyWutKYcOEDaEz7wvMCVcXr3no2vj2lofNtTC-zQEwcoWyIsMPXNVTMiQuUTv7fW1gsNqq8kkL6wOpCmGsowqpuDO5xhAQvOAhRGTAq5VM-rP5wuMss85ggJ4g2IZeLj-bBfu96KNMsMSijj2R9RRf4SSsn_kjQ57o5lyxOBaeja-WmZ7hzC0wL");'></div>
+<div class="flex-1">
+<p class="text-sm font-semibold">Jane Doe</p>
+<p class="text-xs text-gray-500">jane.doe@email.com</p>
+</div>
+<button class="text-gray-500 hover:text-gray-900">
+<span class="material-symbols-outlined">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col">
+<header class="flex items-center justify-between h-16 px-8 border-b border-gray-200 bg-white">
+<div>
+<h2 class="text-2xl font-bold">Progress Dashboard</h2>
+<p class="text-sm text-gray-500">Track your language learning journey with detailed insights and metrics.</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-gray-500 hover:text-gray-900">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-gray-500 hover:text-gray-900">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<div class="flex-1 p-8 overflow-y-auto">
+<div class="flex items-center gap-4 mb-6">
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+<span>All Languages</span>
+<span class="material-symbols-outlined text-base">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+<span>Last 30 Days</span>
+<span class="material-symbols-outlined text-base">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+<span>All Metrics</span>
+<span class="material-symbols-outlined text-base">expand_more</span>
+</button>
+</div>
+<div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+<div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+<h3 class="text-lg font-semibold mb-1">Speaking Rate Trend</h3>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold">150 words/min</p>
+<p class="text-sm font-medium text-green-600">+10%</p>
+</div>
+<p class="text-sm text-gray-500 mb-4">Last 30 Days</p>
+<div class="h-48">
+<svg fill="none" height="100%" preserveAspectRatio="none" viewBox="0 0 472 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" stroke="#137fec" stroke-linecap="round" stroke-width="3"></path>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V149H0V109Z" fill="url(#paint0_linear_speaking_rate)"></path>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_speaking_rate" x1="236" x2="236" y1="1" y2="149">
+<stop stop-color="#137fec" stop-opacity="0.2"></stop>
+<stop offset="1" stop-color="#137fec" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+</svg>
+</div>
+</div>
+<div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+<h3 class="text-lg font-semibold mb-1">Vocabulary Growth</h3>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold">500 words</p>
+<p class="text-sm font-medium text-green-600">+20%</p>
+</div>
+<p class="text-sm text-gray-500 mb-4">Last 30 Days</p>
+<div class="h-48 flex items-end gap-6 px-4">
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-blue-100 rounded-t-md" style="height: 70%;"></div>
+<p class="text-xs text-gray-500 font-medium">Week 1</p>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-blue-100 rounded-t-md" style="height: 50%;"></div>
+<p class="text-xs text-gray-500 font-medium">Week 2</p>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-blue-100 rounded-t-md" style="height: 80%;"></div>
+<p class="text-xs text-gray-500 font-medium">Week 3</p>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-blue-100 rounded-t-md" style="height: 60%;"></div>
+<p class="text-xs text-gray-500 font-medium">Week 4</p>
+</div>
+</div>
+</div>
+<div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+<h3 class="text-lg font-semibold mb-1">Filler Word Usage</h3>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold">10%</p>
+<p class="text-sm font-medium text-red-600">-5%</p>
+</div>
+<p class="text-sm text-gray-500 mb-4">Last 30 Days</p>
+<div class="h-48 space-y-4 pt-2">
+<div class="flex items-center gap-4">
+<p class="text-sm font-medium text-gray-500 w-16">Week 1</p>
+<div class="flex-1 bg-gray-200 rounded-full h-2.5"><div class="bg-red-500 h-2.5 rounded-full" style="width: 30%;"></div></div>
+</div>
+<div class="flex items-center gap-4">
+<p class="text-sm font-medium text-gray-500 w-16">Week 2</p>
+<div class="flex-1 bg-gray-200 rounded-full h-2.5"><div class="bg-red-500 h-2.5 rounded-full" style="width: 25%;"></div></div>
+</div>
+<div class="flex items-center gap-4">
+<p class="text-sm font-medium text-gray-500 w-16">Week 3</p>
+<div class="flex-1 bg-gray-200 rounded-full h-2.5"><div class="bg-red-500 h-2.5 rounded-full" style="width: 20%;"></div></div>
+</div>
+<div class="flex items-center gap-4">
+<p class="text-sm font-medium text-gray-500 w-16">Week 4</p>
+<div class="flex-1 bg-gray-200 rounded-full h-2.5"><div class="bg-red-500 h-2.5 rounded-full" style="width: 10%;"></div></div>
+</div>
+</div>
+</div>
+<div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+<h3 class="text-lg font-semibold mb-1">Overall Progress</h3>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold">85%</p>
+<p class="text-sm font-medium text-green-600">+15%</p>
+</div>
+<p class="text-sm text-gray-500 mb-4">Last 30 Days</p>
+<div class="h-48">
+<svg fill="none" height="100%" preserveAspectRatio="none" viewBox="0 0 472 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 130C18.1538 130 18.1538 80 36.3077 80C54.4615 80 54.4615 90 72.6154 90C90.7692 90 90.7692 60 108.923 60C127.077 60 127.077 40 145.231 40C163.385 40 163.385 70 181.538 70C199.692 70 199.692 50 217.846 50C236 50 236 30 254.154 30C272.308 30 272.308 50 290.462 50C308.615 50 308.615 20 326.769 20C344.923 20 344.923 10 363.077 10C381.231 10 381.231 30 399.385 30C417.538 30 417.538 5 435.692 5C453.846 5 453.846 15 472 15" stroke="#137fec" stroke-linecap="round" stroke-width="3"></path>
+<path d="M0 130C18.1538 130 18.1538 80 36.3077 80C54.4615 80 54.4615 90 72.6154 90C90.7692 90 90.7692 60 108.923 60C127.077 60 127.077 40 145.231 40C163.385 40 163.385 70 181.538 70C199.692 70 199.692 50 217.846 50C236 50 236 30 254.154 30C272.308 30 272.308 50 290.462 50C308.615 50 308.615 20 326.769 20C344.923 20 344.923 10 363.077 10C381.231 10 381.231 30 399.385 30C417.538 30 417.538 5 435.692 5C453.846 5 453.846 15 472 15V150H0V130Z" fill="url(#paint0_linear_overall_progress)"></path>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_overall_progress" x1="236" x2="236" y1="5" y2="150">
+<stop stop-color="#137fec" stop-opacity="0.2"></stop>
+<stop offset="1" stop-color="#137fec" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

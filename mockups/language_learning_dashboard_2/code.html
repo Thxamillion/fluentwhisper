@@ -1,0 +1,238 @@
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --foreground-rgb: 0, 0, 0;
+        --background-start-rgb: 247, 247, 247;
+        --background-end-rgb: 247, 247, 247;
+        --card-rgb: 255, 255, 255;
+        --card-border-rgb: 229, 229, 229;
+        --primary-glow: radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0));
+        --secondary-glow: linear-gradient( to bottom right, rgba(1, 65, 255, 0), rgba(1, 65, 255, 0), rgba(1, 65, 255, 0.3) );
+      }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="relative flex min-h-screen w-full flex-col bg-gray-100 group/design-root overflow-x-hidden">
+<div class="flex h-full grow">
+<div class="fixed top-0 left-0 h-full w-60 bg-gray-50/70 p-4 backdrop-blur-2xl border-r border-gray-200">
+<div class="flex flex-col h-full">
+<h1 class="text-xl font-bold mb-8 text-gray-900">Lingua</h1>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-500 text-white" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-sm font-medium">Home</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-200/50 hover:text-gray-900 transition-colors" href="#">
+<span class="material-symbols-outlined">book</span>
+<span class="text-sm font-medium">Lessons</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-200/50 hover:text-gray-900 transition-colors" href="#">
+<span class="material-symbols-outlined">bookmark</span>
+<span class="text-sm font-medium">Vocabulary</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-200/50 hover:text-gray-900 transition-colors" href="#">
+<span class="material-symbols-outlined">spellcheck</span>
+<span class="text-sm font-medium">Grammar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-200/50 hover:text-gray-900 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-4">
+<div class="text-xs text-center text-gray-400">Press <kbd class="font-sans font-semibold">⌘K</kbd> to search...</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-200/50 hover:text-gray-900 transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm font-medium">Help</span>
+</a>
+</div>
+</div>
+</div>
+<main class="pl-64 flex-1">
+<header class="flex items-center justify-end p-4 border-b border-gray-200">
+<button class="flex items-center justify-center rounded-lg h-9 bg-blue-500 text-white gap-2 text-xs font-bold px-3 hover:bg-blue-600 transition-colors">
+<span class="material-symbols-outlined text-base">mic</span>
+<span>Record</span>
+</button>
+</header>
+<div class="p-6">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+<div class="lg:col-span-6">
+<div class="relative overflow-hidden rounded-xl bg-white/50 p-4 shadow-sm border border-gray-200 backdrop-blur-2xl h-full">
+<p class="text-xs font-bold text-gray-500 mb-2">Today / Record</p>
+<div class="flex items-center gap-4 h-full">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-24 shrink-0" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCtUgWBfXyPUIQQHMNddSsn_IUfaGPzy05fiPnAWDEV3Fh3duS8EYNI5fyXfTo_TDU_5ADW_pvJq-zxM7_SnffbMOx9iOa82ECEMEmequU29uBLKdbVbK1fGdiGqtlR_wVNagoyV4CSSTBodKZl930TS1wyMt9LBiYX0kUtsEQNN5ztEJs189f7SrJnvv1jr_KEgQDUJlI37l8JLP4tscuRP12HbakfWqqCcCeEzXIr3uNAt8VxmLk8oj7Y9kC0Q4o4XTBR5AHP0We9");'></div>
+<div class="flex-1">
+<p class="text-gray-900 text-lg font-bold">Today's Recording</p>
+<p class="text-gray-500 text-xs">Lingua Session - 24 May 2024</p>
+</div>
+<button class="flex shrink-0 items-center justify-center rounded-full size-12 bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+<span class="material-symbols-outlined text-3xl">play_arrow</span>
+</button>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4">
+<div class="relative overflow-hidden rounded-xl bg-white/50 p-4 shadow-sm border border-gray-200 backdrop-blur-2xl h-full">
+<p class="text-xs font-bold text-gray-500 mb-1">Performance Snapshot</p>
+<div class="flex items-baseline gap-2">
+<p class="text-2xl font-bold text-green-500">+10%</p>
+<p class="text-gray-500 text-xs">vs Last 7 Days</p>
+</div>
+<div class="h-20 mt-1">
+<svg fill="none" height="100%" preserveAspectRatio="none" viewBox="0 0 472 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="100%">
+<stop offset="0%" stop-color="#22c55e" stop-opacity="0.4"></stop>
+<stop offset="75%" stop-color="#22c55e" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" fill="url(#chartGradient)" stroke="#22c55e" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+</div>
+<div class="lg:col-span-2">
+<div class="relative overflow-hidden rounded-xl bg-white/50 p-4 shadow-sm border border-gray-200 backdrop-blur-2xl h-full flex flex-col justify-between">
+<div>
+<p class="text-xs font-bold text-gray-500 mb-1">Streak</p>
+<p class="text-2xl font-bold text-gray-900">3 days</p>
+</div>
+<div>
+<p class="text-xs font-bold text-gray-500 mb-1">Daily Usage</p>
+<p class="text-2xl font-bold text-gray-900">15 min</p>
+</div>
+</div>
+</div>
+<div class="lg:col-span-7">
+<div class="relative overflow-hidden rounded-xl bg-white/50 p-4 shadow-sm border border-gray-200 backdrop-blur-2xl">
+<div class="flex items-center justify-between mb-2">
+<p class="text-xs font-bold text-gray-500">Calendar Heatmap</p>
+<div class="flex items-center">
+<button class="p-1 rounded-full hover:bg-gray-200/50"><span class="material-symbols-outlined text-base">chevron_left</span></button>
+<p class="text-xs font-bold text-gray-900">May 2024</p>
+<button class="p-1 rounded-full hover:bg-gray-200/50"><span class="material-symbols-outlined text-base">chevron_right</span></button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-900">
+<div class="text-gray-400 font-medium">S</div><div class="text-gray-400 font-medium">M</div><div class="text-gray-400 font-medium">T</div><div class="text-gray-400 font-medium">W</div><div class="text-gray-400 font-medium">T</div><div class="text-gray-400 font-medium">F</div><div class="text-gray-400 font-medium">S</div>
+<div class="col-start-4 text-gray-400">1</div><div>2</div><div>3</div><div>4</div>
+<div class="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center mx-auto cursor-pointer">5</div>
+<div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div>
+<div>12</div><div>13</div><div>14</div><div class="bg-green-500/30 rounded-full w-7 h-7 flex items-center justify-center mx-auto cursor-pointer">15</div><div>16</div><div>17</div><div>18</div>
+<div class="bg-green-500/60 rounded-full w-7 h-7 flex items-center justify-center mx-auto cursor-pointer">19</div><div class="bg-green-500/80 rounded-full w-7 h-7 flex items-center justify-center mx-auto cursor-pointer">20</div><div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
+<div>26</div><div>27</div><div class="bg-amber-500/60 rounded-full w-7 h-7 flex items-center justify-center mx-auto cursor-pointer">28</div><div>29</div><div class="bg-red-500/60 rounded-full w-7 h-7 flex items-center justify-center mx-auto cursor-pointer">30</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5">
+<div class="relative overflow-hidden rounded-xl bg-white/50 shadow-sm border border-gray-200 backdrop-blur-2xl h-full">
+<p class="text-xs font-bold text-gray-500 p-4 pb-2">Recent Sessions</p>
+<table class="w-full text-xs text-left">
+<thead class="text-gray-400 uppercase bg-gray-100/50">
+<tr>
+<th class="px-4 py-2 font-medium" scope="col">Date</th>
+<th class="px-4 py-2 font-medium" scope="col">Lesson</th>
+<th class="px-4 py-2 font-medium" scope="col">Duration</th>
+<th class="px-4 py-2 font-medium" scope="col">Score</th>
+</tr>
+</thead>
+<tbody class="text-gray-900">
+<tr class="border-b border-gray-200">
+<td class="px-4 py-2">May 20</td>
+<td class="px-4 py-2">Lesson 1</td>
+<td class="px-4 py-2">10 min</td>
+<td class="px-4 py-2 text-green-500">85%</td>
+</tr>
+<tr class="border-b border-gray-200">
+<td class="px-4 py-2">May 19</td>
+<td class="px-4 py-2">Lesson 2</td>
+<td class="px-4 py-2">15 min</td>
+<td class="px-4 py-2 text-green-500">90%</td>
+</tr>
+<tr class="border-b border-gray-200">
+<td class="px-4 py-2">May 18</td>
+<td class="px-4 py-2">Lesson 3</td>
+<td class="px-4 py-2">20 min</td>
+<td class="px-4 py-2 text-amber-500">75%</td>
+</tr>
+<tr>
+<td class="px-4 py-2">May 17</td>
+<td class="px-4 py-2">Lesson 4</td>
+<td class="px-4 py-2">12 min</td>
+<td class="px-4 py-2 text-red-500">65%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="lg:col-span-12">
+<div class="relative overflow-hidden rounded-xl bg-white/50 shadow-sm border border-gray-200 backdrop-blur-2xl">
+<p class="text-xs font-bold text-gray-500 p-4 pb-2">Vocabulary Inbox</p>
+<table class="w-full text-xs text-left">
+<thead class="text-gray-400 uppercase bg-gray-100/50">
+<tr>
+<th class="px-4 py-2 font-medium" scope="col">Word</th>
+<th class="px-4 py-2 font-medium" scope="col">Definition</th>
+<th class="px-4 py-2 font-medium" scope="col">Example</th>
+</tr>
+</thead>
+<tbody class="text-gray-900">
+<tr class="border-b border-gray-200">
+<td class="px-4 py-2 font-medium">Bonjour</td>
+<td class="px-4 py-2">Hello</td>
+<td class="px-4 py-2 text-gray-500 italic">"Bonjour, comment allez-vous ?"</td>
+</tr>
+<tr class="border-b border-gray-200">
+<td class="px-4 py-2 font-medium">Merci</td>
+<td class="px-4 py-2">Thank you</td>
+<td class="px-4 py-2 text-gray-500 italic">"Merci beaucoup pour votre aide."</td>
+</tr>
+<tr>
+<td class="px-4 py-2 font-medium">Au revoir</td>
+<td class="px-4 py-2">Goodbye</td>
+<td class="px-4 py-2 text-gray-500 italic">"Au revoir, à bientôt."</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed top-0 right-0 h-full w-80 bg-gray-50/70 p-4 backdrop-blur-2xl border-l border-gray-200 translate-x-full transition-transform duration-300 ease-in-out">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-base font-bold text-gray-900">Session Details - May 5, 2024</h3>
+<button class="p-1 rounded-full hover:bg-gray-200/50">
+<span class="material-symbols-outlined text-base">close</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="p-3 rounded-lg bg-white/50 border border-gray-200">
+<p class="text-xs font-medium text-gray-500">Duration</p>
+<p class="text-sm font-bold text-gray-900">25 minutes</p>
+</div>
+<div class="p-3 rounded-lg bg-white/50 border border-gray-200">
+<p class="text-xs font-medium text-gray-500">Lesson</p>
+<p class="text-sm font-bold text-gray-900">Advanced French Conversation</p>
+</div>
+<div class="p-3 rounded-lg bg-white/50 border border-gray-200">
+<p class="text-xs font-medium text-gray-500">Score</p>
+<p class="text-sm font-bold text-green-500">92%</p>
+</div>
+<div class="p-3 rounded-lg bg-white/50 border border-gray-200">
+<p class="text-xs font-medium text-gray-500">Notes</p>
+<p class="text-sm text-gray-700">Practiced past tense conjugations. Feeling more confident with the imparfait.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

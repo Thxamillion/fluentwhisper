@@ -1,0 +1,40 @@
+{
+  "productName": "Fluent Diary",
+  "version": "0.1.0",
+  "identifier": "com.fluentdiary.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Fluent Diary",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [],
+    "copyright": "",
+    "category": "Education",
+    "shortDescription": "Privacy-first speech practice app",
+    "longDescription": "Desktop app for speech practice with offline transcription and metrics tracking"
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}
