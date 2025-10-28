@@ -26,6 +26,22 @@ export async function getRecordingDevices(): Promise<ServiceResult<DeviceInfo[]>
 }
 
 /**
+ * Create a new recording session in the database
+ */
+export async function createSession(language: string): Promise<ServiceResult<string>> {
+  try {
+    const sessionId = await invoke<string>('create_recording_session', { language });
+    return { success: true, data: sessionId };
+  } catch (error) {
+    console.error('Failed to create session:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * Start recording audio
  */
 export async function startRecording(

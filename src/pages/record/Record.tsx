@@ -56,7 +56,7 @@ export function Record() {
     } else {
       // Start recording
       setTranscript('');
-      recording.startRecording(selectedDevice);
+      recording.startRecording(selectedLanguage, selectedDevice);
     }
   };
 

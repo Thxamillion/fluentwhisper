@@ -37,8 +37,15 @@ export function useRecording() {
 
   // Start recording mutation
   const startMutation = useMutation({
-    mutationFn: async (deviceName?: string) => {
-      const newSessionId = crypto.randomUUID();
+    mutationFn: async ({ deviceName, language }: { deviceName?: string; language: string }) => {
+      // First create the session in the database
+      const sessionResult = await recordingService.createSession(language);
+      if (!sessionResult.success) {
+        throw new Error(sessionResult.error);
+      }
+      const newSessionId = sessionResult.data;
+
+      // Then start recording
       const result = await recordingService.startRecording(newSessionId, deviceName);
       if (!result.success) {
         throw new Error(result.error);
@@ -146,8 +153,8 @@ export function useRecording() {
 
   // Start recording function
   const startRecording = useCallback(
-    (deviceName?: string) => {
-      startMutation.mutate(deviceName);
+    (language: string, deviceName?: string) => {
+      startMutation.mutate({ deviceName, language });
     },
     [startMutation]
   );
