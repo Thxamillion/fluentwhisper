@@ -18,7 +18,7 @@ export function Layout() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header - Floating */}
-        <header className="absolute top-0 left-0 right-0 z-10 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border/40">
+        <header className="absolute top-0 left-0 right-0 z-10 px-6 py-4 bg-background/80 backdrop-blur-md">
           <div className="flex items-center justify-end">
             <div className="flex items-center space-x-4">
               <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
