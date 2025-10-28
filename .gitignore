@@ -61,6 +61,14 @@ src-tauri/WixTools/
 *.db-journal
 *.db-wal
 
+# Large language pack files
+langpacks/**/*.db
+src-tauri/langpacks/**/*.db
+
+# Large data files
+scripts/kaikki-*.jsonl
+scripts/*.jsonl
+
 # Audio recordings (optional - uncomment if you don't want to track audio files)
 # *.wav
 # *.mp3
