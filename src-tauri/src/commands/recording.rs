@@ -75,9 +75,20 @@ pub async fn transcribe(
 
     // Use default model path if not provided
     // TODO: Make this configurable via settings
-    let model = model_path
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("models/ggml-base.bin"));
+    // Priority: small > base > tiny
+    let model = model_path.map(PathBuf::from).unwrap_or_else(|| {
+        let small = PathBuf::from("models/ggml-small.bin");
+        let base = PathBuf::from("models/ggml-base.bin");
+        let tiny = PathBuf::from("models/ggml-tiny.bin");
+
+        if small.exists() {
+            small
+        } else if base.exists() {
+            base
+        } else {
+            tiny
+        }
+    });
 
     // Check if model exists
     if !model.exists() {

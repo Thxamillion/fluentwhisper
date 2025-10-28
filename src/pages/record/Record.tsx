@@ -13,7 +13,7 @@ export function Record() {
   const { data: devices, isLoading: devicesLoading } = useRecordingDevices();
   const recording = useRecording();
 
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedLanguage, setSelectedLanguage] = useState('es');
   const [selectedDevice, setSelectedDevice] = useState<string | undefined>();
   const [transcript, setTranscript] = useState('');
   const [processingStage, setProcessingStage] = useState<'idle' | 'transcribing' | 'processing'>('idle');

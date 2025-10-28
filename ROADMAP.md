@@ -1,252 +1,271 @@
 # FluentWhisper Development Roadmap
 
-## Current Status
+## ✅ Completed Phases
 
-✅ **Completed:**
-- Spanish→English translation database (100k entries, 10 MB)
-- Spanish lemmatization database (677k forms, 66 MB)
-- English lemmatization database (15k forms, 1.2 MB)
-- Rust backend services (lemmatization, translation)
-- Tauri commands exposed to frontend
-- All tests passing (9/9)
+### Phase 1: Language Pack Integration ✅
+- Spanish/English lemmatization databases
+- Lemma lookup and word normalization
+- Language-specific tokenization
 
----
+### Phase 2: Tokenization Service ✅
+- Word extraction from transcripts
+- Punctuation handling
+- Stopword filtering
 
-## Phase 1: Frontend Integration (Days 1-2)
+### Phase 3: Vocabulary Persistence ✅
+- SQLite database for user vocabulary
+- Track word forms, usage counts, timestamps
+- Session-word relationships
 
-### 1. TypeScript Service Layer ⭐ IN PROGRESS
-**Goal:** Type-safe wrappers around Tauri commands
-
-**Files to create:**
-```
-src/services/
-├── langpack/
-│   ├── lemmatization.ts    # getLemma, lemmatizeBatch
-│   ├── translation.ts      # getTranslation, translateBatch
-│   └── types.ts            # WordResult, LangCode types
-```
-
-**Functions:**
-```typescript
-export async function getLemma(word: string, lang: string): Promise<string | null>
-export async function lemmatizeBatch(words: string[], lang: string): Promise<Array<[string, string]>>
-export async function getTranslation(lemma: string, fromLang: string, toLang: string): Promise<string | null>
-export async function processWords(words: string[], lang: string, targetLang: string): Promise<WordResult[]>
-```
-
-**Why first?** Following three-layer architecture - service layer before hooks/UI
+### Phase 4: Recording Integration ✅
+- Local Whisper transcription (whisper-rs)
+- Audio recording with device selection
+- Full pipeline: Record → Transcribe → Process → Save
+- Model management (Small recommended, 466MB)
+- React Query hooks for state management
+- Processing indicators and error handling
+- Session creation and vocabulary extraction working
 
 ---
 
-### 2. React Query Hooks
-**Goal:** Reactive data layer with caching
+### Phase 5: Stats & Analytics Page ✅
+**Goal:** Visualize progress and gamify practice
 
-**Files to create:**
-```
-src/hooks/
-├── useLemmatization.ts
-├── useTranslation.ts
-└── useProcessWords.ts
-```
+**Completed Features:**
+- ✅ Total speaking time counter
+- ✅ Session count display
+- ✅ Vocabulary size display
+- ✅ Average WPM
+- ✅ Current streak + longest streak
+- ✅ Avg unique words per session
+- ✅ Avg new words per session
+- ✅ Top 10 most practiced words with usage bars
+- ✅ Language filter dropdown
 
-**Example:**
-```typescript
-export function useProcessWords(words: string[], lang: string, targetLang: string) {
-  return useQuery({
-    queryKey: ['processWords', words, lang, targetLang],
-    queryFn: () => processWords(words, lang, targetLang),
-  })
-}
-```
+**Technical:**
+- ✅ Query aggregation service (Rust)
+- ✅ Tauri commands for stats (5 commands)
+- ✅ React Query hooks with caching
+- ✅ Real-time data from database
 
-**Why?** Wraps services with caching/reactivity per architecture
-
----
-
-### 3. Simple Test UI
-**Goal:** Validate full stack works end-to-end
-
-**Component:**
-```tsx
-// src/pages/TestLangpack.tsx
-Input: "estoy corriendo"
-Button: "Process Words"
-Output:
-  - estoy → estar → "to be"
-  - corriendo → correr → "to run"
-```
-
-**Why?** Validate before building complex features
+**Future Enhancements:**
+- [ ] Vocabulary growth chart over time (line chart)
+- [ ] WPM trends chart (line chart)
+- [ ] Calendar heatmap for practice days
+- [ ] Date range filtering (7/30/90 days)
+- [ ] Charts library integration (recharts)
 
 ---
 
-## Phase 2: Text Processing (Day 3)
+## 🚧 Current Phase
 
-### 4. Tokenization Service
-**Goal:** Convert transcript to word array
+### Phase 6: Session History Page (NEXT)
+**Priority:** HIGH - Users need to review past sessions
 
-```typescript
-// src/services/text/tokenization.ts
-export function tokenize(text: string): string[]
-// "Estoy corriendo rápido" → ["estoy", "corriendo", "rápido"]
-```
+**Key Features:**
+- View list of all past recording sessions
+- Sort by date, duration, language
+- Click to see session details (transcript, stats, vocab)
+- Delete sessions
+- Simple list UI (no audio playback yet)
+
+**Why Next:** Core feature, completes the basic MVP loop
+
+---
+
+## 📋 Upcoming Phases
+
+### Phase 7: Vocabulary Page Enhancement
+**Goal:** Make vocabulary more actionable
 
 **Features:**
-- Remove punctuation
-- Handle contractions
-- Lowercase normalization
-- Language-specific rules
+- [ ] Export vocabulary to CSV
+- [ ] Export to Anki format (.apkg)
+- [ ] Mark words as "mastered" or "known"
+- [ ] Spaced repetition flashcard mode
+- [ ] Search and filter vocabulary (by language, date, frequency)
+- [ ] Sort by various metrics (newest, most used, mastered)
+- [ ] Show example sentences from sessions where word appears
+- [ ] Word definitions (optional dictionary API integration)
+- [ ] Audio pronunciation (TTS or recordings)
+- [ ] Custom word lists/decks
 
-**Why?** Bridge between transcription and lemmatization
+**Technical:**
+- CSV export service
+- Anki file generation
+- Spaced repetition algorithm (SM-2 or similar)
+- Flashcard UI component
+- Search/filter query builder
+- Dictionary API integration (optional)
 
 ---
 
-### 5. Vocabulary Display Component
-**Goal:** Core UI for discovered words
-
-```tsx
-// src/components/VocabularyCard.tsx
-<VocabularyCard
-  word="estoy"
-  lemma="estar"
-  translation="to be"
-  usageCount={5}
-  firstSeen={timestamp}
-/>
-```
+### Phase 8: UX Polish & Bug Fixes
+**Goal:** Professional feel, fewer rough edges
 
 **Features:**
-- Show word, lemma, translation
-- Display usage statistics
-- Click to see example sentences (future)
+- [ ] Better error handling and user-friendly messages
+- [ ] Loading states and skeleton screens
+- [ ] Smooth animations and transitions
+- [ ] Keyboard shortcuts (Space to record, Esc to stop, etc.)
+- [ ] Audio settings (mic levels, input monitoring)
+- [ ] Noise reduction toggle
+- [ ] Better onboarding flow (first-time user guide)
+- [ ] Dark mode support
+- [ ] Accessibility (ARIA labels, keyboard nav)
+- [ ] Tooltips and help text
+- [ ] Empty states with helpful CTAs
+- [ ] Confirmation dialogs for destructive actions
 
-**Why?** Core UI pattern for vocabulary tracking
-
----
-
-## Phase 3: Persistence (Day 4)
-
-### 6. User Database Schema
-**Goal:** Local SQLite database for user progress
-
-**Implementation:**
-```rust
-// src-tauri/src/db/user.rs
-- Create vocab table
-- Create sessions table
-- Create session_words table
-```
-
-**Schema:** Per `database-schema.md`
-
-**Why?** Store vocabulary progress locally
+**Technical:**
+- Error boundary components
+- Global keyboard shortcut handler
+- Animation library (framer-motion?)
+- Audio visualization (waveform)
+- Theme provider
+- Onboarding state management
 
 ---
 
-### 7. Rust Vocabulary Service
-**Goal:** Persist discovered words
+### Phase 9: Advanced Recording Features
+**Goal:** Power user features
 
-```rust
-// src-tauri/src/services/vocabulary.rs
-pub async fn record_word(lemma, language, form_spoken, session_id) -> Result<()>
-pub async fn get_user_vocab(language) -> Result<Vec<VocabEntry>>
-pub async fn update_word_usage(lemma, language) -> Result<()>
-```
+**Features:**
+- [ ] Pause/resume recording
+- [ ] Audio playback in Record page (review before saving)
+- [ ] Real-time word detection during recording (live transcript)
+- [ ] Recording templates/prompts library
+- [ ] Auto-save drafts (unsaved recordings)
+- [ ] Background noise detection/warning
+- [ ] Audio level meter
+- [ ] Custom recording duration limits
+- [ ] Voice activity detection (auto-stop on silence)
+- [ ] Multiple takes/re-record option
 
-**Tauri Commands:**
-```rust
-#[tauri::command]
-async fn record_vocabulary(...)
-#[tauri::command]
-async fn get_vocabulary(lang: String)
-```
-
-**Why?** Persist discovered words to user.db
-
----
-
-## Phase 4: Audio + Whisper (Days 5-7)
-
-### 8. Whisper Integration
-**Research:**
-- whisper.cpp (C++ bindings, fast)
-- faster-whisper (Python bindings, accurate)
-- whisper-rs (Pure Rust, newest)
-
-**Implementation:**
-```rust
-// src-tauri/src/services/transcription.rs
-pub async fn transcribe_audio(audio_path: &str, lang: &str) -> Result<String>
-```
-
-**Tauri Command:**
-```rust
-#[tauri::command]
-async fn transcribe(audio_path: String, language: String) -> Result<String, String>
-```
-
-**Why?** Core transcription capability
+**Technical:**
+- Recording state machine (idle/recording/paused/stopped)
+- Draft storage system
+- Real-time transcription (streaming?)
+- Audio visualization
+- VAD algorithm
+- Prompt template system
 
 ---
 
-### 9. Complete Pipeline
-**Goal:** End-to-end user flow
+### Phase 10: Multi-Language Support
+**Goal:** Support more languages beyond Spanish/English
 
-**Pipeline:**
-```
-1. User clicks Record
-   ↓
-2. Capture Audio → save WAV
-   ↓
-3. Whisper → Transcript
-   ↓
-4. Tokenize → Words array
-   ↓
-5. Lemmatize → Base forms
-   ↓
-6. Translate → Meanings
-   ↓
-7. Store Vocab → user.db
-   ↓
-8. Display session stats + new words
-```
+**Features:**
+- [ ] Add French, German, Italian, Portuguese lemmatization
+- [ ] Language-specific settings
+- [ ] Mixed language support (detect language per session)
+- [ ] Translation features (optional)
+- [ ] Language learning goals per language
+- [ ] Compare stats across languages
 
-**Why?** Full MVP user experience
+**Technical:**
+- Additional lemma databases
+- Language detection
+- Multi-language query support
+- Translation API (optional)
 
 ---
 
-## Code Quality Standards
+### Phase 11: Social & Sharing
+**Goal:** Community and motivation
 
-Following `CLAUDE.md`:
+**Features:**
+- [ ] Share session stats (social media cards)
+- [ ] Export session audio/transcript
+- [ ] Friends/teacher sharing (optional)
+- [ ] Leaderboards (optional, privacy-focused)
+- [ ] Achievements/badges system
+- [ ] Practice reminders/notifications
 
-- ✅ **Three-layer architecture:** Service → Query → UI
-- ✅ **Error handling:** Try/catch at boundaries only (Tauri, DB, Whisper)
-- ✅ **Pure functions:** Service layer has no UI dependencies
-- ✅ **TypeScript strict:** No `any` types
-- ✅ **Documentation:** JSDoc for complex functions
-- ✅ **Testing:** Unit tests for services, integration tests for commands
-
----
-
-## Future Enhancements (v0.3+)
-
-- **Analytics Dashboard:** WPM trends, vocab growth charts
-- **Vocabulary Review:** Flashcards, spaced repetition
-- **Multi-language Support:** French, German language packs
-- **Import Features:** YouTube videos, articles for reading practice
-- **Speech Shadowing:** Listen + repeat mode
+**Technical:**
+- Social card generation (OG images)
+- Export functionality
+- Notification system
+- Achievement tracking
 
 ---
 
-## Success Metrics (MVP)
+### Phase 12: Mobile & Cross-Platform
+**Goal:** Use on all devices
 
-- ✅ Record 1-minute Spanish session
-- ✅ Get accurate transcription
-- ✅ Discover 10-20 new words
-- ✅ See translations for all words
-- ✅ Track vocabulary growth over time
-- ✅ All data stored locally (100% offline)
+**Features:**
+- [ ] Mobile app (iOS/Android via Tauri)
+- [ ] Cloud sync (optional, privacy-focused)
+- [ ] Cross-device sessions
+- [ ] Mobile-optimized UI
+
+**Technical:**
+- Tauri mobile support
+- Sync service (optional)
+- Responsive design improvements
 
 ---
 
-**Status:** Phase 1, Step 1 - TypeScript Service Layer (IN PROGRESS)
+## 🔮 Future Ideas (Backlog)
+
+- **AI-powered feedback:** Pronunciation scoring, grammar suggestions
+- **Conversation practice:** AI conversation partner
+- **Reading mode:** Import text, highlight new vocabulary
+- **Video support:** Transcribe videos for language learning
+- **Browser extension:** Capture vocabulary from web browsing
+- **Offline-first PWA:** Use in browser without install
+- **Study groups:** Share vocabulary lists with classmates
+- **Import existing vocabulary:** From Anki, Quizlet, etc.
+- **Custom word pronunciation:** Record your own audio for words
+- **Sentence mining:** Extract full sentences with new words
+- **Model selection UI:** Choose between Tiny/Base/Small/Medium in settings
+- **Automatic language detection:** Detect which language was spoken
+
+---
+
+## 🎯 Success Metrics
+
+**User Engagement:**
+- Daily active users
+- Average session length
+- Sessions per week
+- Vocabulary words learned per week
+
+**Technical Health:**
+- App load time < 2s
+- Recording start time < 500ms
+- Transcription time < 5s for 60s audio (Small model)
+- Zero data loss (sessions, vocabulary)
+
+**User Satisfaction:**
+- Transcription accuracy > 90% (with Small model)
+- App rating > 4.5/5
+- NPS score > 50
+
+---
+
+## 📝 Technical Notes
+
+**Current Tech Stack:**
+- Frontend: React, TypeScript, TanStack Query, Tailwind CSS
+- Backend: Rust, Tauri v2, SQLite, whisper-rs
+- Models: Whisper Small (466MB, recommended)
+- Audio: cpal (recording), hound (WAV), rubato (resampling)
+
+**Architecture Principles:**
+- Three-layer: Service → Query → UI
+- Local-first (no cloud dependencies)
+- Privacy-focused (all data stays on device)
+- Migration-free settings
+- Error handling at boundaries only
+
+**Development Workflow:**
+- Type-check: `bun run type-check`
+- Lint: `bun run lint`
+- Build: `bun run tauri build`
+- Dev: `bun run tauri dev`
+- Rust check: `cd src-tauri && cargo check`
+
+---
+
+**Last Updated:** Phase 5 Complete (Stats & Analytics working!), Phase 6 Next (Session History)

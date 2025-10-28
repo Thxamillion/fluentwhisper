@@ -45,12 +45,20 @@ pub fn get_models_dir() -> Result<PathBuf> {
 pub fn get_available_models() -> Vec<WhisperModel> {
     vec![
         WhisperModel {
+            name: "small".to_string(),
+            display_name: "Small (Recommended)".to_string(),
+            file_name: "ggml-small.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin".to_string(),
+            size_mb: 466,
+            description: "Best balance of accuracy and speed. Recommended for most users.".to_string(),
+        },
+        WhisperModel {
             name: "base".to_string(),
-            display_name: "Base (Recommended)".to_string(),
+            display_name: "Base (Faster)".to_string(),
             file_name: "ggml-base.bin".to_string(),
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin".to_string(),
             size_mb: 142,
-            description: "Good balance of speed and accuracy. Best for most users.".to_string(),
+            description: "Faster but less accurate. Good for testing.".to_string(),
         },
         WhisperModel {
             name: "tiny".to_string(),
@@ -58,15 +66,7 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             file_name: "ggml-tiny.bin".to_string(),
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin".to_string(),
             size_mb: 75,
-            description: "Fastest but less accurate. Good for testing.".to_string(),
-        },
-        WhisperModel {
-            name: "small".to_string(),
-            display_name: "Small (More Accurate)".to_string(),
-            file_name: "ggml-small.bin".to_string(),
-            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin".to_string(),
-            size_mb: 466,
-            description: "Better accuracy, slower processing.".to_string(),
+            description: "Fastest but least accurate. Not recommended.".to_string(),
         },
     ]
 }
@@ -85,15 +85,15 @@ pub fn is_model_installed(model_name: &str) -> Result<bool> {
     Ok(model_path.exists())
 }
 
-/// Get the default model name (base)
+/// Get the default model name (small)
 pub fn get_default_model() -> String {
-    "base".to_string()
+    "small".to_string()
 }
 
 /// Get path to the default model
 pub fn get_default_model_path() -> Result<PathBuf> {
     let models_dir = get_models_dir()?;
-    Ok(models_dir.join("ggml-base.bin"))
+    Ok(models_dir.join("ggml-small.bin"))
 }
 
 /// Get path to a specific model
