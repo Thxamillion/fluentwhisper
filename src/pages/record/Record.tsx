@@ -1,9 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BookOpen, Sparkles, Mic, Square, Loader2 } from 'lucide-react'
+import { ChevronDown, Mic, Square, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRecording, useRecordingDevices } from '@/hooks/recording'
 import { useDefaultModelInstalled } from '@/hooks/models'
@@ -17,6 +14,7 @@ export function Record() {
   const [selectedDevice, setSelectedDevice] = useState<string | undefined>();
   const [transcript, setTranscript] = useState('');
   const [processingStage, setProcessingStage] = useState<'idle' | 'transcribing' | 'processing'>('idle');
+  const [promptsExpanded, setPromptsExpanded] = useState(false);
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -64,106 +62,45 @@ export function Record() {
   const canRecord = !devicesLoading && isModelInstalled && !isProcessing;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
+    <div className="p-8 max-w-3xl mx-auto">
+      <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Practice</h1>
         <p className="text-muted-foreground">Hone your pronunciation and get instant feedback.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Prompt & Settings */}
-        <div className="space-y-6">
-          {/* Prompt Picker */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Prompt Picker</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a prompt from your library" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="prompt1">Practice conversation</SelectItem>
-                    <SelectItem value="prompt2">Reading passage</SelectItem>
-                    <SelectItem value="prompt3">Pronunciation drill</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" className="mt-2" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Library
-                </Button>
-              </div>
+      <div className="space-y-6">
+        {/* Collapsible Prompt Picker */}
+        <div className="border rounded-lg">
+          <button
+            onClick={() => setPromptsExpanded(!promptsExpanded)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-lg"
+          >
+            <span className="text-sm font-medium text-muted-foreground">Practice Prompts (Optional)</span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${promptsExpanded ? 'rotate-180' : ''}`} />
+          </button>
 
-              <div className="text-center text-muted-foreground text-sm">or</div>
-
-              <div>
-                <Textarea
-                  placeholder="Write your own prompt..."
-                  className="h-32 resize-none"
-                />
-                <Button className="mt-2 text-white" size="sm">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate with AI
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Input & Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Input & Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Language</label>
-                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording.isRecording}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="English" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                    <SelectItem value="de">German</SelectItem>
-                    <SelectItem value="it">Italian</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Microphone</label>
-                <Select
-                  value={selectedDevice}
-                  onValueChange={setSelectedDevice}
-                  disabled={recording.isRecording || devicesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={devicesLoading ? "Loading devices..." : "Default Microphone"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {devices?.map((device) => (
-                      <SelectItem key={device.name} value={device.name}>
-                        {device.name} {device.isDefault ? '(Default)' : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+          {promptsExpanded && (
+            <div className="px-4 pb-4 space-y-2 border-t pt-4">
+              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
+                📝 Describe your day in detail
+              </button>
+              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
+                🗣️ Practice introducing yourself
+              </button>
+              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
+                📖 Read a short passage aloud
+              </button>
+              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
+                💭 Talk about your goals and dreams
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Right Column - Recorder */}
-        <div className="space-y-6">
-          {/* Recorder Panel */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recorder Panel</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-muted rounded-lg p-8 text-center mb-6">
+        {/* Recorder Panel */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="py-12 text-center">
                 {!isModelInstalled && (
                   <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-900">
@@ -184,33 +121,33 @@ export function Record() {
 
                 {!isProcessing && (
                   <>
-                    <p className="text-muted-foreground mb-8">
+                    <p className="text-muted-foreground mb-10">
                       {recording.isRecording ? 'Recording in progress...' : 'Press the button to start recording'}
                     </p>
-                    <div className="space-y-4">
-                      <div className="flex justify-center space-x-4 text-2xl font-mono">
-                        <span className={recording.isRecording ? 'text-red-600' : ''}>
-                          {formatTime(recording.elapsedTime)}
-                        </span>
-                      </div>
+                    <div className="space-y-6">
                       <Button
                         size="icon"
-                        className={`w-16 h-16 rounded-full ${
+                        className={`w-24 h-24 rounded-full ${
                           recording.isRecording
                             ? 'bg-red-600 hover:bg-red-700'
                             : 'bg-blue-600 hover:bg-blue-700'
-                        } text-white`}
+                        } text-white shadow-lg`}
                         onClick={handleRecordToggle}
                         disabled={!canRecord || recording.isStarting}
                       >
                         {recording.isStarting ? (
-                          <Loader2 className="w-6 h-6 animate-spin" />
+                          <Loader2 className="w-10 h-10 animate-spin" />
                         ) : recording.isRecording ? (
-                          <Square className="w-6 h-6" />
+                          <Square className="w-10 h-10" />
                         ) : (
-                          <Mic className="w-6 h-6" />
+                          <Mic className="w-10 h-10" />
                         )}
                       </Button>
+                      <div className="flex justify-center text-3xl font-mono">
+                        <span className={recording.isRecording ? 'text-red-600 font-bold' : 'text-muted-foreground'}>
+                          {formatTime(recording.elapsedTime)}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}
@@ -218,49 +155,20 @@ export function Record() {
             </CardContent>
           </Card>
 
-          {/* Transcript Preview */}
+        {/* Transcript Preview */}
+        {transcript && (
           <Card>
             <CardHeader>
-              <CardTitle>Transcript Preview</CardTitle>
+              <CardTitle>Transcript</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-muted rounded-lg p-4 min-h-[100px]">
-                {transcript ? (
-                  <p className="text-foreground whitespace-pre-wrap">{transcript}</p>
-                ) : (
-                  <p className="text-muted-foreground">
-                    {recording.isRecording
-                      ? 'Recording... Transcript will appear after you stop.'
-                      : 'Your transcript will appear here after recording...'}
-                  </p>
-                )}
+                <p className="text-foreground whitespace-pre-wrap leading-relaxed">{transcript}</p>
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Quick Metrics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Metrics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-muted-foreground">N/A</div>
-                  <div className="text-sm text-muted-foreground">Accuracy</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-muted-foreground">N/A</div>
-                  <div className="text-sm text-muted-foreground">Fluency</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-muted-foreground">N/A</div>
-                  <div className="text-sm text-muted-foreground">Speed</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   )

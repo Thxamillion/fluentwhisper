@@ -1,251 +1,216 @@
 # FluentWhisper Development Roadmap
 
-## ✅ Completed Phases
+## 🎉 MVP Complete!
 
-### Phase 1: Language Pack Integration ✅
-- Spanish/English lemmatization databases
-- Lemma lookup and word normalization
-- Language-specific tokenization
-
-### Phase 2: Tokenization Service ✅
-- Word extraction from transcripts
-- Punctuation handling
-- Stopword filtering
-
-### Phase 3: Vocabulary Persistence ✅
-- SQLite database for user vocabulary
-- Track word forms, usage counts, timestamps
-- Session-word relationships
-
-### Phase 4: Recording Integration ✅
-- Local Whisper transcription (whisper-rs)
-- Audio recording with device selection
-- Full pipeline: Record → Transcribe → Process → Save
-- Model management (Small recommended, 466MB)
-- React Query hooks for state management
-- Processing indicators and error handling
-- Session creation and vocabulary extraction working
+All core features are working:
+- ✅ Recording with Whisper transcription
+- ✅ Stats & Analytics dashboard
+- ✅ Session History with audio playback
+- ✅ Vocabulary page with real data, pagination, translations
 
 ---
 
-### Phase 5: Stats & Analytics Page ✅
-**Goal:** Visualize progress and gamify practice
+## 🚀 Phase 8: Recording Flow Redesign (MUST-DO)
+**Goal:** Professional recording experience with proper flow
 
-**Completed Features:**
-- ✅ Total speaking time counter
-- ✅ Session count display
-- ✅ Vocabulary size display
-- ✅ Average WPM
-- ✅ Current streak + longest streak
-- ✅ Avg unique words per session
-- ✅ Avg new words per session
-- ✅ Top 10 most practiced words with usage bars
-- ✅ Language filter dropdown
+**Current Issues:**
+- Pressing mic immediately records and stops with no preview
+- No way to review audio before transcribing
+- Immediately redirects to sessions after stopping
+
+**New Flow:**
+1. User presses Record button
+2. Recording starts (show timer, waveform)
+3. User presses Stop button
+4. **NEW:** Recording preview screen appears:
+   - Audio player to review recording
+   - Transcription status indicator
+   - Two buttons: "Discard" or "Transcribe & Save"
+5. When user presses "Transcribe & Save":
+   - Show loading state during transcription
+   - Process vocabulary and stats
+   - Redirect to Session Detail page
 
 **Technical:**
-- ✅ Query aggregation service (Rust)
-- ✅ Tauri commands for stats (5 commands)
-- ✅ React Query hooks with caching
-- ✅ Real-time data from database
-
-**Future Enhancements:**
-- [ ] Vocabulary growth chart over time (line chart)
-- [ ] WPM trends chart (line chart)
-- [ ] Calendar heatmap for practice days
-- [ ] Date range filtering (7/30/90 days)
-- [ ] Charts library integration (recharts)
+- [ ] Recording state machine (idle → recording → stopped → previewing)
+- [ ] Preview UI component with audio player
+- [ ] "Discard" action (delete temp audio file)
+- [ ] "Transcribe & Save" action (existing flow)
+- [ ] Loading overlay during transcription
+- [ ] Navigate to `/session/:id` after completion
 
 ---
 
-### Phase 6: Session History Page ✅
-**Goal:** View and manage past recording sessions
+## 📚 Phase 9: Onboarding Flow (MUST-DO)
+**Goal:** Guide new users through setup
 
-**Completed Features:**
-- ✅ View all past sessions in clean card layout
-- ✅ Filter sessions by language (All/Spanish/English/French)
-- ✅ Display session stats (duration, word count, WPM, new words)
-- ✅ Show transcript preview with line clamping
-- ✅ Delete sessions with confirmation dialog
-- ✅ Empty state with helpful CTAs
-- ✅ Responsive hover effects and transitions
+**Features:**
+- [ ] Welcome screen explaining the app
+- [ ] Whisper model download prompt (if not exists)
+   - Show model sizes and accuracy tradeoffs
+   - Download progress bar
+- [ ] Language selection
+- [ ] Microphone permission request with explanation
+- [ ] Test recording to verify setup
+- [ ] Quick tutorial of main features
+- [ ] "Get Started" button to home
 
 **Technical:**
-- ✅ Rust service layer with session queries
-- ✅ 4 Tauri commands (get all, get by ID, get by language, delete)
-- ✅ TypeScript service wrapper
-- ✅ React Query hooks with cache invalidation
-- ✅ Mutation handling for delete with optimistic updates
+- [ ] Onboarding state in settings (completed: boolean)
+- [ ] Multi-step wizard component
+- [ ] Model download service with progress
+- [ ] Mic permission check
+- [ ] First-run detection
 
 ---
 
-## 📋 Upcoming Phases
+## 🎬 Phase 10: YouTube Content Import (WANT-TO-HAVE)
+**Goal:** Import YouTube videos as reading/speaking practice content
 
-### Phase 7: Vocabulary Page Enhancement
+**Features:**
+- [ ] Paste YouTube URL
+- [ ] Fetch video transcript (via YouTube API or yt-dlp)
+- [ ] Import as "Content" (separate from Sessions)
+- [ ] Content library page showing imported videos/articles
+- [ ] Read-aloud mode:
+   - Display transcript text with highlighting
+   - Record yourself reading along
+   - Compare your recording to original (optional)
+   - Track vocabulary from read-aloud sessions
+
+**Technical:**
+- [ ] YouTube transcript fetching service
+- [ ] New "Content" database table (id, title, source_url, transcript, language)
+- [ ] Content library UI page
+- [ ] Read-aloud recording mode
+- [ ] Link content to sessions
+
+---
+
+## 🎨 Phase 11: Settings Page
+**Goal:** Configure app behavior
+
+**Features:**
+- [ ] Whisper model selection (Tiny/Base/Small/Medium)
+- [ ] Default language preference
+- [ ] Target WPM setting
+- [ ] Audio device selection
+- [ ] Transcription language setting
+- [ ] Export/import data (backup/restore)
+
+**Technical:**
+- [ ] Settings UI with form
+- [ ] Model switching logic
+- [ ] Device enumeration
+- [ ] Settings persistence (already have migration-free system)
+
+---
+
+## ✨ Phase 12: UX Polish & Performance
+**Goal:** Make the app feel professional
+
+**Features:**
+- [ ] Better loading states (skeleton screens)
+- [ ] Error boundaries with user-friendly messages
+- [ ] Keyboard shortcuts:
+  - Space to start/stop recording
+  - Esc to cancel/close modals
+  - Cmd+K for quick navigation
+- [ ] Smooth animations (framer-motion)
+- [ ] Tooltips for unclear UI elements
+- [ ] Confirmation dialogs for destructive actions
+- [ ] Empty states with helpful CTAs (mostly done)
+- [ ] Audio level meter during recording
+- [ ] Dark mode support
+
+**Performance:**
+- [ ] Cache translations in IndexedDB (avoid re-fetching)
+- [ ] Optimize vocabulary queries for large datasets
+- [ ] Lazy load session history (virtual scrolling)
+- [ ] Debounce search inputs
+
+---
+
+## 🌟 Phase 13: Vocabulary Enhancements
 **Goal:** Make vocabulary more actionable
 
 **Features:**
 - [ ] Export vocabulary to CSV
 - [ ] Export to Anki format (.apkg)
-- [ ] Mark words as "mastered" or "known"
+- [ ] Mark individual words as "mastered"
 - [ ] Spaced repetition flashcard mode
-- [ ] Search and filter vocabulary (by language, date, frequency)
-- [ ] Sort by various metrics (newest, most used, mastered)
-- [ ] Show example sentences from sessions where word appears
-- [ ] Word definitions (optional dictionary API integration)
-- [ ] Audio pronunciation (TTS or recordings)
+- [ ] Show example sentences from sessions
+- [ ] Word definitions (optional dictionary API)
+- [ ] Audio pronunciation (TTS)
 - [ ] Custom word lists/decks
 
-**Technical:**
-- CSV export service
-- Anki file generation
-- Spaced repetition algorithm (SM-2 or similar)
-- Flashcard UI component
-- Search/filter query builder
-- Dictionary API integration (optional)
-
 ---
 
-### Phase 8: UX Polish & Bug Fixes
-**Goal:** Professional feel, fewer rough edges
+## 📊 Phase 14: Analytics Charts
+**Goal:** Visualize progress over time
 
 **Features:**
-- [ ] Better error handling and user-friendly messages
-- [ ] Loading states and skeleton screens
-- [ ] Smooth animations and transitions
-- [ ] Keyboard shortcuts (Space to record, Esc to stop, etc.)
-- [ ] Audio settings (mic levels, input monitoring)
-- [ ] Noise reduction toggle
-- [ ] Better onboarding flow (first-time user guide)
-- [ ] Dark mode support
-- [ ] Accessibility (ARIA labels, keyboard nav)
-- [ ] Tooltips and help text
-- [ ] Empty states with helpful CTAs
-- [ ] Confirmation dialogs for destructive actions
+- [ ] Vocabulary growth chart (line chart)
+- [ ] WPM trends over time
+- [ ] Calendar heatmap for practice days
+- [ ] Date range filtering (7/30/90 days)
 
 **Technical:**
-- Error boundary components
-- Global keyboard shortcut handler
-- Animation library (framer-motion?)
-- Audio visualization (waveform)
-- Theme provider
-- Onboarding state management
-
----
-
-### Phase 9: Advanced Recording Features
-**Goal:** Power user features
-
-**Features:**
-- [ ] Pause/resume recording
-- [ ] Audio playback in Record page (review before saving)
-- [ ] Real-time word detection during recording (live transcript)
-- [ ] Recording templates/prompts library
-- [ ] Auto-save drafts (unsaved recordings)
-- [ ] Background noise detection/warning
-- [ ] Audio level meter
-- [ ] Custom recording duration limits
-- [ ] Voice activity detection (auto-stop on silence)
-- [ ] Multiple takes/re-record option
-
-**Technical:**
-- Recording state machine (idle/recording/paused/stopped)
-- Draft storage system
-- Real-time transcription (streaming?)
-- Audio visualization
-- VAD algorithm
-- Prompt template system
-
----
-
-### Phase 10: Multi-Language Support
-**Goal:** Support more languages beyond Spanish/English
-
-**Features:**
-- [ ] Add French, German, Italian, Portuguese lemmatization
-- [ ] Language-specific settings
-- [ ] Mixed language support (detect language per session)
-- [ ] Translation features (optional)
-- [ ] Language learning goals per language
-- [ ] Compare stats across languages
-
-**Technical:**
-- Additional lemma databases
-- Language detection
-- Multi-language query support
-- Translation API (optional)
-
----
-
-### Phase 11: Social & Sharing
-**Goal:** Community and motivation
-
-**Features:**
-- [ ] Share session stats (social media cards)
-- [ ] Export session audio/transcript
-- [ ] Friends/teacher sharing (optional)
-- [ ] Leaderboards (optional, privacy-focused)
-- [ ] Achievements/badges system
-- [ ] Practice reminders/notifications
-
-**Technical:**
-- Social card generation (OG images)
-- Export functionality
-- Notification system
-- Achievement tracking
-
----
-
-### Phase 12: Mobile & Cross-Platform
-**Goal:** Use on all devices
-
-**Features:**
-- [ ] Mobile app (iOS/Android via Tauri)
-- [ ] Cloud sync (optional, privacy-focused)
-- [ ] Cross-device sessions
-- [ ] Mobile-optimized UI
-
-**Technical:**
-- Tauri mobile support
-- Sync service (optional)
-- Responsive design improvements
+- [ ] Charts library (recharts or chart.js)
+- [ ] Time-series data queries
 
 ---
 
 ## 🔮 Future Ideas (Backlog)
 
-- **AI-powered feedback:** Pronunciation scoring, grammar suggestions
-- **Conversation practice:** AI conversation partner
-- **Reading mode:** Import text, highlight new vocabulary
-- **Video support:** Transcribe videos for language learning
-- **Browser extension:** Capture vocabulary from web browsing
-- **Offline-first PWA:** Use in browser without install
-- **Study groups:** Share vocabulary lists with classmates
-- **Import existing vocabulary:** From Anki, Quizlet, etc.
-- **Custom word pronunciation:** Record your own audio for words
-- **Sentence mining:** Extract full sentences with new words
-- **Model selection UI:** Choose between Tiny/Base/Small/Medium in settings
-- **Automatic language detection:** Detect which language was spoken
+**Advanced Recording:**
+- Pause/resume recording
+- Real-time transcription during recording
+- Voice activity detection (auto-stop on silence)
+- Recording templates/prompts library
+- Multiple takes/re-record option
+
+**Multi-Language:**
+- Add more languages (German, Italian, Portuguese, etc.)
+- Mixed language support (detect per session)
+- Compare stats across languages
+
+**AI-Powered Features:**
+- Pronunciation scoring
+- Grammar suggestions
+- AI conversation partner
+
+**Reading Mode:**
+- Import text articles (not just YouTube)
+- Highlight new vocabulary while reading
+- Track reading sessions
+
+**Social & Sharing:**
+- Share session stats (social media cards)
+- Export session audio/transcript
+- Achievements/badges system
+- Practice reminders/notifications
+
+**Mobile & Sync:**
+- Mobile app (iOS/Android via Tauri)
+- Cloud sync (optional, privacy-focused)
 
 ---
 
-## 🎯 Success Metrics
+## 🎯 Development Priorities
 
-**User Engagement:**
-- Daily active users
-- Average session length
-- Sessions per week
-- Vocabulary words learned per week
+**Immediate (Next 2 weeks):**
+1. Recording Flow Redesign (Phase 8)
+2. Onboarding Flow (Phase 9)
 
-**Technical Health:**
-- App load time < 2s
-- Recording start time < 500ms
-- Transcription time < 5s for 60s audio (Small model)
-- Zero data loss (sessions, vocabulary)
+**Short-term (Next month):**
+3. YouTube Content Import (Phase 10)
+4. Settings Page (Phase 11)
 
-**User Satisfaction:**
-- Transcription accuracy > 90% (with Small model)
-- App rating > 4.5/5
-- NPS score > 50
+**Medium-term (Next 2-3 months):**
+5. UX Polish & Performance (Phase 12)
+6. Vocabulary Enhancements (Phase 13)
+7. Analytics Charts (Phase 14)
 
 ---
 
@@ -273,4 +238,4 @@
 
 ---
 
-**Last Updated:** Phase 6 Complete (Session History working!), Phase 7 Next (Vocabulary Enhancement)
+**Last Updated:** MVP Complete! Next up: Recording Flow + Onboarding

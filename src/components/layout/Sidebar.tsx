@@ -28,16 +28,6 @@ export function Sidebar() {
 
   return (
     <div className="w-64 bg-white rounded-xl shadow-sm m-3 flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold">F</span>
-          </div>
-          <span className="text-xl font-bold">Fluent</span>
-        </div>
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-1">
