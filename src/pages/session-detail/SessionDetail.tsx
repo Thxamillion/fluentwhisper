@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSession, useSessionWords, useDeleteSession } from '@/hooks/sessions';
 import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles } from 'lucide-react';
 import { convertFileSrc } from '@tauri-apps/api/core';
+import { Card } from '@/components/ui/card';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -121,7 +122,7 @@ export function SessionDetail() {
 
       {/* Audio Player */}
       {audioSrc && (
-        <div className="bg-white rounded-lg border p-6 mb-8">
+        <Card className="p-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <p className="text-lg font-semibold text-gray-900 mb-2">Recording Audio</p>
@@ -130,7 +131,7 @@ export function SessionDetail() {
               </audio>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       <div className="grid grid-cols-3 gap-8">
@@ -140,15 +141,15 @@ export function SessionDetail() {
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-4">Transcript</h3>
             {session.transcript ? (
-              <div className="bg-white rounded-lg border p-6">
+              <Card className="p-6">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                   {session.transcript}
                 </p>
-              </div>
+              </Card>
             ) : (
-              <div className="bg-white rounded-lg border p-6 text-center text-gray-500">
+              <Card className="p-6 text-center text-gray-500">
                 No transcript available
-              </div>
+              </Card>
             )}
           </div>
 
@@ -162,7 +163,7 @@ export function SessionDetail() {
                 <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
               </div>
             ) : words && words.length > 0 ? (
-              <div className="bg-white rounded-lg border divide-y">
+              <Card className="divide-y">
                 {words.map((word) => (
                   <div key={word.lemma} className="p-4 flex items-center justify-between hover:bg-gray-50">
                     <div className="flex items-center gap-3">
@@ -179,11 +180,11 @@ export function SessionDetail() {
                     </span>
                   </div>
                 ))}
-              </div>
+              </Card>
             ) : (
-              <div className="bg-white rounded-lg border p-6 text-center text-gray-500">
+              <Card className="p-6 text-center text-gray-500">
                 No vocabulary data available
-              </div>
+              </Card>
             )}
           </div>
         </div>
@@ -191,7 +192,7 @@ export function SessionDetail() {
         {/* Right Column: Stats */}
         <div className="col-span-1">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Session Stats</h3>
-          <div className="bg-white rounded-lg border divide-y">
+          <Card className="divide-y">
             {session.duration !== null && (
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
@@ -241,7 +242,7 @@ export function SessionDetail() {
                 <span className="font-semibold text-green-600">{session.newWordCount}</span>
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </div>

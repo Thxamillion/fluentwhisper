@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useOverallStats, useTopWords } from '@/hooks/stats';
 import { Loader2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 export function Analytics() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('es');
@@ -45,74 +46,74 @@ export function Analytics() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Total Sessions</h3>
               <div className="text-3xl font-bold text-blue-600 mb-1">{stats?.totalSessions || 0}</div>
               <div className="text-xs text-gray-500">All time</div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Speaking Time</h3>
               <div className="text-3xl font-bold text-green-600 mb-1">
                 {stats ? formatTime(stats.totalSpeakingTimeSeconds) : '0m'}
               </div>
               <div className="text-xs text-gray-500">All time</div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Vocabulary Size</h3>
               <div className="text-3xl font-bold text-purple-600 mb-1">{stats?.totalVocabularySize || 0}</div>
               <div className="text-xs text-gray-500">Unique words</div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Average WPM</h3>
               <div className="text-3xl font-bold text-orange-600 mb-1">
                 {stats?.averageWpm ? Math.round(stats.averageWpm) : 0}
               </div>
               <div className="text-xs text-gray-500">Words per minute</div>
-            </div>
+            </Card>
           </div>
 
           {/* Additional Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Current Streak</h3>
               <div className="text-3xl font-bold text-red-600 mb-1">
                 🔥 {stats?.currentStreakDays || 0}
               </div>
               <div className="text-xs text-gray-500">Days in a row</div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Longest Streak</h3>
               <div className="text-3xl font-bold text-yellow-600 mb-1">
                 {stats?.longestStreakDays || 0}
               </div>
               <div className="text-xs text-gray-500">Days</div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Avg Unique Words</h3>
               <div className="text-3xl font-bold text-indigo-600 mb-1">
                 {stats?.avgUniqueWordsPerSession ? Math.round(stats.avgUniqueWordsPerSession) : 0}
               </div>
               <div className="text-xs text-gray-500">Per session</div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <Card className="p-6">
               <h3 className="text-sm font-medium text-gray-600 mb-2">Avg New Words</h3>
               <div className="text-3xl font-bold text-teal-600 mb-1">
                 {stats?.avgNewWordsPerSession ? Math.round(stats.avgNewWordsPerSession) : 0}
               </div>
               <div className="text-xs text-gray-500">Per session</div>
-            </div>
+            </Card>
           </div>
         </>
       )}
 
       {/* Top Words */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Most Practiced Words (Top 10)</h3>
         {wordsLoading ? (
           <div className="flex items-center justify-center py-10">
@@ -150,7 +151,7 @@ export function Analytics() {
             No vocabulary data yet. Start practicing to see your most used words!
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

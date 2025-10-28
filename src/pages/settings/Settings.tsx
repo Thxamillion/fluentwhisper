@@ -1,4 +1,5 @@
 import { WhisperModelSection } from '../../components/settings/WhisperModelSection';
+import { Card } from '@/components/ui/card';
 
 export function Settings() {
   return (
@@ -13,7 +14,7 @@ export function Settings() {
         <WhisperModelSection />
 
         {/* Audio Settings */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Audio Settings</h2>
           <div className="space-y-4">
             <div>
@@ -38,10 +39,10 @@ export function Settings() {
               </label>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Language Settings */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Language Settings</h2>
           <div className="space-y-4">
             <div>
@@ -67,10 +68,10 @@ export function Settings() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Privacy Settings */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Privacy & Data</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -97,10 +98,10 @@ export function Settings() {
               </select>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* App Settings */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">App Settings</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -126,7 +127,7 @@ export function Settings() {
               </select>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Save Button */}
         <div className="flex justify-end">

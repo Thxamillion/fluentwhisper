@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAllSessions, useDeleteSession } from '@/hooks/sessions';
 import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 export function History() {
   const navigate = useNavigate();
@@ -73,10 +74,10 @@ export function History() {
       ) : filteredSessions && filteredSessions.length > 0 ? (
         <div className="space-y-4">
           {filteredSessions.map((session) => (
-            <div
+            <Card
               key={session.id}
               onClick={() => handleSessionClick(session.id)}
-              className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+              className="p-6 cursor-pointer"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -141,11 +142,11 @@ export function History() {
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg p-12 text-center shadow-sm border">
+        <Card className="p-12 text-center">
           <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No sessions yet</h3>
           <p className="text-gray-600 mb-6">
@@ -153,7 +154,7 @@ export function History() {
               ? 'Start recording to create your first session!'
               : `No sessions found for ${selectedLanguage === 'es' ? 'Spanish' : selectedLanguage === 'en' ? 'English' : 'French'}. Try switching languages or start recording!`}
           </p>
-        </div>
+        </Card>
       )}
     </div>
   );

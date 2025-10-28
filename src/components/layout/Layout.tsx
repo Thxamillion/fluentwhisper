@@ -16,9 +16,9 @@ export function Layout() {
       <div className="titlebar" />
 
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="sticky top-0 z-10 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border/40">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Top Header - Floating */}
+        <header className="absolute top-0 left-0 right-0 z-10 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border/40">
           <div className="flex items-center justify-end">
             <div className="flex items-center space-x-4">
               <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
@@ -41,11 +41,10 @@ export function Layout() {
           </div>
         </header>
 
-        {/* First Run Check Banner */}
-        <FirstRunCheck />
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        {/* Main Content - Extends behind header */}
+        <main className="flex-1 overflow-auto pt-20">
+          {/* First Run Check Banner */}
+          <FirstRunCheck />
           <Outlet />
         </main>
       </div>
