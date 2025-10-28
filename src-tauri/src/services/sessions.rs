@@ -19,6 +19,14 @@ use super::vocabulary::record_word;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
+pub struct SessionWord {
+    pub lemma: String,
+    pub count: i64,
+    pub is_new: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionData {
     pub id: String,
     pub language: String,
@@ -245,7 +253,7 @@ pub async fn get_sessions_by_language(
                word_count, unique_word_count, wpm, new_word_count
         FROM sessions
         WHERE language = ?
-        ORDER BY created_at DESC
+        ORDER BY started_at DESC
         "#,
     )
     .bind(language)
@@ -254,4 +262,61 @@ pub async fn get_sessions_by_language(
     .context("Failed to fetch sessions")?;
 
     Ok(sessions)
+}
+
+/// Get all sessions (all languages)
+pub async fn get_all_sessions(pool: &SqlitePool) -> Result<Vec<SessionData>> {
+    let sessions = sqlx::query_as::<_, SessionData>(
+        r#"
+        SELECT id, language, started_at, ended_at, duration, audio_path, transcript,
+               word_count, unique_word_count, wpm, new_word_count
+        FROM sessions
+        ORDER BY started_at DESC
+        "#,
+    )
+    .fetch_all(pool)
+    .await
+    .context("Failed to fetch all sessions")?;
+
+    Ok(sessions)
+}
+
+/// Get vocabulary words learned in a session
+pub async fn get_session_words(pool: &SqlitePool, session_id: &str) -> Result<Vec<SessionWord>> {
+    let words = sqlx::query_as::<_, SessionWord>(
+        r#"
+        SELECT lemma, count, is_new
+        FROM session_words
+        WHERE session_id = ?
+        ORDER BY count DESC
+        "#,
+    )
+    .bind(session_id)
+    .fetch_all(pool)
+    .await
+    .context("Failed to fetch session words")?;
+
+    Ok(words)
+}
+
+/// Delete a session and its related data
+pub async fn delete_session(pool: &SqlitePool, session_id: &str) -> Result<()> {
+    // Delete session_words links first (foreign key constraint)
+    sqlx::query("DELETE FROM session_words WHERE session_id = ?")
+        .bind(session_id)
+        .execute(pool)
+        .await
+        .context("Failed to delete session words")?;
+
+    // Delete the session
+    sqlx::query("DELETE FROM sessions WHERE id = ?")
+        .bind(session_id)
+        .execute(pool)
+        .await
+        .context("Failed to delete session")?;
+
+    // Note: We don't delete vocab entries even if this was the only session that used them
+    // Vocabulary persists across sessions
+
+    Ok(())
 }

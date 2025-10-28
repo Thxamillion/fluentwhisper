@@ -5,6 +5,7 @@ import { Dashboard } from '@/pages/dashboard/Dashboard'
 import { Record } from '@/pages/record/Record'
 import { Library } from '@/pages/library/Library'
 import { History } from '@/pages/history/History'
+import { SessionDetail } from '@/pages/session-detail/SessionDetail'
 import { Vocabulary } from '@/pages/vocabulary/Vocabulary'
 import { Analytics } from '@/pages/analytics/Analytics'
 import { Settings } from '@/pages/settings/Settings'
@@ -32,6 +33,7 @@ function App() {
             <Route path="record" element={<Record />} />
             <Route path="library" element={<Library />} />
             <Route path="history" element={<History />} />
+            <Route path="session/:sessionId" element={<SessionDetail />} />
             <Route path="vocabulary" element={<Vocabulary />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />

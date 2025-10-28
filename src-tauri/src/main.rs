@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use fluent_diary::commands::{langpack, models, recording, stats, vocabulary};
+use fluent_diary::commands::{langpack, models, recording, sessions, stats, vocabulary};
 use fluent_diary::services::recording::RecorderState;
 use std::sync::{Arc, Mutex};
 
@@ -53,6 +53,11 @@ fn main() {
             stats::get_stats_daily_sessions,
             stats::get_stats_wpm_trends,
             stats::get_stats_vocab_growth,
+            sessions::get_all_sessions_command,
+            sessions::get_session_command,
+            sessions::get_sessions_by_language_command,
+            sessions::get_session_words_command,
+            sessions::delete_session_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

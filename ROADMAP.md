@@ -57,19 +57,24 @@
 
 ---
 
-## 🚧 Current Phase
+### Phase 6: Session History Page ✅
+**Goal:** View and manage past recording sessions
 
-### Phase 6: Session History Page (NEXT)
-**Priority:** HIGH - Users need to review past sessions
+**Completed Features:**
+- ✅ View all past sessions in clean card layout
+- ✅ Filter sessions by language (All/Spanish/English/French)
+- ✅ Display session stats (duration, word count, WPM, new words)
+- ✅ Show transcript preview with line clamping
+- ✅ Delete sessions with confirmation dialog
+- ✅ Empty state with helpful CTAs
+- ✅ Responsive hover effects and transitions
 
-**Key Features:**
-- View list of all past recording sessions
-- Sort by date, duration, language
-- Click to see session details (transcript, stats, vocab)
-- Delete sessions
-- Simple list UI (no audio playback yet)
-
-**Why Next:** Core feature, completes the basic MVP loop
+**Technical:**
+- ✅ Rust service layer with session queries
+- ✅ 4 Tauri commands (get all, get by ID, get by language, delete)
+- ✅ TypeScript service wrapper
+- ✅ React Query hooks with cache invalidation
+- ✅ Mutation handling for delete with optimistic updates
 
 ---
 
@@ -268,4 +273,4 @@
 
 ---
 
-**Last Updated:** Phase 5 Complete (Stats & Analytics working!), Phase 6 Next (Session History)
+**Last Updated:** Phase 6 Complete (Session History working!), Phase 7 Next (Vocabulary Enhancement)

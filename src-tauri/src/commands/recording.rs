@@ -11,7 +11,7 @@ use crate::services::transcription::transcribe_audio_file;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{Manager, State};
 
 /// Global recorder state (shared across commands)
 pub struct RecorderStateWrapper(pub Mutex<RecorderState>);
@@ -32,15 +32,23 @@ pub async fn get_recording_devices(
 /// Start recording audio
 #[tauri::command]
 pub async fn start_recording(
+    app: tauri::AppHandle,
     recorder: State<'_, RecorderStateWrapper>,
     device_name: Option<String>,
     session_id: String,
 ) -> Result<(), String> {
-    // Create output directory if it doesn't exist
-    let audio_dir = PathBuf::from("audio");
-    std::fs::create_dir_all(&audio_dir).map_err(|e| format!("Failed to create audio directory: {}", e))?;
+    // Get app data directory
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
-    // Create output path
+    // Create audio subdirectory
+    let audio_dir = app_data_dir.join("audio");
+    std::fs::create_dir_all(&audio_dir)
+        .map_err(|e| format!("Failed to create audio directory: {}", e))?;
+
+    // Create output path with absolute path
     let output_path = audio_dir.join(format!("{}.wav", session_id));
 
     // Start recording
