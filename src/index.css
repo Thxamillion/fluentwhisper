@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    --background: 220 15% 96%;
+    --foreground: 0 0% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 0 0% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 0 0% 15%;
     --primary: 220 14% 96%;
     --primary-foreground: 220 9% 46%;
     --secondary: 220 14% 96%;
@@ -24,6 +24,7 @@
     --input: 220 13% 91%;
     --ring: 224 71% 4%;
     --radius: 0.5rem;
+    --sidebar-bg: 0 0% 99%;
   }
 
   .dark {
@@ -54,6 +55,156 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    /* Subtle noise texture for macOS feel */
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.03) 1px,
+        rgba(0, 0, 0, 0.03) 2px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.03) 1px,
+        rgba(0, 0, 0, 0.03) 2px
+      );
+    background-size: 2px 2px;
+  }
+}
+
+/* macOS native window chrome styles */
+/* Draggable titlebar region for macOS */
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  -webkit-app-region: drag;
+  z-index: 1000;
+  background: transparent;
+  pointer-events: none; /* Allow clicks to pass through except on interactive elements */
+}
+
+/* Make interactive elements in titlebar clickable */
+.titlebar button,
+.titlebar a,
+.titlebar input {
+  -webkit-app-region: no-drag;
+  pointer-events: auto;
+}
+
+/* Native macOS button styles */
+@layer components {
+  /* Primary button - Blue accent (macOS default) */
+  .btn-mac-primary {
+    @apply px-4 py-2 rounded-md font-medium text-sm;
+    background: linear-gradient(180deg, #4d9dff 0%, #007aff 100%);
+    color: white;
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 0.5px 0 0 rgba(255, 255, 255, 0.5) inset,
+      0 1px 2px 0 rgba(0, 0, 0, 0.25);
+    transition: all 0.15s ease;
+  }
+
+  .btn-mac-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #62a9ff 0%, #0077f0 100%);
+    box-shadow:
+      0 0.5px 0 0 rgba(255, 255, 255, 0.5) inset,
+      0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-mac-primary:active:not(:disabled) {
+    background: linear-gradient(180deg, #0070e0 0%, #0062cc 100%);
+    box-shadow:
+      0 0.5px 0 0 rgba(0, 0, 0, 0.1) inset,
+      0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-mac-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Secondary button - Gray */
+  .btn-mac-secondary {
+    @apply px-4 py-2 rounded-md font-medium text-sm;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+    color: #000000;
+    border: 0.5px solid rgba(0, 0, 0, 0.2);
+    box-shadow:
+      0 0.5px 0 0 rgba(255, 255, 255, 0.8) inset,
+      0 1px 2px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.15s ease;
+  }
+
+  .btn-mac-secondary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #fafafa 0%, #e8e8e8 100%);
+    box-shadow:
+      0 0.5px 0 0 rgba(255, 255, 255, 0.8) inset,
+      0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-mac-secondary:active:not(:disabled) {
+    background: linear-gradient(180deg, #e0e0e0 0%, #d5d5d5 100%);
+    box-shadow:
+      0 0.5px 0 0 rgba(0, 0, 0, 0.05) inset,
+      0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-mac-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Destructive button - Red */
+  .btn-mac-destructive {
+    @apply px-4 py-2 rounded-md font-medium text-sm;
+    background: linear-gradient(180deg, #ff5f57 0%, #ff3b30 100%);
+    color: white;
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 0.5px 0 0 rgba(255, 255, 255, 0.5) inset,
+      0 1px 2px 0 rgba(0, 0, 0, 0.25);
+    transition: all 0.15s ease;
+  }
+
+  .btn-mac-destructive:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ff6e66 0%, #ff4d42 100%);
+    box-shadow:
+      0 0.5px 0 0 rgba(255, 255, 255, 0.5) inset,
+      0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-mac-destructive:active:not(:disabled) {
+    background: linear-gradient(180deg, #e63429 0%, #cc2d22 100%);
+    box-shadow:
+      0 0.5px 0 0 rgba(0, 0, 0, 0.1) inset,
+      0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-mac-destructive:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Dark mode adjustments */
+  .dark .btn-mac-secondary {
+    background: linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 100%);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .btn-mac-secondary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #525252 0%, #424242 100%);
+  }
+
+  .dark .btn-mac-secondary:active:not(:disabled) {
+    background: linear-gradient(180deg, #353535 0%, #2a2a2a 100%);
   }
 }

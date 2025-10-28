@@ -8,13 +8,16 @@ import { FirstRunCheck } from '../FirstRunCheck'
 export function Layout() {
   return (
     <div className="flex h-screen bg-background">
+      {/* macOS Draggable Titlebar */}
+      <div className="titlebar" />
+
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="border-b bg-background px-6 py-4">
+        <header className="border-b border-gray-200 bg-white px-6 py-4">
           <div className="flex items-center justify-end">
             <div className="flex items-center space-x-4">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button>
                 <Mic className="w-4 h-4 mr-2" />
                 Record
               </Button>

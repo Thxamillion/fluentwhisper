@@ -16,9 +16,16 @@
         "height": 800,
         "minWidth": 800,
         "minHeight": 600,
-        "center": true
+        "center": true,
+        "titleBarStyle": "Transparent",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 20,
+          "y": 22
+        }
       }
     ],
+    "macOSPrivateApi": true,
     "security": {
       "csp": null,
       "assetProtocol": {
