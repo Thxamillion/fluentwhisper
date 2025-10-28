@@ -82,16 +82,16 @@ export function Record() {
           {promptsExpanded && (
             <div className="px-4 pb-4 space-y-2 border-t pt-4">
               <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                📝 Describe your day in detail
+                Describe your day in detail
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                🗣️ Practice introducing yourself
+                Practice introducing yourself
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                📖 Read a short passage aloud
+                Read a short passage aloud
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                💭 Talk about your goals and dreams
+                Talk about your goals and dreams
               </button>
             </div>
           )}
