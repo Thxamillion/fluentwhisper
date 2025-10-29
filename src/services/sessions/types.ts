@@ -3,6 +3,8 @@
  * Matches Rust SessionData struct
  */
 
+export type SessionType = 'free_speak' | 'read_aloud';
+
 export interface SessionData {
   id: string;
   language: string;
@@ -15,6 +17,9 @@ export interface SessionData {
   uniqueWordCount: number | null;
   wpm: number | null;
   newWordCount: number | null;
+  sessionType: SessionType | null;
+  textLibraryId: string | null;
+  sourceText: string | null;
 }
 
 export interface SessionStats {

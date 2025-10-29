@@ -51,7 +51,8 @@ export function Import() {
       navigate('/library');
     } catch (error) {
       console.error('Failed to create text:', error);
-      alert('Failed to create text. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to create text: ${errorMessage}\n\nPlease make sure the Tauri app is running and try again.`);
     }
   };
 

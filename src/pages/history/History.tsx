@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAllSessions, useDeleteSession } from '@/hooks/sessions';
-import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages } from 'lucide-react';
+import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages, BookOpen, Mic } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function History() {
   const navigate = useNavigate();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+  const [selectedSessionType, setSelectedSessionType] = useState<string>('all');
   const { data: sessions, isLoading } = useAllSessions();
   const deleteSession = useDeleteSession();
 
@@ -32,8 +33,21 @@ export function History() {
 
   const handleDelete = async (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation(); // Prevent navigation when clicking delete
-    if (window.confirm('Are you sure you want to delete this session? This cannot be undone.')) {
-      deleteSession.mutate(sessionId);
+
+    if (!window.confirm('Are you sure you want to delete this session? This cannot be undone.')) {
+      return;
+    }
+
+    try {
+      deleteSession.mutate(sessionId, {
+        onError: (error) => {
+          console.error('Failed to delete session:', error);
+          alert(`Failed to delete session: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again.`);
+        },
+      });
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      alert('An unexpected error occurred while deleting the session. Please try again.');
     }
   };
 
@@ -41,10 +55,14 @@ export function History() {
     navigate(`/session/${sessionId}`);
   };
 
-  // Filter sessions by language
-  const filteredSessions = sessions?.filter(
-    (session) => selectedLanguage === 'all' || session.language === selectedLanguage
-  );
+  // Filter sessions by language and session type
+  const filteredSessions = sessions?.filter((session) => {
+    const languageMatch = selectedLanguage === 'all' || session.language === selectedLanguage;
+    const sessionTypeMatch =
+      selectedSessionType === 'all' ||
+      (session.sessionType || 'free_speak') === selectedSessionType;
+    return languageMatch && sessionTypeMatch;
+  });
 
   return (
     <div className="p-8">
@@ -59,6 +77,17 @@ export function History() {
             <SelectItem value="es">Spanish</SelectItem>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="fr">French</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedSessionType} onValueChange={setSelectedSessionType}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Session Types</SelectItem>
+            <SelectItem value="free_speak">Free Speak</SelectItem>
+            <SelectItem value="read_aloud">Read Aloud</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -86,6 +115,20 @@ export function History() {
                         {session.language === 'es' ? 'Spanish' : session.language === 'en' ? 'English' : 'French'}
                       </span>
                     </div>
+
+                    {/* Session Type Badge */}
+                    {(session.sessionType || 'free_speak') === 'read_aloud' ? (
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
+                        <BookOpen className="w-3 h-3" />
+                        Read Aloud
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full">
+                        <Mic className="w-3 h-3" />
+                        Free Speak
+                      </span>
+                    )}
+
                     <div className="text-sm text-gray-500">{formatDate(session.startedAt)}</div>
                   </div>
 

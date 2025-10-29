@@ -5,6 +5,7 @@ pub mod model_download;
 pub mod recording;
 pub mod sessions;
 pub mod stats;
+pub mod text_library;
 pub mod transcription;
 pub mod translation;
 pub mod vocabulary;

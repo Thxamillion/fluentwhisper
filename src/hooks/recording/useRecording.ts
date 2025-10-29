@@ -31,15 +31,35 @@ export function useRecording() {
   const queryClient = useQueryClient();
   const [isRecording, setIsRecording] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionType, setSessionType] = useState<'free_speak' | 'read_aloud'>('free_speak');
+  const [textLibraryId, setTextLibraryId] = useState<string | null>(null);
+  const [sourceText, setSourceText] = useState<string | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start recording mutation
   const startMutation = useMutation({
-    mutationFn: async ({ deviceName, language }: { deviceName?: string; language: string }) => {
-      // First create the session in the database
-      const sessionResult = await recordingService.createSession(language);
+    mutationFn: async ({
+      deviceName,
+      language,
+      sessionType,
+      textLibraryId,
+      sourceText,
+    }: {
+      deviceName?: string;
+      language: string;
+      sessionType?: 'free_speak' | 'read_aloud';
+      textLibraryId?: string;
+      sourceText?: string;
+    }) => {
+      // First create the session in the database with all metadata
+      const sessionResult = await recordingService.createSession(
+        language,
+        sessionType,
+        textLibraryId,
+        sourceText
+      );
       if (!sessionResult.success) {
         throw new Error(sessionResult.error);
       }
@@ -120,19 +140,28 @@ export function useRecording() {
       transcript,
       durationSeconds,
       language,
+      sessionType,
+      textLibraryId,
+      sourceText,
     }: {
       sessionId: string;
       audioPath: string;
       transcript: string;
       durationSeconds: number;
       language: string;
+      sessionType?: 'free_speak' | 'read_aloud';
+      textLibraryId?: string;
+      sourceText?: string;
     }) => {
       const result = await recordingService.completeSession(
         sessionId,
         audioPath,
         transcript,
         durationSeconds,
-        language
+        language,
+        sessionType,
+        textLibraryId,
+        sourceText
       );
       if (!result.success) {
         throw new Error(result.error);
@@ -147,14 +176,32 @@ export function useRecording() {
 
       // Reset state
       setSessionId(null);
+      setSessionType('free_speak');
+      setTextLibraryId(null);
+      setSourceText(null);
       setElapsedTime(0);
     },
   });
 
   // Start recording function
   const startRecording = useCallback(
-    (language: string, deviceName?: string) => {
-      startMutation.mutate({ deviceName, language });
+    (
+      language: string,
+      deviceName?: string,
+      type: 'free_speak' | 'read_aloud' = 'free_speak',
+      libraryId?: string,
+      text?: string
+    ) => {
+      setSessionType(type);
+      setTextLibraryId(libraryId || null);
+      setSourceText(text || null);
+      startMutation.mutate({
+        deviceName,
+        language,
+        sessionType: type,
+        textLibraryId: libraryId,
+        sourceText: text,
+      });
     },
     [startMutation]
   );
@@ -187,14 +234,20 @@ export function useRecording() {
         transcript,
         durationSeconds,
         language,
+        sessionType,
+        textLibraryId: textLibraryId || undefined,
+        sourceText: sourceText || undefined,
       });
     },
-    [completeSessionMutation]
+    [completeSessionMutation, sessionType, textLibraryId, sourceText]
   );
 
   return {
     isRecording,
     sessionId,
+    sessionType,
+    textLibraryId,
+    sourceText,
     elapsedTime,
     startRecording,
     stopRecording,

@@ -125,15 +125,29 @@ pub struct CompleteSessionRequest {
     pub transcript: String,
     pub duration_seconds: f32,
     pub language: String,
+    pub session_type: Option<String>,
+    pub text_library_id: Option<String>,
+    pub source_text: Option<String>,
 }
 
 /// Create a new recording session
 #[tauri::command]
-pub async fn create_recording_session(language: String) -> Result<String, String> {
+pub async fn create_recording_session(
+    language: String,
+    session_type: Option<String>,
+    text_library_id: Option<String>,
+    source_text: Option<String>,
+) -> Result<String, String> {
     let pool = open_user_db().await.map_err(|e| e.to_string())?;
-    create_session(&pool, &language)
-        .await
-        .map_err(|e| e.to_string())
+    create_session(
+        &pool,
+        &language,
+        session_type.as_deref(),
+        text_library_id.as_deref(),
+        source_text.as_deref(),
+    )
+    .await
+    .map_err(|e| e.to_string())
 }
 
 /// Complete a recording session with transcript and stats
@@ -150,6 +164,9 @@ pub async fn complete_recording_session(
         &request.transcript,
         request.duration_seconds,
         &request.language,
+        request.session_type.as_deref(),
+        request.text_library_id.as_deref(),
+        request.source_text.as_deref(),
     )
     .await
     .map_err(|e| e.to_string())

@@ -11,6 +11,7 @@ import { Analytics } from '@/pages/analytics/Analytics'
 import { Settings } from '@/pages/settings/Settings'
 import { Import } from '@/pages/import/Import'
 import { TestLangpack } from '@/pages/test/TestLangpack'
+import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -32,6 +33,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="record" element={<Record />} />
             <Route path="library" element={<Library />} />
+            <Route path="read-aloud/:textLibraryId" element={<ReadAloud />} />
             <Route path="history" element={<History />} />
             <Route path="session/:sessionId" element={<SessionDetail />} />
             <Route path="vocabulary" element={<Vocabulary />} />

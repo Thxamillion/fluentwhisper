@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Mic, Square, Play, RotateCcw, Save, GitCompare, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mic, Square, Play, RotateCcw, Save, GitCompare, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTextLibraryItem } from '@/hooks/text-library';
 import { useRecording } from '@/hooks/recording';
 import { useUserVocab } from '@/hooks/vocabulary';
 import { HighlightedText } from '@/components/read-aloud/HighlightedText';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function ReadAloud() {
   const { textLibraryId } = useParams<{ textLibraryId: string }>();
@@ -32,6 +33,28 @@ export function ReadAloud() {
   } | null>(null);
   const [transcript, setTranscript] = useState<string>('');
   const [showTranscript, setShowTranscript] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Pagination: Split text into pages based on word count
+  // Aim for ~150-200 words per page for comfortable reading
+  const WORDS_PER_PAGE = 150;
+
+  const pages = useMemo(() => {
+    if (!textItem?.content) return [];
+
+    const words = textItem.content.split(/\s+/);
+    const pageList: string[] = [];
+
+    for (let i = 0; i < words.length; i += WORDS_PER_PAGE) {
+      const pageWords = words.slice(i, i + WORDS_PER_PAGE);
+      pageList.push(pageWords.join(' '));
+    }
+
+    return pageList;
+  }, [textItem?.content]);
+
+  const totalPages = pages.length;
+  const currentPageText = pages[currentPage] || '';
 
   if (isLoadingText) {
     return (
@@ -54,48 +77,69 @@ export function ReadAloud() {
   }
 
   const handleStartRecording = async () => {
-    await startRecording(
-      textItem.language,
-      undefined,
-      'read_aloud',
-      textItem.id,
-      textItem.content
-    );
+    try {
+      // Pass the current page text as source, not the entire content
+      await startRecording(
+        textItem.language,
+        undefined,
+        'read_aloud',
+        textItem.id,
+        currentPageText
+      );
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      alert(`Failed to start recording: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check the console for details.`);
+    }
   };
 
   const handleStopRecording = async () => {
-    const result = await stopRecording();
-    if (result) {
-      setRecordingResult({
-        audioPath: result.filePath,
-        durationSeconds: result.durationSeconds,
-      });
+    try {
+      const result = await stopRecording();
+      if (result) {
+        setRecordingResult({
+          audioPath: result.filePath,
+          durationSeconds: result.durationSeconds,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to stop recording:', error);
+      alert(`Failed to stop recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleTranscribe = async () => {
     if (!recordingResult) return;
 
-    const transcriptText = await transcribe(recordingResult.audioPath, textItem.language);
-    if (transcriptText) {
-      setTranscript(transcriptText);
-      setShowTranscript(true);
+    try {
+      const transcriptText = await transcribe(recordingResult.audioPath, textItem.language);
+      if (transcriptText) {
+        setTranscript(transcriptText);
+        setShowTranscript(true);
+      }
+    } catch (error) {
+      console.error('Failed to transcribe:', error);
+      alert(`Failed to transcribe: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleSave = async () => {
     if (!sessionId || !recordingResult || !transcript) return;
 
-    await completeSession(
-      sessionId,
-      recordingResult.audioPath,
-      transcript,
-      recordingResult.durationSeconds,
-      textItem.language
-    );
+    try {
+      await completeSession(
+        sessionId,
+        recordingResult.audioPath,
+        transcript,
+        recordingResult.durationSeconds,
+        textItem.language
+      );
 
-    // Navigate to session detail
-    navigate(`/session/${sessionId}`);
+      // Navigate to session detail
+      navigate(`/session/${sessionId}`);
+    } catch (error) {
+      console.error('Failed to save session:', error);
+      alert(`Failed to save session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const handleRetry = () => {
@@ -111,166 +155,181 @@ export function ReadAloud() {
   };
 
   return (
-    <div className="h-screen flex">
-      {/* Left side - Text content */}
-      <div className="flex-1 p-8 overflow-auto">
+    <div className="h-screen flex flex-col">
+      {/* Header with back button */}
+      <div className="p-4 border-b">
         <Button
           variant="ghost"
           onClick={() => navigate('/library')}
-          className="mb-6"
+          size="sm"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Library
         </Button>
-
-        <div className="max-w-3xl">
-          {/* Text container */}
-          <Card className="mb-6">
-            <CardContent className="p-8">
-              <HighlightedText
-                text={textItem.content}
-                language={textItem.language}
-                userVocab={userVocab}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Navigation buttons */}
-          <div className="flex justify-between">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-            <Button variant="outline">
-              Next
-              <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-            </Button>
-          </div>
-        </div>
       </div>
 
-      {/* Right sidebar - Recording controls */}
-      <div className="w-96 bg-gray-50 dark:bg-gray-900 p-8 border-l flex flex-col">
-        <div className="flex-1">
-          <h2 className="text-xl font-semibold mb-2">Your Voice</h2>
-          <p className="text-sm text-muted-foreground mb-8">
-            Press the button to start recording.
-          </p>
-
-          {/* Record button */}
-          <div className="flex flex-col items-center mb-8">
-            {!isRecording && !recordingResult ? (
-              <button
-                onClick={handleStartRecording}
-                className="w-32 h-32 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all flex items-center justify-center shadow-lg hover:shadow-xl"
-              >
-                <Mic className="w-12 h-12 text-white" />
-              </button>
-            ) : isRecording ? (
-              <button
-                onClick={handleStopRecording}
-                className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all flex items-center justify-center shadow-lg hover:shadow-xl animate-pulse"
-              >
-                <Square className="w-12 h-12 text-white" />
-              </button>
-            ) : (
-              <div className="w-32 h-32 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                <Play className="w-12 h-12 text-green-600" />
-              </div>
-            )}
-
-            {/* Timer */}
-            <div className="mt-6 text-center">
-              <div className="text-3xl font-mono font-bold text-gray-900 dark:text-white">
-                {formatTime(isRecording ? elapsedTime : recordingResult?.durationSeconds || 0)}
-              </div>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Title and info header */}
+          <div className="px-8 pt-6 pb-4 border-b">
+            <h1 className="text-2xl font-bold mb-2">{textItem.title}</h1>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                Read the following passage aloud. New vocabulary is highlighted.
+              </p>
+              {totalPages > 1 && (
+                <span className="text-sm text-muted-foreground">
+                  • Page {currentPage + 1} of {totalPages}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Waveform visualization placeholder */}
-          <div className="h-20 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center mb-8">
-            <div className="flex items-end gap-1 h-12">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1 bg-blue-600 rounded-full transition-all"
-                  style={{
-                    height: isRecording
-                      ? `${Math.random() * 100}%`
-                      : '20%',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+          {/* Text container - fixed height, no scrolling */}
+          <div className="flex-1 overflow-hidden px-8 pb-8 pt-8">
+            <Card className="h-full flex flex-col">
+              <CardContent className="p-8 flex-1 flex flex-col overflow-hidden">
+                {/* Text content - takes remaining space */}
+                <div className="flex-1 overflow-hidden">
+                  <div className="text-lg leading-relaxed">
+                    <ErrorBoundary
+                      fallback={
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-yellow-800 text-sm">
+                            Error loading text. Please refresh the page.
+                          </p>
+                        </div>
+                      }
+                    >
+                      <HighlightedText
+                        text={currentPageText}
+                        language={textItem.language}
+                        userVocab={userVocab}
+                      />
+                    </ErrorBoundary>
+                  </div>
+                </div>
 
-        {/* Playback & Actions */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Playback & Actions</h3>
+                {/* Pagination and recording controls - always visible at bottom */}
+                <div className="mt-6 pt-6 border-t">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    {/* Previous Button */}
+                    {totalPages > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                        disabled={currentPage === 0}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Previous
+                      </Button>
+                    )}
 
-          {/* Play button (if recorded) */}
-          {recordingResult && (
-            <Button
-              variant="outline"
-              className="w-full mb-3"
-              disabled
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Play Recording
-            </Button>
-          )}
+                    {/* Recording Control */}
+                    <div className="flex items-center gap-3">
+                      {!isRecording && !recordingResult ? (
+                        <button
+                          onClick={handleStartRecording}
+                          className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all flex items-center justify-center shadow-lg hover:shadow-xl"
+                          title="Start recording"
+                        >
+                          <Mic className="w-6 h-6 text-white" />
+                        </button>
+                      ) : isRecording ? (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={handleStopRecording}
+                            className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all flex items-center justify-center shadow-lg hover:shadow-xl animate-pulse"
+                            title="Stop recording"
+                          >
+                            <Square className="w-6 h-6 text-white" />
+                          </button>
+                          <span className="text-lg font-mono font-semibold text-red-600">
+                            {formatTime(elapsedTime)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                            <Play className="w-6 h-6 text-green-600" />
+                          </div>
+                          <span className="text-sm font-mono text-muted-foreground">
+                            {formatTime(recordingResult.durationSeconds)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRetry}
-              disabled={!recordingResult || isTranscribing || isCompleting}
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTranscribe}
-              disabled={!recordingResult || isTranscribing || isCompleting || !!transcript}
-            >
-              {isTranscribing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSave}
-              disabled={!transcript || isCompleting}
-            >
-              {isCompleting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <GitCompare className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
+                    {/* Next Button */}
+                    {totalPages > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+                        disabled={currentPage === totalPages - 1}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
 
-          <div className="grid grid-cols-3 gap-2 text-xs text-center mt-1 text-muted-foreground">
-            <div>Retry</div>
-            <div>Save</div>
-            <div>Compare</div>
-          </div>
-
-          {/* Show transcript if available */}
-          {showTranscript && transcript && (
-            <Card className="mt-4">
-              <CardContent className="p-4">
-                <h4 className="text-sm font-semibold mb-2">Transcript:</h4>
-                <p className="text-sm text-muted-foreground">{transcript}</p>
+                  {/* Action buttons - show when recording is done */}
+                  {recordingResult && (
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRetry}
+                        disabled={isTranscribing || isCompleting}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Retry
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTranscribe}
+                        disabled={isTranscribing || isCompleting || !!transcript}
+                      >
+                        {isTranscribing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Transcribing...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Transcribe
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleSave}
+                        disabled={!transcript || isCompleting}
+                      >
+                        {isCompleting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <GitCompare className="w-4 h-4 mr-2" />
+                            Save & Compare
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          )}
+          </div>
         </div>
       </div>
     </div>

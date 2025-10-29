@@ -5,6 +5,7 @@
  * - Sessions (recording sessions with audio, transcripts, stats)
  * - Vocab (user's discovered words with usage tracking)
  * - Session Words (junction table linking sessions to words)
+ * - Text Library (imported texts for read-aloud practice)
  */
 
 use anyhow::{Context, Result};
@@ -47,6 +48,10 @@ pub async fn initialize_user_db() -> Result<SqlitePool> {
             wpm REAL,
             new_word_count INTEGER,
 
+            session_type TEXT DEFAULT 'free_speak',
+            text_library_id TEXT,
+            source_text TEXT,
+
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL
         )
@@ -62,6 +67,10 @@ pub async fn initialize_user_db() -> Result<SqlitePool> {
         .await?;
 
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_created_at ON sessions(created_at DESC)")
+        .execute(&pool)
+        .await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_type ON sessions(session_type)")
         .execute(&pool)
         .await?;
 
@@ -102,6 +111,41 @@ pub async fn initialize_user_db() -> Result<SqlitePool> {
         .await?;
 
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_vocab_usage_count ON vocab(usage_count DESC)")
+        .execute(&pool)
+        .await?;
+
+    // Create text_library table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS text_library (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            source_type TEXT NOT NULL,
+            source_url TEXT,
+            content TEXT NOT NULL,
+            language TEXT NOT NULL,
+
+            word_count INTEGER,
+            estimated_duration INTEGER,
+            difficulty_level TEXT,
+
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+
+            tags TEXT
+        )
+        "#
+    )
+    .execute(&pool)
+    .await
+    .context("Failed to create text_library table")?;
+
+    // Create text_library indexes
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_text_library_language ON text_library(language)")
+        .execute(&pool)
+        .await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_text_library_created_at ON text_library(created_at DESC)")
         .execute(&pool)
         .await?;
 
@@ -179,6 +223,7 @@ mod tests {
 
         assert!(tables.contains(&"sessions".to_string()));
         assert!(tables.contains(&"vocab".to_string()));
+        assert!(tables.contains(&"text_library".to_string()));
         assert!(tables.contains(&"session_words".to_string()));
 
         // Clean up

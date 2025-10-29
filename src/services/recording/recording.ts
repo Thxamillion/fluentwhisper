@@ -28,9 +28,19 @@ export async function getRecordingDevices(): Promise<ServiceResult<DeviceInfo[]>
 /**
  * Create a new recording session in the database
  */
-export async function createSession(language: string): Promise<ServiceResult<string>> {
+export async function createSession(
+  language: string,
+  sessionType?: 'free_speak' | 'read_aloud',
+  textLibraryId?: string,
+  sourceText?: string
+): Promise<ServiceResult<string>> {
   try {
-    const sessionId = await invoke<string>('create_recording_session', { language });
+    const sessionId = await invoke<string>('create_recording_session', {
+      language,
+      sessionType: sessionType || null,
+      textLibraryId: textLibraryId || null,
+      sourceText: sourceText || null,
+    });
     return { success: true, data: sessionId };
   } catch (error) {
     console.error('Failed to create session:', error);
@@ -111,7 +121,10 @@ export async function completeSession(
   audioPath: string,
   transcript: string,
   durationSeconds: number,
-  language: string
+  language: string,
+  sessionType?: 'free_speak' | 'read_aloud',
+  textLibraryId?: string,
+  sourceText?: string
 ): Promise<ServiceResult<TranscriptionResult>> {
   try {
     const stats = await invoke('complete_recording_session', {
@@ -121,6 +134,9 @@ export async function completeSession(
         transcript,
         durationSeconds,
         language,
+        sessionType: sessionType || null,
+        textLibraryId: textLibraryId || null,
+        sourceText: sourceText || null,
       },
     });
 

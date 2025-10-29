@@ -83,7 +83,7 @@ export function Record() {
 
       <div className="space-y-6">
         {/* Collapsible Prompt Picker */}
-        <div className="border rounded-lg">
+        <div className="relative border rounded-lg">
           <button
             onClick={() => setPromptsExpanded(!promptsExpanded)}
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-lg"
@@ -93,7 +93,7 @@ export function Record() {
           </button>
 
           {promptsExpanded && (
-            <div className="px-4 pb-4 space-y-2 border-t pt-4">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-950 border rounded-lg shadow-lg z-10 px-4 py-4 space-y-2">
               {prompts.map((prompt) => (
                 <button
                   key={prompt}
