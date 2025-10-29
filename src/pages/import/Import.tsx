@@ -1,150 +1,212 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Upload, FileText, HelpCircle } from 'lucide-react'
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { FileText, ArrowLeft, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useCreateTextLibraryItem } from '@/hooks/text-library';
+import type { SourceType, DifficultyLevel } from '@/services/text-library';
 
 export function Import() {
-  const queueItems = [
-    { title: 'The Little Prince', status: 'Queued', progress: 0 },
-    { title: 'The Alchemist', status: 'Parsing', progress: 50 },
-    { title: 'One Hundred Years of Solitude', status: 'Completed', progress: 100 },
-  ]
+  const navigate = useNavigate();
+  const createItem = useCreateTextLibraryItem();
+
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    language: 'es',
+    sourceType: 'manual' as SourceType,
+    sourceUrl: '',
+    difficultyLevel: '' as DifficultyLevel | '',
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.title.trim() || !formData.content.trim()) {
+      alert('Please provide both a title and content');
+      return;
+    }
+
+    try {
+      await createItem.mutateAsync({
+        title: formData.title,
+        content: formData.content,
+        language: formData.language,
+        sourceType: formData.sourceType,
+        sourceUrl: formData.sourceUrl || undefined,
+        difficultyLevel: formData.difficultyLevel || undefined,
+      });
+
+      // Navigate back to library
+      navigate('/library');
+    } catch (error) {
+      console.error('Failed to create text:', error);
+      alert('Failed to create text. Please try again.');
+    }
+  };
+
+  const wordCount = formData.content.trim().split(/\s+/).filter(Boolean).length;
+  const estimatedMinutes = Math.ceil(wordCount / 150);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Import</h1>
-      </div>
+    <div className="p-8 max-w-4xl mx-auto">
+      <Button variant="ghost" onClick={() => navigate('/library')} className="mb-8">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Library
+      </Button>
 
-      {/* Tabs */}
-      <div className="flex space-x-1 mb-8">
-        <Button variant="default" className="bg-blue-600 hover:bg-blue-700">Files</Button>
-        <Button variant="ghost">Paste Text</Button>
-      </div>
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Text Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title">
+                Title <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="title"
+                placeholder="e.g., El Principito - Chapter 1"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+              />
+            </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* File Upload Area */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardContent className="p-8">
-              <div className="border-2 border-dashed border-muted rounded-lg p-12 text-center">
-                <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Drag and drop files here</h3>
-                <p className="text-muted-foreground mb-4">Or click to browse</p>
-                <Button variant="outline">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Browse Files
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Language */}
+            <div className="space-y-2">
+              <Label htmlFor="language">
+                Language <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.language}
+                onValueChange={(value) => setFormData({ ...formData, language: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="es">Spanish</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="fr">French</SelectItem>
+                  <SelectItem value="de">German</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Parsing Options */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Parsing Options</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <label className="block text-sm font-medium mb-2">Language</label>
-                <Select>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Auto-detect" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="auto">Auto-detect</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Source Type */}
+            <div className="space-y-2">
+              <Label htmlFor="sourceType">Source Type</Label>
+              <Select
+                value={formData.sourceType}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, sourceType: value as SourceType })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual Entry</SelectItem>
+                  <SelectItem value="book">Book</SelectItem>
+                  <SelectItem value="article">Article</SelectItem>
+                  <SelectItem value="youtube">YouTube</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Queue & Preview */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Queue & Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Table Headers */}
-                <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground">
-                  <div>ITEM</div>
-                  <div>STATUS</div>
-                  <div>PROGRESS</div>
-                  <div></div>
+            {/* Source URL (optional) */}
+            <div className="space-y-2">
+              <Label htmlFor="sourceUrl">Source URL (optional)</Label>
+              <Input
+                id="sourceUrl"
+                type="url"
+                placeholder="https://..."
+                value={formData.sourceUrl}
+                onChange={(e) => setFormData({ ...formData, sourceUrl: e.target.value })}
+              />
+            </div>
+
+            {/* Difficulty Level */}
+            <div className="space-y-2">
+              <Label htmlFor="difficultyLevel">Difficulty Level (optional)</Label>
+              <Select
+                value={formData.difficultyLevel}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, difficultyLevel: value as DifficultyLevel })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-2">
+              <Label htmlFor="content">
+                Content <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="content"
+                placeholder="Paste your text here..."
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                rows={12}
+                className="font-mono text-sm"
+                required
+              />
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <FileText className="w-4 h-4" />
+                  <span>{wordCount} words</span>
                 </div>
+                <span>•</span>
+                <span>~{estimatedMinutes} min read</span>
+              </div>
+            </div>
 
-                {/* Queue Items */}
-                {queueItems.map((item, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-4 items-center py-2">
-                    <div className="font-medium">{item.title}</div>
-                    <div>
-                      <Badge
-                        variant={
-                          item.status === 'Completed' ? 'default' :
-                          item.status === 'Parsing' ? 'secondary' :
-                          'outline'
-                        }
-                        className={
-                          item.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                          item.status === 'Parsing' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }
-                      >
-                        {item.status}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="flex-1 bg-muted rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${item.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground">{item.progress}%</span>
-                    </div>
-                    <div>
-                      <Button variant="link" size="sm" className="text-blue-600">
-                        Preview
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Help Panel */}
-        <div>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <HelpCircle className="w-5 h-5 text-blue-600" />
-                <CardTitle>Help</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-medium text-blue-600 mb-2">Supported Types:</h4>
-                <p className="text-sm text-muted-foreground">
-                  We support PDF, EPUB, TXT, and DOCX files.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-medium text-blue-600 mb-2">Limits:</h4>
-                <p className="text-sm text-muted-foreground">
-                  There is a 100MB size limit per file.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            {/* Actions */}
+            <div className="flex items-center gap-4 pt-4">
+              <Button type="submit" disabled={createItem.isPending} className="flex-1">
+                {createItem.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  'Add to Library'
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/library')}
+                disabled={createItem.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form>
     </div>
-  )
+  );
 }

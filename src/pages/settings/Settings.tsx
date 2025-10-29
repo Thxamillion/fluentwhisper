@@ -4,11 +4,6 @@ import { Card } from '@/components/ui/card';
 export function Settings() {
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">Configure your app preferences and settings.</p>
-      </div>
-
       <div className="space-y-8">
         {/* Whisper Model Section */}
         <WhisperModelSection />

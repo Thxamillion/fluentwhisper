@@ -15,6 +15,7 @@ export function Record() {
   const [transcript, setTranscript] = useState('');
   const [processingStage, setProcessingStage] = useState<'idle' | 'transcribing' | 'processing'>('idle');
   const [promptsExpanded, setPromptsExpanded] = useState(false);
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -61,6 +62,18 @@ export function Record() {
   const isProcessing = processingStage !== 'idle' || recording.isStopping;
   const canRecord = !devicesLoading && isModelInstalled && !isProcessing;
 
+  const prompts = [
+    'Describe your day in detail',
+    'Practice introducing yourself',
+    'Read a short passage aloud',
+    'Talk about your goals and dreams',
+  ];
+
+  const handlePromptClick = (prompt: string) => {
+    setSelectedPrompt(prompt);
+    setPromptsExpanded(false);
+  };
+
   return (
     <div className="p-8 max-w-3xl mx-auto">
       <div className="mb-8 text-center">
@@ -81,21 +94,40 @@ export function Record() {
 
           {promptsExpanded && (
             <div className="px-4 pb-4 space-y-2 border-t pt-4">
-              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                Describe your day in detail
-              </button>
-              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                Practice introducing yourself
-              </button>
-              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                Read a short passage aloud
-              </button>
-              <button className="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm">
-                Talk about your goals and dreams
-              </button>
+              {prompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => handlePromptClick(prompt)}
+                  className={`w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors text-sm ${
+                    selectedPrompt === prompt ? 'bg-blue-100 dark:bg-blue-900/20 font-medium' : ''
+                  }`}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
           )}
         </div>
+
+        {/* Selected Prompt Display */}
+        {selectedPrompt && (
+          <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">PRACTICE PROMPT</p>
+                  <p className="text-sm font-medium">{selectedPrompt}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedPrompt(null)}
+                  className="text-muted-foreground hover:text-foreground text-xs"
+                >
+                  Clear
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recorder Panel */}
         <Card>

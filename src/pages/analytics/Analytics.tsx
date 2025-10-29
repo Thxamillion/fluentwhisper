@@ -21,11 +21,6 @@ export function Analytics() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Progress Dashboard</h1>
-        <p className="text-gray-600">Track your language learning journey with detailed insights and metrics.</p>
-      </div>
-
       {/* Filters */}
       <div className="flex items-center space-x-4 mb-8">
         <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>

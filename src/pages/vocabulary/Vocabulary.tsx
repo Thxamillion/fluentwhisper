@@ -122,13 +122,6 @@ export function Vocabulary() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Vocabulary</h1>
-        <p className="text-gray-600">
-          {getLanguageName(selectedLanguage)} - {filteredVocab.length} words
-        </p>
-      </div>
-
       {/* Filters */}
       <div className="flex items-center gap-4 mb-8">
         {/* Language selector */}

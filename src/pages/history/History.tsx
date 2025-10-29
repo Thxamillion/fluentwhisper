@@ -48,11 +48,6 @@ export function History() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Session History</h1>
-        <p className="text-gray-600">Review your past recording sessions and track your progress over time.</p>
-      </div>
-
       {/* Filters */}
       <div className="flex items-center space-x-4 mb-8">
         <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>

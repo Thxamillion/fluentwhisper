@@ -1,124 +1,205 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Search, Bell, Plus } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, Plus, FileText, Video, BookOpen, Clock, Trash2, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTextLibrary, useDeleteTextLibraryItem } from '@/hooks/text-library';
+import type { TextLibraryItem } from '@/services/text-library';
+
+// Helper function to format duration
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (remainingSeconds === 0) return `${minutes}m`;
+  return `${minutes}m ${remainingSeconds}s`;
+}
+
+const sourceIcons = {
+  youtube: Video,
+  manual: FileText,
+  book: BookOpen,
+  article: FileText,
+};
 
 export function Library() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
 
-  const books = [
-    {
-      title: 'The Secret Garden',
-      author: 'Frances Hodgson Burnett',
-      cover: '🌿',
-    },
-    {
-      title: 'The Little Prince',
-      author: 'Antoine de Saint-Exupéry',
-      cover: '👑',
-    },
-    {
-      title: 'Don Quixote',
-      author: 'Miguel de Cervantes',
-      cover: '🏰',
-    },
-    {
-      title: 'Pride and Prejudice',
-      author: 'Jane Austen',
-      cover: '💕',
-    },
-    {
-      title: 'Crime and Punishment',
-      author: 'Fyodor Dostoevsky',
-      cover: '⚖️',
-    },
-    {
-      title: 'One Hundred Years of Solitude',
-      author: 'Gabriel García Márquez',
-      cover: '🏠',
-    },
-  ]
+  const { data: textItems = [], isLoading } = useTextLibrary();
+  const deleteItem = useDeleteTextLibraryItem();
+
+  // Filter items based on search and language
+  const filteredItems = textItems.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLanguage = selectedLanguage === 'all' || item.language === selectedLanguage;
+    return matchesSearch && matchesLanguage;
+  });
+
+  // Get unique languages from items
+  const languages = Array.from(new Set(textItems.map((item) => item.language)));
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Are you sure you want to delete this text?')) {
+      await deleteItem.mutateAsync(id);
+    }
+  };
+
+  const handleReadAloud = (item: TextLibraryItem) => {
+    navigate(`/read-aloud/${item.id}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Loading library...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Library</h1>
-          <p className="text-muted-foreground">Explore and manage your practice materials.</p>
-        </div>
         <div className="flex items-center space-x-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search library..."
-              className="pl-10"
+              className="pl-10 w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon">
-            <Bell className="w-4 h-4" />
+          <Button onClick={() => navigate('/import')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Text
           </Button>
         </div>
       </div>
 
-      {/* Categories */}
+      {/* Language Filter */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Categories</h2>
+        <h2 className="text-lg font-semibold mb-4">Filter by Language</h2>
         <div className="flex flex-wrap gap-2">
-          {['All', 'In Progress', 'Completed', 'Favorites'].map((category) => (
+          <Button
+            variant={selectedLanguage === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedLanguage('all')}
+          >
+            All
+          </Button>
+          {languages.map((lang) => (
             <Button
-              key={category}
-              variant={category === 'All' ? 'default' : 'outline'}
+              key={lang}
+              variant={selectedLanguage === lang ? 'default' : 'outline'}
               size="sm"
+              onClick={() => setSelectedLanguage(lang)}
             >
-              {category}
+              {lang.toUpperCase()}
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Books Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        {books.map((book) => (
-          <Card key={book.title} className="hover:shadow-md transition-shadow cursor-pointer group">
-            <div className="aspect-[3/4] bg-gradient-to-br from-blue-100 to-blue-200 rounded-t-lg flex items-center justify-center text-6xl">
-              {book.cover}
-            </div>
-            <CardContent className="p-4">
-              <h3 className="font-semibold group-hover:text-blue-600 transition-colors">
-                {book.title}
-              </h3>
-              <p className="text-sm text-muted-foreground">{book.author}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Import Content Button */}
-      <div className="flex justify-center">
-        <Button onClick={() => navigate('/import')} className="text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Import Content
-        </Button>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-center mt-8">
-        <div className="flex items-center space-x-2">
-          <button className="p-2 text-gray-400 hover:text-gray-600">
-            ‹
-          </button>
-          <button className="px-3 py-1 bg-blue-600 text-white rounded">1</button>
-          <button className="px-3 py-1 text-gray-600 hover:text-gray-900">2</button>
-          <button className="px-3 py-1 text-gray-600 hover:text-gray-900">3</button>
-          <span className="text-gray-400">...</span>
-          <button className="px-3 py-1 text-gray-600 hover:text-gray-900">10</button>
-          <button className="p-2 text-gray-600 hover:text-gray-900">
-            ›
-          </button>
+      {/* Text Items Grid */}
+      {filteredItems.length === 0 ? (
+        <div className="text-center py-16">
+          <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <h3 className="text-xl font-semibold mb-2">No texts found</h3>
+          <p className="text-muted-foreground mb-6">
+            {searchQuery
+              ? 'Try adjusting your search or filters'
+              : 'Start by importing your first text'}
+          </p>
+          <Button onClick={() => navigate('/import')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Text
+          </Button>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredItems.map((item) => {
+            const Icon = sourceIcons[item.sourceType] || FileText;
+            const duration = item.estimatedDuration || 0;
+
+            return (
+              <Card
+                key={item.id}
+                className="hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
+                onClick={() => handleReadAloud(item)}
+              >
+                <CardContent className="p-6">
+                  {/* Header with icon */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl">
+                        <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-xs text-muted-foreground mb-1">
+                          {new Date(item.createdAt * 1000).toLocaleDateString()}
+                        </div>
+                        <h3 className="font-bold text-lg group-hover:text-blue-600 transition-colors line-clamp-2">
+                          {item.title}
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content preview */}
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                    {item.content}
+                  </p>
+
+                  {/* Metadata */}
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+                    <div className="flex items-center gap-1">
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{item.wordCount || 0} words</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{formatDuration(duration)}</span>
+                    </div>
+                    <div className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+                      {item.language.toUpperCase()}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-4 border-t">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReadAloud(item);
+                      }}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Read Aloud
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleDelete(item.id, e)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
-  )
+  );
 }
