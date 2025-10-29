@@ -6,17 +6,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mic } from 'lucide-react'
 import { FirstRunCheck } from '../FirstRunCheck'
 import { useState } from 'react'
+import { SidebarProvider } from '@/contexts/SidebarContext'
 
 export function Layout() {
   const [selectedLanguage, setSelectedLanguage] = useState('es');
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* macOS Draggable Titlebar */}
-      <div className="titlebar" />
+    <SidebarProvider>
+      <div className="flex h-screen bg-background">
+        {/* macOS Draggable Titlebar */}
+        <div className="titlebar" />
 
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header - Floating */}
         <header className="absolute top-0 left-0 right-0 z-10 px-6 py-4 bg-background/80 backdrop-blur-md">
           <div className="flex items-center justify-end">
@@ -49,5 +51,6 @@ export function Layout() {
         </main>
       </div>
     </div>
+    </SidebarProvider>
   )
 }

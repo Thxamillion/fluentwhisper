@@ -222,6 +222,50 @@ pub async fn get_vocab_stats(
     })
 }
 
+/// Clean up vocabulary by removing punctuation from lemmas
+/// Returns the number of lemmas that were cleaned
+pub async fn clean_punctuation(pool: &SqlitePool) -> Result<i32> {
+    let timestamp = now();
+
+    // Get all vocab entries
+    let rows = sqlx::query("SELECT id, lemma FROM vocab")
+        .fetch_all(pool)
+        .await?;
+
+    let mut cleaned_count = 0;
+
+    for row in rows {
+        let id: i64 = row.get("id");
+        let lemma: String = row.get("lemma");
+
+        // Strip punctuation from lemma
+        let cleaned_lemma: String = lemma
+            .trim_matches(|c: char| c.is_ascii_punctuation() || !c.is_alphanumeric())
+            .to_string();
+
+        // Only update if lemma changed
+        if cleaned_lemma != lemma && !cleaned_lemma.is_empty() {
+            sqlx::query(
+                r#"
+                UPDATE vocab
+                SET lemma = ?,
+                    updated_at = ?
+                WHERE id = ?
+                "#
+            )
+            .bind(&cleaned_lemma)
+            .bind(timestamp)
+            .bind(id)
+            .execute(pool)
+            .await?;
+
+            cleaned_count += 1;
+        }
+    }
+
+    Ok(cleaned_count)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

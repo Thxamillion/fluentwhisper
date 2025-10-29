@@ -9,8 +9,11 @@ import {
   BookText,
   TrendingUp,
   Settings,
-  FlaskConical
+  FlaskConical,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
+import { useSidebar } from '@/contexts/SidebarContext'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
@@ -25,11 +28,32 @@ const navigation = [
 
 export function Sidebar() {
   const location = useLocation()
+  const { isCollapsed, setIsCollapsed } = useSidebar()
 
   return (
-    <div className="w-64 bg-white rounded-xl shadow-sm m-3 flex flex-col">
+    <div className={cn(
+      "bg-white rounded-xl shadow-sm m-3 flex flex-col transition-all duration-300",
+      isCollapsed ? "w-16" : "w-64"
+    )}>
+      {/* Collapse Button */}
+      <div className="p-4 flex justify-end">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="h-8 w-8"
+          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
+        </Button>
+      </div>
+
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 pt-0">
         <ul className="space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href
@@ -39,14 +63,15 @@ export function Sidebar() {
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
                   className={cn(
-                    'w-full justify-start space-x-3',
+                    'w-full space-x-3',
+                    isCollapsed ? 'justify-center px-0' : 'justify-start',
                     isActive && 'bg-secondary text-secondary-foreground'
                   )}
                   asChild
                 >
-                  <Link to={item.href}>
+                  <Link to={item.href} title={isCollapsed ? item.name : undefined}>
                     <IconComponent className="w-4 h-4" />
-                    <span>{item.name}</span>
+                    {!isCollapsed && <span>{item.name}</span>}
                   </Link>
                 </Button>
               </li>

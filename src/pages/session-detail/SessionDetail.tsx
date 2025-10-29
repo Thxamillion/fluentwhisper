@@ -3,10 +3,13 @@ import { useSession, useSessionWords, useDeleteSession } from '@/hooks/sessions'
 import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles } from 'lucide-react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Card } from '@/components/ui/card';
+import { AudioPlayer } from '@/components/AudioPlayer';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { isCollapsed } = useSidebar();
 
   const { data: session, isLoading: sessionLoading } = useSession(sessionId!);
   const { data: words, isLoading: wordsLoading } = useSessionWords(sessionId!);
@@ -120,38 +123,72 @@ export function SessionDetail() {
         </div>
       </div>
 
-      {/* Audio Player */}
+      {/* Audio Player - Sticky Bottom */}
       {audioSrc && (
-        <Card className="p-6 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <p className="text-lg font-semibold text-gray-900 mb-2">Recording Audio</p>
-              <audio controls className="w-full" src={audioSrc}>
-                Your browser does not support the audio element.
-              </audio>
-            </div>
+        <div
+          className="fixed bottom-4 left-0 right-0 z-50 px-8 transition-all duration-300"
+          style={{
+            marginLeft: isCollapsed ? '88px' : '280px' // Sidebar width + margin
+          }}
+        >
+          <div className="mr-4 border border-gray-200/50 rounded-xl bg-white/80 backdrop-blur-md p-4 shadow-lg">
+            <AudioPlayer src={audioSrc} />
           </div>
-        </Card>
+        </div>
       )}
 
       <div className="grid grid-cols-3 gap-8">
         {/* Left Column: Transcript + Words */}
         <div className="col-span-2 space-y-8">
-          {/* Transcript */}
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Transcript</h3>
-            {session.transcript ? (
-              <Card className="p-6">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {session.transcript}
-                </p>
-              </Card>
-            ) : (
-              <Card className="p-6 text-center text-gray-500">
-                No transcript available
-              </Card>
-            )}
-          </div>
+          {/* Read-aloud sessions: Side-by-side comparison */}
+          {session.sessionType === 'read_aloud' && session.sourceText ? (
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Source vs Your Reading</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Source Text */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Original Text</h4>
+                  <Card className="p-6 h-[400px] overflow-y-auto">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {session.sourceText}
+                    </p>
+                  </Card>
+                </div>
+
+                {/* Transcript */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Your Recording</h4>
+                  {session.transcript ? (
+                    <Card className="p-6 h-[400px] overflow-y-auto">
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {session.transcript}
+                      </p>
+                    </Card>
+                  ) : (
+                    <Card className="p-6 h-[400px] flex items-center justify-center text-gray-500">
+                      No transcript available
+                    </Card>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Free speak sessions: Single transcript view */
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Transcript</h3>
+              {session.transcript ? (
+                <Card className="p-6">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {session.transcript}
+                  </p>
+                </Card>
+              ) : (
+                <Card className="p-6 text-center text-gray-500">
+                  No transcript available
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* Vocabulary Words */}
           <div>

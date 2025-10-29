@@ -39,6 +39,9 @@ pub struct SessionData {
     pub unique_word_count: Option<i64>,
     pub wpm: Option<f64>,
     pub new_word_count: Option<i64>,
+    pub session_type: Option<String>,
+    pub text_library_id: Option<String>,
+    pub source_text: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -51,15 +54,21 @@ pub struct SessionStats {
 }
 
 /// Create a new session
-pub async fn create_session(pool: &SqlitePool, language: &str) -> Result<String> {
+pub async fn create_session(
+    pool: &SqlitePool,
+    language: &str,
+    session_type: Option<&str>,
+    text_library_id: Option<&str>,
+    source_text: Option<&str>,
+) -> Result<String> {
     let session_id = Uuid::new_v4().to_string();
     let now = Utc::now().timestamp();
 
     sqlx::query(
         r#"
         INSERT INTO sessions (
-            id, language, started_at, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?)
+            id, language, started_at, created_at, updated_at, session_type, text_library_id, source_text
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         "#,
     )
     .bind(&session_id)
@@ -67,6 +76,9 @@ pub async fn create_session(pool: &SqlitePool, language: &str) -> Result<String>
     .bind(now)
     .bind(now)
     .bind(now)
+    .bind(session_type)
+    .bind(text_library_id)
+    .bind(source_text)
     .execute(pool)
     .await
     .context("Failed to create session")?;
@@ -82,6 +94,9 @@ pub async fn complete_session(
     transcript: &str,
     duration_seconds: f32,
     language: &str,
+    session_type: Option<&str>,
+    text_library_id: Option<&str>,
+    source_text: Option<&str>,
 ) -> Result<SessionStats> {
     let now = Utc::now().timestamp();
     let duration = duration_seconds as i64;
@@ -101,6 +116,9 @@ pub async fn complete_session(
             unique_word_count = ?,
             wpm = ?,
             new_word_count = ?,
+            session_type = ?,
+            text_library_id = ?,
+            source_text = ?,
             updated_at = ?
         WHERE id = ?
         "#,
@@ -113,6 +131,9 @@ pub async fn complete_session(
     .bind(stats.unique_word_count)
     .bind(stats.wpm)
     .bind(stats.new_word_count)
+    .bind(session_type)
+    .bind(text_library_id)
+    .bind(source_text)
     .bind(now)
     .bind(session_id)
     .execute(pool)
@@ -198,8 +219,8 @@ async fn process_transcript(
 fn tokenize_transcript(text: &str) -> Vec<String> {
     text.split_whitespace()
         .map(|word| {
-            // Remove common punctuation
-            word.trim_matches(|c: char| c.is_ascii_punctuation())
+            // Remove all punctuation (including Unicode like ¿ ¡)
+            word.trim_matches(|c: char| c.is_ascii_punctuation() || !c.is_alphanumeric())
                 .to_lowercase()
         })
         .filter(|word| !word.is_empty())
@@ -229,7 +250,8 @@ pub async fn get_session(pool: &SqlitePool, session_id: &str) -> Result<SessionD
     let session = sqlx::query_as::<_, SessionData>(
         r#"
         SELECT id, language, started_at, ended_at, duration, audio_path, transcript,
-               word_count, unique_word_count, wpm, new_word_count
+               word_count, unique_word_count, wpm, new_word_count,
+               session_type, text_library_id, source_text
         FROM sessions
         WHERE id = ?
         "#,
@@ -250,7 +272,8 @@ pub async fn get_sessions_by_language(
     let sessions = sqlx::query_as::<_, SessionData>(
         r#"
         SELECT id, language, started_at, ended_at, duration, audio_path, transcript,
-               word_count, unique_word_count, wpm, new_word_count
+               word_count, unique_word_count, wpm, new_word_count,
+               session_type, text_library_id, source_text
         FROM sessions
         WHERE language = ?
         ORDER BY started_at DESC
@@ -269,7 +292,8 @@ pub async fn get_all_sessions(pool: &SqlitePool) -> Result<Vec<SessionData>> {
     let sessions = sqlx::query_as::<_, SessionData>(
         r#"
         SELECT id, language, started_at, ended_at, duration, audio_path, transcript,
-               word_count, unique_word_count, wpm, new_word_count
+               word_count, unique_word_count, wpm, new_word_count,
+               session_type, text_library_id, source_text
         FROM sessions
         ORDER BY started_at DESC
         "#,

@@ -187,7 +187,6 @@ export function Vocabulary() {
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Forms Used</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Usage</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">First Seen</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Last Seen</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -230,7 +229,6 @@ export function Vocabulary() {
                       <span className="font-medium">{word.usage_count}</span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{formatDate(word.first_seen_at)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{formatDate(word.last_seen_at)}</td>
                   </tr>
                 ))}
               </tbody>

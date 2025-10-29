@@ -50,3 +50,14 @@ pub async fn get_vocab_stats(language: String) -> Result<VocabStats, String> {
         .await
         .map_err(|e| e.to_string())
 }
+
+/// Clean up vocabulary lemmas by removing punctuation
+/// Returns the number of lemmas cleaned
+#[tauri::command]
+pub async fn clean_vocab_punctuation() -> Result<i32, String> {
+    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+
+    vocabulary::clean_punctuation(&pool)
+        .await
+        .map_err(|e| e.to_string())
+}
