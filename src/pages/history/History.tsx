@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAllSessions, useDeleteSession } from '@/hooks/sessions';
-import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages, BookOpen, Mic } from 'lucide-react';
+import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages, BookOpen, Mic, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 export function History() {
   const navigate = useNavigate();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedSessionType, setSelectedSessionType] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { data: sessions, isLoading } = useAllSessions();
   const deleteSession = useDeleteSession();
 
@@ -32,22 +35,26 @@ export function History() {
   };
 
   const handleDelete = async (e: React.MouseEvent, sessionId: string) => {
-    e.stopPropagation(); // Prevent navigation when clicking delete
+    e.stopPropagation();
+    console.log('Delete button clicked for session:', sessionId);
 
-    if (!window.confirm('Are you sure you want to delete this session? This cannot be undone.')) {
-      return;
-    }
+    // TEMPORARY: Bypassing confirmation because window.confirm() doesn't work in Tauri
+    // TODO: Implement a proper React confirmation dialog component
+    console.log('Proceeding with delete (confirmation disabled for testing)');
 
     try {
-      deleteSession.mutate(sessionId, {
-        onError: (error) => {
-          console.error('Failed to delete session:', error);
-          alert(`Failed to delete session: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again.`);
-        },
-      });
+      console.log('Calling deleteSession.mutateAsync');
+      await deleteSession.mutateAsync(sessionId);
+      console.log('Session deleted successfully');
+
+      // Reset to page 1 after delete to avoid pagination issues
+      if (paginatedSessions.length === 1 && currentPage > 1) {
+        console.log('Last item on page deleted, going to previous page');
+        setCurrentPage(currentPage - 1);
+      }
     } catch (error) {
-      console.error('Error deleting session:', error);
-      alert('An unexpected error occurred while deleting the session. Please try again.');
+      console.error('Failed to delete session:', error);
+      alert(`Failed to delete session: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again.`);
     }
   };
 
@@ -56,19 +63,57 @@ export function History() {
   };
 
   // Filter sessions by language and session type
-  const filteredSessions = sessions?.filter((session) => {
-    const languageMatch = selectedLanguage === 'all' || session.language === selectedLanguage;
-    const sessionTypeMatch =
-      selectedSessionType === 'all' ||
-      (session.sessionType || 'free_speak') === selectedSessionType;
-    return languageMatch && sessionTypeMatch;
-  });
+  const filteredSessions = useMemo(() => {
+    if (!sessions) return [];
+
+    return sessions.filter((session) => {
+      const languageMatch = selectedLanguage === 'all' || session.language === selectedLanguage;
+      const sessionTypeMatch =
+        selectedSessionType === 'all' ||
+        (session.sessionType || 'free_speak') === selectedSessionType;
+      return languageMatch && sessionTypeMatch;
+    });
+  }, [sessions, selectedLanguage, selectedSessionType]);
+
+  // Pagination calculations with safety checks
+  const totalPages = filteredSessions.length > 0 ? Math.ceil(filteredSessions.length / itemsPerPage) : 1;
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safePage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSessions = filteredSessions.slice(startIndex, endIndex);
+
+  // Adjust current page if it's out of bounds after deletion
+  useEffect(() => {
+    if (filteredSessions.length > 0 && currentPage > totalPages) {
+      console.log('Current page out of bounds, adjusting to:', totalPages);
+      setCurrentPage(totalPages);
+    } else if (filteredSessions.length === 0 && currentPage !== 1) {
+      console.log('No sessions, resetting to page 1');
+      setCurrentPage(1);
+    }
+  }, [filteredSessions.length, currentPage, totalPages]);
+
+  // Reset to page 1 when filters change
+  const handleLanguageChange = (language: string) => {
+    setSelectedLanguage(language);
+    setCurrentPage(1);
+  };
+
+  const handleSessionTypeChange = (sessionType: string) => {
+    setSelectedSessionType(sessionType);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="p-8">
       {/* Filters */}
       <div className="flex items-center space-x-4 mb-8">
-        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+        <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
@@ -80,7 +125,7 @@ export function History() {
           </SelectContent>
         </Select>
 
-        <Select value={selectedSessionType} onValueChange={setSelectedSessionType}>
+        <Select value={selectedSessionType} onValueChange={handleSessionTypeChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
@@ -97,9 +142,10 @@ export function History() {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         </div>
-      ) : filteredSessions && filteredSessions.length > 0 ? (
-        <div className="space-y-4">
-          {filteredSessions.map((session) => (
+      ) : filteredSessions.length > 0 ? (
+        <>
+          <div className="space-y-4">
+            {paginatedSessions.map((session) => (
             <Card
               key={session.id}
               onClick={() => handleSessionClick(session.id)}
@@ -184,7 +230,84 @@ export function History() {
               </div>
             </Card>
           ))}
-        </div>
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 0 && (
+            <div className="mt-6 flex items-center justify-between">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Show:</span>
+                <Select value={String(itemsPerPage)} onValueChange={(value) => handleItemsPerPageChange(Number(value))}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-gray-600">per page</span>
+              </div>
+
+              {/* Page info */}
+              <div className="text-sm text-gray-600">
+                Showing {Math.min(startIndex + 1, filteredSessions.length)}-{Math.min(endIndex, filteredSessions.length)} of {filteredSessions.length} sessions
+              </div>
+
+              {/* Page navigation */}
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage === 1}
+                  variant="secondary"
+                  size="icon"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {/* Show page numbers */}
+                  {totalPages > 0 && Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= safePage - 1 && page <= safePage + 1)
+                      );
+                    })
+                    .map((page, index, array) => (
+                      <div key={page} className="flex items-center">
+                        {/* Show ellipsis if there's a gap */}
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className="px-2 text-gray-400">...</span>
+                        )}
+                        <Button
+                          onClick={() => setCurrentPage(page)}
+                          variant={safePage === page ? 'default' : 'ghost'}
+                          size="sm"
+                        >
+                          {page}
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+
+                <Button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage === totalPages || totalPages === 0}
+                  variant="secondary"
+                  size="icon"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <Card className="p-12 text-center">
           <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />

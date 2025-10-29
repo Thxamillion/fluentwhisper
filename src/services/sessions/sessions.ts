@@ -23,10 +23,13 @@ export async function getAllSessions(): Promise<{ success: boolean; data?: Sessi
  */
 export async function getSession(sessionId: string): Promise<{ success: boolean; data?: SessionData; error?: string }> {
   try {
+    console.log('Fetching session with ID:', sessionId);
     const session = await invoke<SessionData>('get_session_command', { sessionId });
+    console.log('Session fetched successfully:', session);
     return { success: true, data: session };
   } catch (error) {
     console.error('Failed to get session:', error);
+    console.error('Session ID was:', sessionId);
     return { success: false, error: String(error) };
   }
 }
@@ -62,10 +65,12 @@ export async function getSessionWords(sessionId: string): Promise<{ success: boo
  */
 export async function deleteSession(sessionId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log('[deleteSession] Deleting session:', sessionId);
     await invoke('delete_session_command', { sessionId });
+    console.log('[deleteSession] Session deleted successfully');
     return { success: true };
   } catch (error) {
-    console.error('Failed to delete session:', error);
+    console.error('[deleteSession] Failed to delete session:', error);
     return { success: false, error: String(error) };
   }
 }

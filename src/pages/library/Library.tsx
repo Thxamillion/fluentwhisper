@@ -65,7 +65,7 @@ export function Library() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 flex-wrap gap-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -80,30 +80,27 @@ export function Library() {
             <Plus className="w-4 h-4 mr-2" />
             Add Text
           </Button>
-        </div>
-      </div>
 
-      {/* Language Filter */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Filter by Language</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedLanguage === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedLanguage('all')}
-          >
-            All
-          </Button>
-          {languages.map((lang) => (
+          {/* Language Filter */}
+          <div className="flex items-center gap-2 ml-4 border-l pl-4">
             <Button
-              key={lang}
-              variant={selectedLanguage === lang ? 'default' : 'outline'}
+              variant={selectedLanguage === 'all' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedLanguage(lang)}
+              onClick={() => setSelectedLanguage('all')}
             >
-              {lang.toUpperCase()}
+              All
             </Button>
-          ))}
+            {languages.map((lang) => (
+              <Button
+                key={lang}
+                variant={selectedLanguage === lang ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedLanguage(lang)}
+              >
+                {lang.toUpperCase()}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -10,8 +10,8 @@ use crate::services::stats::{
 
 /// Get overall statistics
 #[tauri::command]
-pub async fn get_stats_overall(language: Option<String>) -> Result<OverallStats, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+pub async fn get_stats_overall(app_handle: tauri::AppHandle, language: Option<String>) -> Result<OverallStats, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
     get_overall_stats(&pool, language.as_deref())
         .await
         .map_err(|e| e.to_string())
@@ -19,11 +19,11 @@ pub async fn get_stats_overall(language: Option<String>) -> Result<OverallStats,
 
 /// Get top N most practiced words
 #[tauri::command]
-pub async fn get_stats_top_words(
+pub async fn get_stats_top_words(app_handle: tauri::AppHandle, 
     language: String,
     limit: i64,
 ) -> Result<Vec<TopWord>, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
     get_top_words(&pool, &language, limit)
         .await
         .map_err(|e| e.to_string())
@@ -31,11 +31,11 @@ pub async fn get_stats_top_words(
 
 /// Get daily session counts for calendar/streaks
 #[tauri::command]
-pub async fn get_stats_daily_sessions(
+pub async fn get_stats_daily_sessions(app_handle: tauri::AppHandle, 
     language: Option<String>,
     days: Option<i64>,
 ) -> Result<Vec<DailySessionCount>, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
     get_daily_session_counts(&pool, language.as_deref(), days)
         .await
         .map_err(|e| e.to_string())
@@ -43,11 +43,11 @@ pub async fn get_stats_daily_sessions(
 
 /// Get WPM trends over time
 #[tauri::command]
-pub async fn get_stats_wpm_trends(
+pub async fn get_stats_wpm_trends(app_handle: tauri::AppHandle, 
     language: Option<String>,
     days: Option<i64>,
 ) -> Result<Vec<WpmTrend>, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
     get_wpm_trends(&pool, language.as_deref(), days)
         .await
         .map_err(|e| e.to_string())
@@ -55,8 +55,8 @@ pub async fn get_stats_wpm_trends(
 
 /// Get vocabulary growth over time
 #[tauri::command]
-pub async fn get_stats_vocab_growth(language: String) -> Result<Vec<VocabGrowth>, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+pub async fn get_stats_vocab_growth(app_handle: tauri::AppHandle, language: String) -> Result<Vec<VocabGrowth>, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
     get_vocab_growth(&pool, &language)
         .await
         .map_err(|e| e.to_string())

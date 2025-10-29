@@ -22,7 +22,7 @@ unsafe impl Sync for RecorderStateWrapper {}
 
 /// Get list of available recording devices
 #[tauri::command]
-pub async fn get_recording_devices(
+pub async fn get_recording_devices(app_handle: tauri::AppHandle, 
     recorder: State<'_, RecorderStateWrapper>,
 ) -> Result<Vec<DeviceInfo>, String> {
     let state = recorder.inner().0.lock().map_err(|e| e.to_string())?;
@@ -31,7 +31,7 @@ pub async fn get_recording_devices(
 
 /// Start recording audio
 #[tauri::command]
-pub async fn start_recording(
+pub async fn start_recording(app_handle: tauri::AppHandle, 
     app: tauri::AppHandle,
     recorder: State<'_, RecorderStateWrapper>,
     device_name: Option<String>,
@@ -58,7 +58,7 @@ pub async fn start_recording(
 
 /// Stop recording and return metadata
 #[tauri::command]
-pub async fn stop_recording(
+pub async fn stop_recording(app_handle: tauri::AppHandle, 
     recorder: State<'_, RecorderStateWrapper>,
 ) -> Result<RecordingResult, String> {
     let mut state = recorder.inner().0.lock().map_err(|e| e.to_string())?;
@@ -67,14 +67,14 @@ pub async fn stop_recording(
 
 /// Check if currently recording
 #[tauri::command]
-pub async fn is_recording(recorder: State<'_, RecorderStateWrapper>) -> Result<bool, String> {
+pub async fn is_recording(app_handle: tauri::AppHandle, recorder: State<'_, RecorderStateWrapper>) -> Result<bool, String> {
     let state = recorder.inner().0.lock().map_err(|e| e.to_string())?;
     Ok(state.is_recording())
 }
 
 /// Transcribe an audio file
 #[tauri::command]
-pub async fn transcribe(
+pub async fn transcribe(app_handle: tauri::AppHandle, 
     audio_path: String,
     language: String,
     model_path: Option<String>,
@@ -132,13 +132,13 @@ pub struct CompleteSessionRequest {
 
 /// Create a new recording session
 #[tauri::command]
-pub async fn create_recording_session(
+pub async fn create_recording_session(app_handle: tauri::AppHandle, 
     language: String,
     session_type: Option<String>,
     text_library_id: Option<String>,
     source_text: Option<String>,
 ) -> Result<String, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
     create_session(
         &pool,
         &language,
@@ -152,10 +152,10 @@ pub async fn create_recording_session(
 
 /// Complete a recording session with transcript and stats
 #[tauri::command]
-pub async fn complete_recording_session(
+pub async fn complete_recording_session(app_handle: tauri::AppHandle, 
     request: CompleteSessionRequest,
 ) -> Result<SessionStats, String> {
-    let pool = open_user_db().await.map_err(|e| e.to_string())?;
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
 
     complete_session(
         &pool,

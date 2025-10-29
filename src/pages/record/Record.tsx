@@ -1,11 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Mic, Square, Loader2 } from 'lucide-react'
+import { ChevronDown, Mic, Square, Loader2, CheckCircle, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRecording, useRecordingDevices } from '@/hooks/recording'
 import { useDefaultModelInstalled } from '@/hooks/models'
+import { useNavigate } from 'react-router-dom'
+import { AudioPlayer } from '@/components/AudioPlayer'
+import { convertFileSrc } from '@tauri-apps/api/core'
 
 export function Record() {
+  const navigate = useNavigate();
   const { data: isModelInstalled } = useDefaultModelInstalled();
   const { data: devices, isLoading: devicesLoading } = useRecordingDevices();
   const recording = useRecording();
@@ -13,9 +17,13 @@ export function Record() {
   const [selectedLanguage, setSelectedLanguage] = useState('es');
   const [selectedDevice, setSelectedDevice] = useState<string | undefined>();
   const [transcript, setTranscript] = useState('');
-  const [processingStage, setProcessingStage] = useState<'idle' | 'transcribing' | 'processing'>('idle');
+  const [processingStage, setProcessingStage] = useState<'idle' | 'transcribing' | 'review' | 'saving' | 'complete'>('idle');
   const [promptsExpanded, setPromptsExpanded] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [recordingData, setRecordingData] = useState<{
+    filePath: string;
+    durationSeconds: number;
+  } | null>(null);
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -26,28 +34,13 @@ export function Record() {
 
   const handleRecordToggle = async () => {
     if (recording.isRecording) {
-      // Stop recording
-      setProcessingStage('transcribing');
+      // Stop recording (no transcription yet)
       try {
         const result = await recording.stopRecording();
+        setRecordingData(result);
 
-        // Transcribe the audio
-        const transcriptText = await recording.transcribe(result.filePath, selectedLanguage);
-        setTranscript(transcriptText);
-
-        // Complete the session (process words and save vocabulary)
-        setProcessingStage('processing');
-        if (recording.sessionId) {
-          await recording.completeSession(
-            recording.sessionId,
-            result.filePath,
-            transcriptText,
-            result.durationSeconds,
-            selectedLanguage
-          );
-        }
-
-        setProcessingStage('idle');
+        // Show review state without transcribing
+        setProcessingStage('review');
       } catch (error) {
         console.error('Recording process failed:', error);
         setProcessingStage('idle');
@@ -55,12 +48,50 @@ export function Record() {
     } else {
       // Start recording
       setTranscript('');
+      setRecordingData(null);
+      setProcessingStage('idle');
       recording.startRecording(selectedLanguage, selectedDevice);
     }
   };
 
-  const isProcessing = processingStage !== 'idle' || recording.isStopping;
-  const canRecord = !devicesLoading && isModelInstalled && !isProcessing;
+  const handleTranscribeAndSave = async () => {
+    if (!recordingData || !recording.sessionId) return;
+
+    // First transcribe
+    setProcessingStage('transcribing');
+    try {
+      const transcriptText = await recording.transcribe(recordingData.filePath, selectedLanguage);
+      setTranscript(transcriptText);
+
+      // Then save
+      setProcessingStage('saving');
+      await recording.completeSession(
+        recording.sessionId,
+        recordingData.filePath,
+        transcriptText,
+        recordingData.durationSeconds,
+        selectedLanguage
+      );
+
+      // Navigate to session details immediately after saving
+      navigate(`/session/${recording.sessionId}`);
+    } catch (error) {
+      console.error('Failed to transcribe/save session:', error);
+      alert('Failed to process session. Please try again.');
+      setProcessingStage('review');
+    }
+  };
+
+  const handleDiscardSession = () => {
+    // TODO: Delete the audio file from disk
+    setTranscript('');
+    setRecordingData(null);
+    setProcessingStage('idle');
+    setSelectedPrompt(null);
+  };
+
+  const isProcessing = processingStage === 'transcribing' || processingStage === 'saving' || recording.isStopping;
+  const canRecord = !devicesLoading && isModelInstalled && !isProcessing && processingStage === 'idle';
 
   const prompts = [
     'Describe your day in detail',
@@ -146,7 +177,7 @@ export function Record() {
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
                     <p className="text-sm text-muted-foreground mt-2">
                       {processingStage === 'transcribing' && 'Transcribing audio...'}
-                      {processingStage === 'processing' && 'Processing vocabulary...'}
+                      {processingStage === 'saving' && 'Saving session...'}
                     </p>
                   </div>
                 )}
@@ -187,18 +218,35 @@ export function Record() {
             </CardContent>
           </Card>
 
-        {/* Transcript Preview */}
-        {transcript && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Transcript</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-muted rounded-lg p-4 min-h-[100px]">
-                <p className="text-foreground whitespace-pre-wrap leading-relaxed">{transcript}</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Review Recording */}
+        {recordingData && processingStage === 'review' && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Review Your Recording</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Duration: {formatTime(Math.floor(recordingData.durationSeconds))}
+                  </p>
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <AudioPlayer src={convertFileSrc(recordingData.filePath)} />
+                  </div>
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <Button onClick={handleDiscardSession} variant="outline" className="flex items-center gap-2">
+                    <Trash2 className="w-4 h-4" />
+                    Discard
+                  </Button>
+                  <Button onClick={handleTranscribeAndSave} className="flex items-center gap-2">
+                    <Save className="w-4 h-4" />
+                    Transcribe & Save
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
 
       </div>

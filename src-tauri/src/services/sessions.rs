@@ -325,22 +325,29 @@ pub async fn get_session_words(pool: &SqlitePool, session_id: &str) -> Result<Ve
 
 /// Delete a session and its related data
 pub async fn delete_session(pool: &SqlitePool, session_id: &str) -> Result<()> {
+    println!("[delete_session] Starting deletion for session: {}", session_id);
+
     // Delete session_words links first (foreign key constraint)
-    sqlx::query("DELETE FROM session_words WHERE session_id = ?")
+    println!("[delete_session] Deleting session_words...");
+    let result = sqlx::query("DELETE FROM session_words WHERE session_id = ?")
         .bind(session_id)
         .execute(pool)
         .await
         .context("Failed to delete session words")?;
+    println!("[delete_session] Deleted {} session_words rows", result.rows_affected());
 
     // Delete the session
-    sqlx::query("DELETE FROM sessions WHERE id = ?")
+    println!("[delete_session] Deleting session...");
+    let result = sqlx::query("DELETE FROM sessions WHERE id = ?")
         .bind(session_id)
         .execute(pool)
         .await
         .context("Failed to delete session")?;
+    println!("[delete_session] Deleted {} session rows", result.rows_affected());
 
     // Note: We don't delete vocab entries even if this was the only session that used them
     // Vocabulary persists across sessions
 
+    println!("[delete_session] Successfully deleted session: {}", session_id);
     Ok(())
 }

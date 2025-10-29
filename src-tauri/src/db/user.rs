@@ -11,20 +11,28 @@
 use anyhow::{Context, Result};
 use sqlx::sqlite::SqlitePool;
 use std::path::PathBuf;
+use tauri::Manager;
 
-/// Get path to user.db
-/// For now, stores in project root. In production, use Tauri app_data_dir
-pub fn get_user_db_path() -> Result<PathBuf> {
-    // TODO: In production, use tauri::api::path::app_data_dir()
-    // For MVP, use project root for easy inspection
-    let path = PathBuf::from("user.db");
-    Ok(path)
+/// Get path to user.db in app data directory
+pub fn get_user_db_path(app_handle: &tauri::AppHandle) -> Result<PathBuf> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .context("Failed to get app data directory")?;
+
+    // Create the directory if it doesn't exist
+    std::fs::create_dir_all(&app_data_dir)
+        .context("Failed to create app data directory")?;
+
+    let db_path = app_data_dir.join("user.db");
+    Ok(db_path)
 }
 
 /// Initialize user database with schema
 /// Creates tables if they don't exist
-pub async fn initialize_user_db() -> Result<SqlitePool> {
-    let db_path = get_user_db_path()?;
+pub async fn initialize_user_db(app_handle: &tauri::AppHandle) -> Result<SqlitePool> {
+    let db_path = get_user_db_path(app_handle)?;
+    println!("[initialize_user_db] Database path: {:?}", db_path);
     let connection_string = format!("sqlite://{}?mode=rwc", db_path.display());
 
     let pool = SqlitePool::connect(&connection_string)
@@ -180,12 +188,12 @@ pub async fn initialize_user_db() -> Result<SqlitePool> {
 }
 
 /// Open connection to existing user database
-pub async fn open_user_db() -> Result<SqlitePool> {
-    let db_path = get_user_db_path()?;
+pub async fn open_user_db(app_handle: &tauri::AppHandle) -> Result<SqlitePool> {
+    let db_path = get_user_db_path(app_handle)?;
 
     if !db_path.exists() {
         // Database doesn't exist, initialize it
-        return initialize_user_db().await;
+        return initialize_user_db(app_handle).await;
     }
 
     let connection_string = format!("sqlite://{}?mode=rw", db_path.display());

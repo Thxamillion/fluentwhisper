@@ -29,8 +29,11 @@ export function useSession(sessionId: string) {
   return useQuery({
     queryKey: ['sessions', 'detail', sessionId],
     queryFn: async () => {
+      console.log('[useSession] Fetching session:', sessionId);
       const result = await sessionsService.getSession(sessionId);
+      console.log('[useSession] Result:', result);
       if (!result.success) {
+        console.error('[useSession] Error:', result.error);
         throw new Error(result.error);
       }
       return result.data;
@@ -84,13 +87,17 @@ export function useDeleteSession() {
 
   return useMutation({
     mutationFn: async (sessionId: string) => {
+      console.log('[useDeleteSession] Mutation function called with:', sessionId);
       const result = await sessionsService.deleteSession(sessionId);
+      console.log('[useDeleteSession] Result:', result);
       if (!result.success) {
+        console.error('[useDeleteSession] Delete failed:', result.error);
         throw new Error(result.error);
       }
       return result;
     },
     onSuccess: () => {
+      console.log('[useDeleteSession] onSuccess callback - invalidating queries');
       // Invalidate all session queries to refetch
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       // Also invalidate stats since deleting a session affects stats
