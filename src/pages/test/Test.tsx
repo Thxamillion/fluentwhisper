@@ -5,12 +5,14 @@ import { tokenize } from '@/services/text';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { DevAuthPanel } from '@/components/DevAuthPanel';
 
 /**
- * Test page to verify language pack integration works end-to-end
- * Now with vocabulary saving!
+ * Test page for development
+ * - Language pack testing
+ * - Dev auth panel for testing authentication states
  */
-export function TestLangpack() {
+export function Test() {
   const [inputText, setInputText] = useState('estoy corriendo del parque');
   const [words, setWords] = useState<string[]>([]);
   const [savedWords, setSavedWords] = useState<Set<string>>(new Set());
@@ -76,7 +78,7 @@ export function TestLangpack() {
   return (
     <div className="container mx-auto p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Language Pack Test</h1>
+        <h1 className="text-3xl font-bold">Development Testing</h1>
 
         {stats && (
           <Card className="p-4">
@@ -89,6 +91,12 @@ export function TestLangpack() {
         )}
       </div>
 
+      {/* Dev Auth Panel */}
+      <div className="mb-6">
+        <DevAuthPanel />
+      </div>
+
+      {/* Language Pack Testing */}
       <Card className="p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Input</h2>
 

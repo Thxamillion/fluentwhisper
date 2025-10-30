@@ -10,7 +10,7 @@ import { Vocabulary } from '@/pages/vocabulary/Vocabulary'
 import { Analytics } from '@/pages/analytics/Analytics'
 import { Settings } from '@/pages/settings/Settings'
 import { Import } from '@/pages/import/Import'
-import { TestLangpack } from '@/pages/test/TestLangpack'
+import { Test } from '@/pages/test/Test'
 import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 
 // Create React Query client
@@ -40,7 +40,7 @@ function App() {
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
             <Route path="import" element={<Import />} />
-            <Route path="test" element={<TestLangpack />} />
+            <Route path="test" element={<Test />} />
           </Route>
         </Routes>
       </Router>

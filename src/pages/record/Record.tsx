@@ -7,9 +7,11 @@ import { useDefaultModelInstalled } from '@/hooks/models'
 import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '@/components/AudioPlayer'
 import { convertFileSrc } from '@tauri-apps/api/core'
+import { useSidebar } from '@/contexts/SidebarContext'
 
 export function Record() {
   const navigate = useNavigate();
+  const { isCollapsed } = useSidebar();
   const { data: isModelInstalled } = useDefaultModelInstalled();
   const { data: devices, isLoading: devicesLoading } = useRecordingDevices();
   const recording = useRecording();
@@ -92,6 +94,12 @@ export function Record() {
 
   const isProcessing = processingStage === 'transcribing' || processingStage === 'saving' || recording.isStopping;
   const canRecord = !devicesLoading && isModelInstalled && !isProcessing && processingStage === 'idle';
+  const canInteract = processingStage === 'review' || canRecord;
+
+  // Debug logging
+  console.log('processingStage:', processingStage);
+  console.log('isProcessing:', isProcessing);
+  console.log('canInteract:', canInteract);
 
   const prompts = [
     'Describe your day in detail',
@@ -107,11 +115,6 @@ export function Record() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Practice</h1>
-        <p className="text-muted-foreground">Hone your pronunciation and get instant feedback.</p>
-      </div>
-
       <div className="space-y-6">
         {/* Collapsible Prompt Picker */}
         <div className="relative border rounded-lg">
@@ -162,7 +165,7 @@ export function Record() {
 
         {/* Recorder Panel */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 relative">
             <div className="py-12 text-center">
                 {!isModelInstalled && (
                   <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -185,68 +188,66 @@ export function Record() {
                 {!isProcessing && (
                   <>
                     <p className="text-muted-foreground mb-10">
-                      {recording.isRecording ? 'Recording in progress...' : 'Press the button to start recording'}
+                      {processingStage === 'review'
+                        ? 'Review your recording below'
+                        : recording.isRecording
+                        ? 'Recording in progress...'
+                        : 'Press the button to start recording'}
                     </p>
                     <div className="space-y-6">
                       <Button
                         size="icon"
-                        className={`w-24 h-24 rounded-full ${
-                          recording.isRecording
-                            ? 'bg-red-600 hover:bg-red-700'
-                            : 'bg-blue-600 hover:bg-blue-700'
-                        } text-white shadow-lg`}
-                        onClick={handleRecordToggle}
-                        disabled={!canRecord || recording.isStarting}
+                        variant={processingStage === 'review' || recording.isRecording ? 'destructive' : 'default'}
+                        className="w-24 h-24 rounded-full shadow-lg"
+                        onClick={processingStage === 'review' ? handleDiscardSession : handleRecordToggle}
+                        disabled={!canInteract || recording.isStarting}
                       >
                         {recording.isStarting ? (
-                          <Loader2 className="w-10 h-10 animate-spin" />
+                          <Loader2 className="w-12 h-12 animate-spin" />
+                        ) : processingStage === 'review' ? (
+                          <Trash2 className="w-12 h-12" />
                         ) : recording.isRecording ? (
-                          <Square className="w-10 h-10" />
+                          <Square className="w-12 h-12" />
                         ) : (
-                          <Mic className="w-10 h-10" />
+                          <Mic className="w-12 h-12" />
                         )}
                       </Button>
                       <div className="flex justify-center text-3xl font-mono">
                         <span className={recording.isRecording ? 'text-red-600 font-bold' : 'text-muted-foreground'}>
-                          {formatTime(recording.elapsedTime)}
+                          {processingStage === 'review' && recordingData
+                            ? formatTime(Math.floor(recordingData.durationSeconds))
+                            : formatTime(recording.elapsedTime)}
                         </span>
                       </div>
                     </div>
                   </>
                 )}
+
+                {/* Transcribe & Save button - bottom right when in review */}
+                {processingStage === 'review' && (
+                  <div className="absolute bottom-6 right-6">
+                    <Button onClick={handleTranscribeAndSave} className="flex items-center gap-2">
+                      <Save className="w-4 h-4" />
+                      Transcribe & Save
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-        {/* Review Recording */}
+        {/* Audio Player - Sticky Bottom */}
         {recordingData && processingStage === 'review' && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Review Your Recording</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Duration: {formatTime(Math.floor(recordingData.durationSeconds))}
-                  </p>
-                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <AudioPlayer src={convertFileSrc(recordingData.filePath)} />
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-end">
-                  <Button onClick={handleDiscardSession} variant="outline" className="flex items-center gap-2">
-                    <Trash2 className="w-4 h-4" />
-                    Discard
-                  </Button>
-                  <Button onClick={handleTranscribeAndSave} className="flex items-center gap-2">
-                    <Save className="w-4 h-4" />
-                    Transcribe & Save
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </>
+          <div
+            className="fixed bottom-4 left-0 right-0 z-50 px-8 transition-all duration-300"
+            style={{
+              marginLeft: isCollapsed ? '88px' : '280px'
+            }}
+          >
+            <div className="mr-4 border border-gray-200/50 rounded-xl bg-white/80 backdrop-blur-md p-4 shadow-lg">
+              <AudioPlayer src={convertFileSrc(recordingData.filePath)} />
+            </div>
+          </div>
         )}
 
       </div>

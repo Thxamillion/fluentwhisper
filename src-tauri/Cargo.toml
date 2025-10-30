@@ -15,6 +15,11 @@ tauri = { version = "2.0", features = ["macos-private-api", "protocol-asset"] }
 tauri-plugin-shell = "2.0"
 tauri-plugin-http = "2.0"      # HTTP client for downloads
 tauri-plugin-fs = "2.0"        # File system operations
+tauri-plugin-deep-link = "2.0" # Deep link handling for OAuth callbacks
+keyring = "3.6"               # Secure credential storage (Keychain on macOS, Credential Manager on Windows)
+open = "5.0"                  # Open URLs in default browser
+url = "2.5"                   # URL parsing for deep links
+urlencoding = "2.1"           # URL encoding for OAuth parameters
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }

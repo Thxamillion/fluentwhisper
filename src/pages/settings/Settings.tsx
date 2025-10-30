@@ -1,12 +1,58 @@
 import { WhisperModelSection } from '../../components/settings/WhisperModelSection';
 import { Card } from '@/components/ui/card';
+import { PremiumFeature } from '@/components/PremiumFeature';
+import { useSettings } from '@/hooks/settings';
+import { useSubscription } from '@/hooks/subscription';
 
 export function Settings() {
+  const { settings, updateSetting } = useSettings()
+  const { data: subscription } = useSubscription()
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="space-y-8">
         {/* Whisper Model Section */}
         <WhisperModelSection />
+
+        {/* Cloud Transcription - Premium Feature */}
+        <PremiumFeature featureName="Cloud Transcription">
+          <Card className="p-6 border-2 border-blue-200 bg-blue-50">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              ☁️ Cloud Transcription
+              <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">PREMIUM</span>
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Use Cloud Transcription</h3>
+                  <p className="text-sm text-gray-600">
+                    Higher accuracy, faster results, supports all languages (requires internet)
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Unlimited cloud transcription included with Premium
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.useCloudTranscription}
+                  onChange={(e) => updateSetting('useCloudTranscription', e.target.checked)}
+                  className="rounded w-5 h-5 cursor-pointer"
+                />
+              </div>
+
+              {settings.useCloudTranscription && (
+                <div className="p-3 bg-white rounded-lg border border-blue-300">
+                  <p className="text-sm">
+                    <strong>✓ Cloud transcription enabled</strong>
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    All transcription will use cloud-based Whisper API for best results
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </PremiumFeature>
 
         {/* Audio Settings */}
         <Card className="p-6">
