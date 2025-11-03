@@ -68,12 +68,13 @@ export function Onboarding() {
 
   const handleSignIn = async () => {
     try {
-      await DesktopAuthService.signIn()
-      // Auth flow will open browser, user comes back via deep link
-      // Subscription status will update automatically
+      await DesktopAuthService.signInWithSocial()
+      // Opens fluentdiary.com/login in browser
+      // Global auth listener will detect sign-in and save credentials automatically
+      // Subscription status will update automatically via useAuth hook
     } catch (error) {
       console.error('Sign in failed:', error)
-      alert('Failed to sign in. Please try again.')
+      alert('Failed to open login page. Please try again.')
     }
   }
 

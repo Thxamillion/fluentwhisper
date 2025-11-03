@@ -14,6 +14,9 @@ import { Test } from '@/pages/test/Test'
 import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
 import { useSettings } from '@/hooks/settings'
+import { useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { invoke } from '@tauri-apps/api/core'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -49,10 +52,53 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// Global auth state listener - saves credentials when user signs in
+function AuthStateListener() {
+  useEffect(() => {
+    console.log('[Auth] Setting up global auth state listener')
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[Auth] State changed:', event, session?.user?.email)
+
+      if (event === 'SIGNED_IN' && session) {
+        console.log('[Auth] User signed in, saving credentials to secure storage')
+
+        try {
+          await invoke('save_auth_credentials', {
+            accessToken: session.access_token,
+            refreshToken: session.refresh_token,
+            userId: session.user.id,
+            email: session.user.email || ''
+          })
+          console.log('[Auth] Credentials saved successfully')
+        } catch (error) {
+          console.error('[Auth] Failed to save credentials:', error)
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('[Auth] User signed out, clearing credentials')
+        try {
+          await invoke('delete_auth_credentials')
+        } catch (error) {
+          console.error('[Auth] Failed to delete credentials:', error)
+        }
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  return null // This component doesn't render anything
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
+        {/* Global auth state listener - always active */}
+        <AuthStateListener />
 
         <Routes>
           {/* Onboarding - standalone, no layout */}
