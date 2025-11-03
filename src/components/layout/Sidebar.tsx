@@ -11,9 +11,20 @@ import {
   Settings,
   FlaskConical,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut,
+  User
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useSidebar } from '@/contexts/SidebarContext'
+import { useAuth } from '@/hooks/auth'
+import { useSubscription } from '@/hooks/subscription'
+import { useAuthModal } from './Layout'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
@@ -29,6 +40,9 @@ const navigation = [
 export function Sidebar() {
   const location = useLocation()
   const { isCollapsed, setIsCollapsed } = useSidebar()
+  const { user, signOut } = useAuth()
+  const { data: subscription } = useSubscription()
+  const { openAuthModal } = useAuthModal()
 
   return (
     <div className={cn(
@@ -79,6 +93,63 @@ export function Sidebar() {
           })}
         </ul>
       </nav>
+
+      {/* User Profile Section */}
+      <div className="p-4 border-t border-gray-100">
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              {isCollapsed ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-full"
+                >
+                  <User className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start px-2 py-1 h-auto hover:bg-gray-100"
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user.email}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {subscription?.isPremium ? 'Premium' : 'Free'}
+                      </p>
+                    </div>
+                  </div>
+                </Button>
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => signOut()}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={openAuthModal}
+            className={cn(
+              "w-full text-gray-600 hover:text-gray-900",
+              isCollapsed ? "px-0" : "justify-start"
+            )}
+          >
+            <User className="w-4 h-4" />
+            {!isCollapsed && <span className="ml-2">Sign In</span>}
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

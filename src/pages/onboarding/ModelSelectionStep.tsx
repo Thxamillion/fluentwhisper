@@ -15,7 +15,7 @@ interface ModelSelectionStepProps {
 
 export function ModelSelectionStep(props: ModelSelectionStepProps) {
   const { data: subscription } = useSubscription()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const { data: installedModels } = useInstalledModels()
   const { data: availableModels } = useAvailableModels()
 
@@ -24,6 +24,26 @@ export function ModelSelectionStep(props: ModelSelectionStepProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 pb-32 bg-background">
+      {/* User Profile - Top Right */}
+      {user && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md border border-gray-200/50 rounded-full shadow-sm">
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900">{user.email}</p>
+            <p className="text-xs text-gray-500">
+              {subscription?.isPremium ? 'Premium' : 'Free'}
+            </p>
+          </div>
+          <Button
+            onClick={() => signOut()}
+            variant="ghost"
+            size="sm"
+            className="h-8 rounded-full"
+          >
+            Sign Out
+          </Button>
+        </div>
+      )}
+
       {/* Success Message */}
       {props.showAuthSuccess && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">

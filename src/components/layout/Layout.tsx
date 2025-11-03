@@ -5,19 +5,38 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Mic } from 'lucide-react'
 import { FirstRunCheck } from '../FirstRunCheck'
-import { useState } from 'react'
+import { useState, createContext, useContext } from 'react'
 import { SidebarProvider } from '@/contexts/SidebarContext'
+import { AuthModal } from '@/components/AuthModal'
+
+type AuthModalContextType = {
+  openAuthModal: () => void
+}
+
+const AuthModalContext = createContext<AuthModalContextType | null>(null)
+
+export const useAuthModal = () => {
+  const context = useContext(AuthModalContext)
+  if (!context) {
+    throw new Error('useAuthModal must be used within Layout')
+  }
+  return context
+}
 
 export function Layout() {
-  const [selectedLanguage, setSelectedLanguage] = useState('es');
+  const [selectedLanguage, setSelectedLanguage] = useState('es')
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-background">
-        {/* macOS Draggable Titlebar */}
-        <div className="titlebar" />
+    <AuthModalContext.Provider value={{ openAuthModal: () => setShowAuthModal(true) }}>
+      <SidebarProvider>
+        <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
-        <Sidebar />
+        <div className="flex h-screen bg-background">
+          {/* macOS Draggable Titlebar */}
+          <div className="titlebar" />
+
+          <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header - Floating */}
         <header className="absolute top-0 left-0 right-0 z-10 px-6 py-4 bg-background/80 backdrop-blur-md">
@@ -51,6 +70,7 @@ export function Layout() {
         </main>
       </div>
     </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </AuthModalContext.Provider>
   )
 }

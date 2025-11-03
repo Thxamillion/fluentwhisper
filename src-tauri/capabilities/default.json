@@ -1,9 +1,11 @@
 {
   "identifier": "default",
   "description": "Default capabilities for Fluent Diary",
-  "windows": ["main"],
+  "windows": ["main", "auth-window"],
   "permissions": [
     "core:default",
+    "core:window:allow-create",
+    "core:webview:allow-create-webview-window",
     "shell:allow-open",
     "core:webview:allow-internal-toggle-devtools"
   ]

@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { supabase } from '@/lib/supabase'
-import { open } from '@tauri-apps/plugin-shell'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 
 const WEB_LOGIN_URL = 'https://fluentdiary.com/login'
 
@@ -81,21 +81,45 @@ export class DesktopAuthService {
 
   /**
    * Sign in with social providers (Google, Apple, etc.)
-   * Opens fluentdiary.com/login in browser, user signs in there
-   * App detects auth state change via Supabase listener
+   * Opens fluentdiary.com/login in an in-app webview window
+   * The webview shares Supabase context with main app, so auth state changes are detected automatically
    */
   static async signInWithSocial(): Promise<void> {
     try {
-      console.log('[DesktopAuth] Opening web login for social auth')
+      console.log('[DesktopAuth] Opening in-app login window')
 
-      // Open web login page in browser
-      await open(WEB_LOGIN_URL)
+      // Create a new webview window for login
+      const authWindow = new WebviewWindow('auth-window', {
+        url: WEB_LOGIN_URL,
+        title: 'Sign In to Fluent Diary',
+        width: 500,
+        height: 700,
+        resizable: true,
+        center: true,
+      })
 
-      // The app will detect auth state changes via the global Supabase auth listener
-      // No need to wait or poll - Supabase auth.onAuthStateChange() will handle it
-      console.log('[DesktopAuth] Web login opened, waiting for user to sign in...')
+      console.log('[DesktopAuth] Auth window created:', authWindow)
+
+      // Wait for window to be ready
+      await authWindow.once('tauri://created', () => {
+        console.log('[DesktopAuth] Auth window successfully created and ready')
+      })
+
+      await authWindow.once('tauri://error', (e) => {
+        console.error('[DesktopAuth] Auth window creation failed:', e)
+      })
+
+      console.log('[DesktopAuth] Waiting for user to sign in...')
+
+      // Listen for when the window closes (user finished signing in or cancelled)
+      authWindow.once('tauri://close-requested', () => {
+        console.log('[DesktopAuth] Auth window closed')
+      })
+
+      // The global AuthStateListener in App.tsx will detect auth changes automatically
+      // When user signs in on the webview, Supabase auth state changes fire in the main app too
     } catch (error) {
-      console.error('[DesktopAuth] Failed to open web login:', error)
+      console.error('[DesktopAuth] Failed to open auth window:', error)
       throw error
     }
   }

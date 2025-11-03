@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useSettings } from '@/hooks/settings'
 import { useAuth } from '@/hooks/auth'
 import { useSubscription } from '@/hooks/subscription'
-import { DesktopAuthService } from '@/services/auth'
 import { isCloudModel } from '@/stores/settingsStore'
+import { AuthModal } from '@/components/AuthModal'
 import { LanguageSelectionStep } from './LanguageSelectionStep'
 import { ModelSelectionStep } from './ModelSelectionStep'
 import { DownloadStep } from './DownloadStep'
@@ -23,6 +23,7 @@ export function Onboarding() {
   const [learningLanguage, setLearningLanguage] = useState(settings.targetLanguage || 'es')
   const [selectedModel, setSelectedModel] = useState(settings.selectedModel || '')
   const [showAuthSuccess, setShowAuthSuccess] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   // Auto-select cloud model for premium users
   useEffect(() => {
@@ -66,16 +67,9 @@ export function Onboarding() {
     }
   }
 
-  const handleSignIn = async () => {
-    try {
-      await DesktopAuthService.signInWithSocial()
-      // Opens fluentdiary.com/login in browser
-      // Global auth listener will detect sign-in and save credentials automatically
-      // Subscription status will update automatically via useAuth hook
-    } catch (error) {
-      console.error('Sign in failed:', error)
-      alert('Failed to open login page. Please try again.')
-    }
+  const handleSignIn = () => {
+    // Show auth modal
+    setShowAuthModal(true)
   }
 
   const handleDownloadComplete = () => {
@@ -95,6 +89,8 @@ export function Onboarding() {
 
   return (
     <>
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
       {currentStep === 'language' && (
         <LanguageSelectionStep
           primaryLanguage={primaryLanguage}

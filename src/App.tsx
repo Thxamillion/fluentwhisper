@@ -13,6 +13,8 @@ import { Import } from '@/pages/import/Import'
 import { Test } from '@/pages/test/Test'
 import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
+import { Login } from '@/pages/login/Login'
+import { LoginCallback } from '@/pages/login/LoginCallback'
 import { useSettings } from '@/hooks/settings'
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -101,6 +103,10 @@ function App() {
         <AuthStateListener />
 
         <Routes>
+          {/* Auth pages - standalone, no layout */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/login/callback" element={<LoginCallback />} />
+
           {/* Onboarding - standalone, no layout */}
           <Route path="/onboarding" element={<Onboarding />} />
 
