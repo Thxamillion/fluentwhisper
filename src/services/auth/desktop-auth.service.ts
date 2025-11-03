@@ -1,71 +1,101 @@
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
 import { supabase } from '@/lib/supabase'
-import { shell } from '@tauri-apps/plugin-shell'
-import { start } from '@tauri-apps/plugin-oauth'
+import { open } from '@tauri-apps/plugin-shell'
 
-const OAUTH_PORT = 9999
+const WEB_LOGIN_URL = 'https://fluentdiary.com/login'
 
 export class DesktopAuthService {
-  static async signIn(): Promise<void> {
+  /**
+   * Sign in with email and password (no OAuth needed)
+   */
+  static async signInWithEmail(email: string, password: string): Promise<void> {
     try {
-      console.log('[DesktopAuth] Starting OAuth flow with localhost redirect')
+      console.log('[DesktopAuth] Signing in with email/password')
 
-      // Start OAuth with skipBrowserRedirect and localhost redirect
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          skipBrowserRedirect: true,
-          redirectTo: `http://localhost:${OAUTH_PORT}`,
-          scopes: 'profile email'
-        }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       })
 
       if (error) {
         throw error
       }
 
-      if (!data.url) {
-        throw new Error('No OAuth URL returned from Supabase')
+      if (!data.session) {
+        throw new Error('No session returned after sign in')
       }
 
-      console.log('[DesktopAuth] Opening OAuth URL:', data.url)
-
-      // Start the OAuth plugin's localhost server and open browser
-      const result = await start(data.url, OAUTH_PORT)
-
-      console.log('[DesktopAuth] OAuth redirect received:', result)
-
-      // Extract the authorization code from the callback
-      const url = new URL(result)
-      const code = url.searchParams.get('code')
-
-      if (!code) {
-        throw new Error('No authorization code received from OAuth callback')
-      }
-
-      console.log('[DesktopAuth] Exchanging code for session')
-
-      // Exchange the authorization code for a session using PKCE
-      const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
-
-      if (sessionError || !sessionData.session) {
-        throw new Error(`Failed to exchange code for session: ${sessionError?.message}`)
-      }
-
-      console.log('[DesktopAuth] Session established, saving credentials')
+      console.log('[DesktopAuth] Email sign in successful, saving credentials')
 
       // Save credentials in Rust secure storage
       await invoke('save_auth_credentials', {
-        accessToken: sessionData.session.access_token,
-        refreshToken: sessionData.session.refresh_token,
-        userId: sessionData.session.user.id,
-        email: sessionData.session.user.email || ''
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        userId: data.session.user.id,
+        email: data.session.user.email || ''
       })
 
       console.log('[DesktopAuth] Authentication complete!')
     } catch (error) {
-      console.error('[DesktopAuth] Authentication failed:', error)
+      console.error('[DesktopAuth] Email auth failed:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Sign up with email and password
+   */
+  static async signUpWithEmail(email: string, password: string): Promise<void> {
+    try {
+      console.log('[DesktopAuth] Signing up with email/password')
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (!data.session) {
+        throw new Error('Sign up succeeded but no session returned (check email for verification)')
+      }
+
+      console.log('[DesktopAuth] Email sign up successful, saving credentials')
+
+      // Save credentials in Rust secure storage
+      await invoke('save_auth_credentials', {
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        userId: data.session.user.id,
+        email: data.session.user.email || ''
+      })
+
+      console.log('[DesktopAuth] Authentication complete!')
+    } catch (error) {
+      console.error('[DesktopAuth] Email sign up failed:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Sign in with social providers (Google, Apple, etc.)
+   * Opens fluentdiary.com/login in browser, user signs in there
+   * App detects auth state change via Supabase listener
+   */
+  static async signInWithSocial(): Promise<void> {
+    try {
+      console.log('[DesktopAuth] Opening web login for social auth')
+
+      // Open web login page in browser
+      await open(WEB_LOGIN_URL)
+
+      // The app will detect auth state changes via the global Supabase auth listener
+      // No need to wait or poll - Supabase auth.onAuthStateChange() will handle it
+      console.log('[DesktopAuth] Web login opened, waiting for user to sign in...')
+    } catch (error) {
+      console.error('[DesktopAuth] Failed to open web login:', error)
       throw error
     }
   }

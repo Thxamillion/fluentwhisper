@@ -31,13 +31,12 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_oauth::init())
         .setup(|app| {
-            println!("[OAuth][Rust] OAuth plugin initialized for desktop authentication");
+            println!("[App][Rust] Fluent Diary initialized");
             if let Some(win) = app.get_webview_window("main") {
-                println!("[OAuth][Rust] Main window created: {}", win.label());
+                println!("[App][Rust] Main window created: {}", win.label());
             } else {
-                println!("[OAuth][Rust] Main window not yet available at setup");
+                println!("[App][Rust] Main window not yet available at setup");
             }
             Ok(())
         })
