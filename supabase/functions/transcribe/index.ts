@@ -26,14 +26,25 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Check premium subscription status
-    const { data: subscription, error: subError } = await supabase
-      .from('user_subscription_status')
-      .select('is_premium')
+    // Check premium subscription status from profiles table
+    const { data: profile, error: subError } = await supabase
+      .from('profiles')
+      .select('subscription_tier, subscription_status, subscription_expires_at')
       .eq('user_id', user.id)
       .single()
 
-    if (subError || !subscription?.is_premium) {
+    // Determine if user has active premium subscription
+    const expiresAt = profile?.subscription_expires_at
+      ? new Date(profile.subscription_expires_at)
+      : null
+
+    const isPremium =
+      profile?.subscription_tier === 'premium' &&
+      profile?.subscription_status === 'active' &&
+      expiresAt !== null &&
+      expiresAt > new Date()
+
+    if (subError || !isPremium) {
       return new Response(
         JSON.stringify({
           error: 'Premium subscription required for cloud transcription',
