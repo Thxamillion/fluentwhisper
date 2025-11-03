@@ -31,13 +31,13 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_oauth::init())
         .setup(|app| {
-            println!("[DeepLink][Rust] Deep link plugin initialized");
+            println!("[OAuth][Rust] OAuth plugin initialized for desktop authentication");
             if let Some(win) = app.get_webview_window("main") {
-                println!("[DeepLink][Rust] Main window created: {}", win.label());
+                println!("[OAuth][Rust] Main window created: {}", win.label());
             } else {
-                println!("[DeepLink][Rust] Main window not yet available at setup");
+                println!("[OAuth][Rust] Main window not yet available at setup");
             }
             Ok(())
         })

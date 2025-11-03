@@ -1,51 +1,73 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { supabase } from '@/lib/supabase'
+import { shell } from '@tauri-apps/plugin-shell'
+import { start } from '@tauri-apps/plugin-oauth'
+
+const OAUTH_PORT = 9999
 
 export class DesktopAuthService {
   static async signIn(): Promise<void> {
-    // Opens browser to start OAuth flow
-    await invoke('start_auth_flow')
+    try {
+      console.log('[DesktopAuth] Starting OAuth flow with localhost redirect')
 
-    // Wait for deep link callback
-    return new Promise((resolve, reject) => {
-      const unlistenPromise = listen('auth-success', async (event: any) => {
-        try {
-          const { access_token, refresh_token, user_id, email } = event.payload
-
-          // Set session in Supabase first to get user data
-          const { data, error: sessionError } = await supabase.auth.setSession({
-            access_token,
-            refresh_token
-          })
-
-          if (sessionError || !data.session) {
-            throw new Error('Failed to set session')
-          }
-
-          // Save credentials in Rust secure storage
-          await invoke('save_auth_credentials', {
-            accessToken: access_token,
-            refreshToken: refresh_token,
-            userId: user_id || data.session.user.id,
-            email: email || data.session.user.email || ''
-          })
-
-          // Cleanup listener
-          unlistenPromise.then(unlisten => unlisten())
-          resolve()
-        } catch (error) {
-          unlistenPromise.then(unlisten => unlisten())
-          reject(error)
+      // Start OAuth with skipBrowserRedirect and localhost redirect
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          skipBrowserRedirect: true,
+          redirectTo: `http://localhost:${OAUTH_PORT}`,
+          scopes: 'profile email'
         }
       })
 
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        unlistenPromise.then(unlisten => unlisten())
-        reject(new Error('Authentication timeout'))
-      }, 5 * 60 * 1000)
-    })
+      if (error) {
+        throw error
+      }
+
+      if (!data.url) {
+        throw new Error('No OAuth URL returned from Supabase')
+      }
+
+      console.log('[DesktopAuth] Opening OAuth URL:', data.url)
+
+      // Start the OAuth plugin's localhost server and open browser
+      const result = await start(data.url, OAUTH_PORT)
+
+      console.log('[DesktopAuth] OAuth redirect received:', result)
+
+      // Extract the authorization code from the callback
+      const url = new URL(result)
+      const code = url.searchParams.get('code')
+
+      if (!code) {
+        throw new Error('No authorization code received from OAuth callback')
+      }
+
+      console.log('[DesktopAuth] Exchanging code for session')
+
+      // Exchange the authorization code for a session using PKCE
+      const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
+
+      if (sessionError || !sessionData.session) {
+        throw new Error(`Failed to exchange code for session: ${sessionError?.message}`)
+      }
+
+      console.log('[DesktopAuth] Session established, saving credentials')
+
+      // Save credentials in Rust secure storage
+      await invoke('save_auth_credentials', {
+        accessToken: sessionData.session.access_token,
+        refreshToken: sessionData.session.refresh_token,
+        userId: sessionData.session.user.id,
+        email: sessionData.session.user.email || ''
+      })
+
+      console.log('[DesktopAuth] Authentication complete!')
+    } catch (error) {
+      console.error('[DesktopAuth] Authentication failed:', error)
+      throw error
+    }
   }
 
   static async signOut(): Promise<void> {

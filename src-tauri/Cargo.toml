@@ -37,6 +37,7 @@ rubato = "0.15"                # Audio resampling to 16kHz for Whisper
 whisper-rs = "0.15"            # Local Whisper transcription (whisper.cpp bindings)
 thiserror = "2.0"              # Better error handling
 tempfile = "3.8"               # Temporary file handling
+tauri-plugin-oauth = "2.0.0"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-shell = "2.0"
