@@ -10,15 +10,23 @@ import {
   useDeleteModel,
   useInstalledModels,
 } from '../../hooks/models';
+import { useSubscription } from '@/hooks/subscription';
 
 export function WhisperModelSection() {
   const { data: availableModels, isLoading: loadingAvailable } = useAvailableModels();
   const { data: isDefaultInstalled, isLoading: loadingInstalled } = useDefaultModelInstalled();
   const { data: installedModels } = useInstalledModels();
+  const { data: subscription } = useSubscription();
   const downloadModel = useDownloadModel();
   const deleteModel = useDeleteModel();
 
-  const handleDownload = (modelName: string) => {
+  const handleDownload = (modelName: string, premiumRequired: boolean) => {
+    // Check if premium model and user is not premium
+    if (premiumRequired && !subscription?.isPremium) {
+      alert('This model requires a Premium subscription. Please upgrade to download large models.');
+      return;
+    }
+
     downloadModel.mutate(modelName);
   };
 
@@ -39,7 +47,7 @@ export function WhisperModelSection() {
     );
   }
 
-  const defaultModel = availableModels?.find((m) => m.name === 'base');
+  const _defaultModel = availableModels?.find((m) => m.name === 'base');
   const isDownloading = downloadModel.isPending;
   const progress = downloadModel.progress;
 
@@ -90,6 +98,11 @@ export function WhisperModelSection() {
                         Installed
                       </span>
                     )}
+                    {model.premiumRequired && (
+                      <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        🔒 Premium
+                      </span>
+                    )}
                     {model.name === 'base' && (
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
                         Recommended
@@ -112,8 +125,8 @@ export function WhisperModelSection() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => handleDownload(model.name)}
-                      disabled={isDownloading}
+                      onClick={() => handleDownload(model.name, model.premiumRequired)}
+                      disabled={isDownloading || (model.premiumRequired && !subscription?.isPremium)}
                       className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
                       {isCurrentlyDownloading ? (
@@ -124,7 +137,7 @@ export function WhisperModelSection() {
                       ) : (
                         <>
                           <Download className="w-4 h-4" />
-                          Download
+                          {model.premiumRequired && !subscription?.isPremium ? '🔒 Premium' : 'Download'}
                         </>
                       )}
                     </button>

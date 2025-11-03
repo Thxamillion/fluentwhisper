@@ -9,6 +9,7 @@ export interface WhisperModel {
   url: string;
   sizeMb: number;
   description: string;
+  premiumRequired: boolean;
 }
 
 export interface DownloadProgress {

@@ -3,8 +3,9 @@ import { persist } from 'zustand/middleware'
 
 export interface AppSettings {
   // Transcription settings
-  useCloudTranscription: boolean
-  whisperModel: string
+  // Model can be local ('tiny', 'base', 'small', 'medium', 'large')
+  // or cloud ('openai-whisper', 'assemblyai-v1', etc)
+  selectedModel: string
 
   // Audio settings
   defaultMicrophone: string
@@ -16,6 +17,13 @@ export interface AppSettings {
   targetLanguage: string
 }
 
+// Helper to determine if model is cloud-based
+export function isCloudModel(modelName: string): boolean {
+  return modelName.startsWith('openai-') ||
+         modelName.startsWith('assemblyai-') ||
+         modelName.startsWith('google-')
+}
+
 interface SettingsState {
   settings: AppSettings
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void
@@ -23,9 +31,8 @@ interface SettingsState {
 }
 
 const defaultSettings: AppSettings = {
-  // Cloud transcription OFF by default (will be enabled for premium users via UI)
-  useCloudTranscription: false,
-  whisperModel: 'base',
+  // Empty until user selects model during onboarding
+  selectedModel: '',
 
   defaultMicrophone: 'default',
   audioQuality: 'high',

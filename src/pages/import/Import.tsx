@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { FileText, ArrowLeft, Loader2 } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateTextLibraryItem } from '@/hooks/text-library';
 import type { SourceType, DifficultyLevel } from '@/services/text-library';
@@ -61,11 +61,6 @@ export function Import() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <Button variant="ghost" onClick={() => navigate('/library')} className="mb-8">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Library
-      </Button>
-
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>

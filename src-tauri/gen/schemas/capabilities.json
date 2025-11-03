@@ -1,1 +1,1 @@
-{}
+{"default":{"identifier":"default","description":"Default capabilities including deep link support","local":true,"permissions":["core:default","shell:allow-open","deep-link:default","deep-link:allow-get-current","deep-link:allow-is-registered","deep-link:allow-register","core:webview:allow-internal-toggle-devtools"]}}

@@ -36,15 +36,15 @@ pub fn get_whisper_models() -> Vec<WhisperModel> {
 
 /// Check if a model is installed
 #[tauri::command]
-pub fn check_model_installed(model_name: String) -> Result<bool, String> {
-    is_model_installed(&model_name).map_err(|e| e.to_string())
+pub fn check_model_installed(app: AppHandle, model_name: String) -> Result<bool, String> {
+    is_model_installed(&app, &model_name).map_err(|e| e.to_string())
 }
 
 /// Check if the default model is installed
 #[tauri::command]
-pub fn check_default_model_installed() -> Result<bool, String> {
+pub fn check_default_model_installed(app: AppHandle) -> Result<bool, String> {
     let default = get_default_model();
-    is_model_installed(&default).map_err(|e| e.to_string())
+    is_model_installed(&app, &default).map_err(|e| e.to_string())
 }
 
 /// Get the default model name
@@ -55,16 +55,16 @@ pub fn get_default_whisper_model() -> String {
 
 /// Get path to a model file
 #[tauri::command]
-pub fn get_whisper_model_path(model_name: String) -> Result<String, String> {
-    get_model_path(&model_name)
+pub fn get_whisper_model_path(app: AppHandle, model_name: String) -> Result<String, String> {
+    get_model_path(&app, &model_name)
         .map(|p| p.to_string_lossy().to_string())
         .map_err(|e| e.to_string())
 }
 
 /// Get list of installed models
 #[tauri::command]
-pub fn get_installed_whisper_models() -> Result<Vec<InstalledModelInfo>, String> {
-    get_installed_models().map_err(|e| e.to_string())
+pub fn get_installed_whisper_models(app: AppHandle) -> Result<Vec<InstalledModelInfo>, String> {
+    get_installed_models(&app).map_err(|e| e.to_string())
 }
 
 /// Download a Whisper model with progress events
@@ -85,9 +85,10 @@ pub async fn download_whisper_model(
     }
 
     // Download with progress callback
-    let result = download_model(&model_name, move |progress| {
+    let app_clone = app.clone();
+    let result = download_model(&app, &model_name, move |progress| {
         // Emit progress event to frontend
-        let _ = app.emit("model-download-progress", progress);
+        let _ = app_clone.emit("model-download-progress", progress);
     })
     .await;
 
@@ -106,8 +107,8 @@ pub async fn download_whisper_model(
 
 /// Delete a downloaded model
 #[tauri::command]
-pub fn delete_whisper_model(model_name: String) -> Result<(), String> {
-    delete_model(&model_name).map_err(|e| e.to_string())
+pub fn delete_whisper_model(app: AppHandle, model_name: String) -> Result<(), String> {
+    delete_model(&app, &model_name).map_err(|e| e.to_string())
 }
 
 /// Check if any download is in progress

@@ -9,6 +9,7 @@ use reqwest;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use tauri::{AppHandle, Manager};
 use tokio::io::AsyncWriteExt;
 
 /// Available Whisper models
@@ -21,6 +22,7 @@ pub struct WhisperModel {
     pub url: String,
     pub size_mb: u64,
     pub description: String,
+    pub premium_required: bool,
 }
 
 /// Download progress information
@@ -34,9 +36,14 @@ pub struct DownloadProgress {
 }
 
 /// Get the models directory path
-pub fn get_models_dir() -> Result<PathBuf> {
-    // For now, use project root. In production, use app_data_dir
-    let models_dir = PathBuf::from("models");
+pub fn get_models_dir(app: &AppHandle) -> Result<PathBuf> {
+    // Use app data directory for persistent storage
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .context("Failed to get app data directory")?;
+
+    let models_dir = app_data_dir.join("models");
     fs::create_dir_all(&models_dir).context("Failed to create models directory")?;
     Ok(models_dir)
 }
@@ -45,35 +52,74 @@ pub fn get_models_dir() -> Result<PathBuf> {
 pub fn get_available_models() -> Vec<WhisperModel> {
     vec![
         WhisperModel {
-            name: "small".to_string(),
-            display_name: "Small (Recommended)".to_string(),
-            file_name: "ggml-small.bin".to_string(),
-            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin".to_string(),
-            size_mb: 466,
-            description: "Best balance of accuracy and speed. Recommended for most users.".to_string(),
-        },
-        WhisperModel {
-            name: "base".to_string(),
-            display_name: "Base (Faster)".to_string(),
-            file_name: "ggml-base.bin".to_string(),
-            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin".to_string(),
-            size_mb: 142,
-            description: "Faster but less accurate. Good for testing.".to_string(),
-        },
-        WhisperModel {
             name: "tiny".to_string(),
-            display_name: "Tiny (Fastest)".to_string(),
+            display_name: "Tiny".to_string(),
             file_name: "ggml-tiny.bin".to_string(),
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin".to_string(),
             size_mb: 75,
-            description: "Fastest but least accurate. Not recommended.".to_string(),
+            description: "Fastest, lowest accuracy".to_string(),
+            premium_required: false,
+        },
+        WhisperModel {
+            name: "base".to_string(),
+            display_name: "Base".to_string(),
+            file_name: "ggml-base.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin".to_string(),
+            size_mb: 142,
+            description: "Good balance, recommended".to_string(),
+            premium_required: false,
+        },
+        WhisperModel {
+            name: "small".to_string(),
+            display_name: "Small".to_string(),
+            file_name: "ggml-small.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin".to_string(),
+            size_mb: 466,
+            description: "Better accuracy".to_string(),
+            premium_required: false,
+        },
+        WhisperModel {
+            name: "medium".to_string(),
+            display_name: "Medium".to_string(),
+            file_name: "ggml-medium.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin".to_string(),
+            size_mb: 1500,
+            description: "High accuracy".to_string(),
+            premium_required: false,
+        },
+        WhisperModel {
+            name: "large".to_string(),
+            display_name: "Large".to_string(),
+            file_name: "ggml-large.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large.bin".to_string(),
+            size_mb: 2900,
+            description: "Highest accuracy".to_string(),
+            premium_required: true,
+        },
+        WhisperModel {
+            name: "large-v2".to_string(),
+            display_name: "Large-v2".to_string(),
+            file_name: "ggml-large-v2.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v2.bin".to_string(),
+            size_mb: 2900,
+            description: "Improved version".to_string(),
+            premium_required: true,
+        },
+        WhisperModel {
+            name: "large-v3".to_string(),
+            display_name: "Large-v3".to_string(),
+            file_name: "ggml-large-v3.bin".to_string(),
+            url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin".to_string(),
+            size_mb: 2900,
+            description: "Newest and best".to_string(),
+            premium_required: true,
         },
     ]
 }
 
 /// Check if a model is installed
-pub fn is_model_installed(model_name: &str) -> Result<bool> {
-    let models_dir = get_models_dir()?;
+pub fn is_model_installed(app: &AppHandle, model_name: &str) -> Result<bool> {
+    let models_dir = get_models_dir(app)?;
     let models = get_available_models();
 
     let model = models
@@ -91,14 +137,14 @@ pub fn get_default_model() -> String {
 }
 
 /// Get path to the default model
-pub fn get_default_model_path() -> Result<PathBuf> {
-    let models_dir = get_models_dir()?;
+pub fn get_default_model_path(app: &AppHandle) -> Result<PathBuf> {
+    let models_dir = get_models_dir(app)?;
     Ok(models_dir.join("ggml-small.bin"))
 }
 
 /// Get path to a specific model
-pub fn get_model_path(model_name: &str) -> Result<PathBuf> {
-    let models_dir = get_models_dir()?;
+pub fn get_model_path(app: &AppHandle, model_name: &str) -> Result<PathBuf> {
+    let models_dir = get_models_dir(app)?;
     let models = get_available_models();
 
     let model = models
@@ -111,6 +157,7 @@ pub fn get_model_path(model_name: &str) -> Result<PathBuf> {
 
 /// Download a Whisper model with progress tracking
 pub async fn download_model(
+    app: &AppHandle,
     model_name: &str,
     progress_callback: impl Fn(DownloadProgress) + Send + 'static,
 ) -> Result<PathBuf> {
@@ -120,7 +167,7 @@ pub async fn download_model(
         .find(|m| m.name == model_name)
         .ok_or_else(|| anyhow::anyhow!("Unknown model: {}", model_name))?;
 
-    let models_dir = get_models_dir()?;
+    let models_dir = get_models_dir(app)?;
     let output_path = models_dir.join(&model.file_name);
 
     // If already exists, return immediately
@@ -192,12 +239,19 @@ pub async fn download_model(
 }
 
 /// Delete a downloaded model
-pub fn delete_model(model_name: &str) -> Result<()> {
-    let model_path = get_model_path(model_name)?;
+pub fn delete_model(app: &AppHandle, model_name: &str) -> Result<()> {
+    println!("[delete_model] Attempting to delete model: {}", model_name);
+
+    let model_path = get_model_path(app, model_name)?;
+    println!("[delete_model] Model path: {:?}", model_path);
 
     if model_path.exists() {
+        println!("[delete_model] File exists, attempting to remove...");
         fs::remove_file(&model_path)
             .context(format!("Failed to delete model at {:?}", model_path))?;
+        println!("[delete_model] File removed successfully");
+    } else {
+        println!("[delete_model] Warning: File does not exist at {:?}", model_path);
     }
 
     Ok(())
@@ -213,13 +267,13 @@ pub struct InstalledModelInfo {
     pub path: String,
 }
 
-pub fn get_installed_models() -> Result<Vec<InstalledModelInfo>> {
+pub fn get_installed_models(app: &AppHandle) -> Result<Vec<InstalledModelInfo>> {
     let models = get_available_models();
     let mut installed = Vec::new();
 
     for model in models {
-        if let Ok(true) = is_model_installed(&model.name) {
-            if let Ok(path) = get_model_path(&model.name) {
+        if let Ok(true) = is_model_installed(app, &model.name) {
+            if let Ok(path) = get_model_path(app, &model.name) {
                 if let Ok(metadata) = fs::metadata(&path) {
                     installed.push(InstalledModelInfo {
                         name: model.name.clone(),

@@ -75,6 +75,11 @@ export function Test() {
     setSavedWords(new Set());
   };
 
+  const handleResetOnboarding = () => {
+    localStorage.removeItem('onboarding_completed');
+    window.location.href = '/onboarding';
+  };
+
   return (
     <div className="container mx-auto p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
@@ -95,6 +100,17 @@ export function Test() {
       <div className="mb-6">
         <DevAuthPanel />
       </div>
+
+      {/* Reset Onboarding */}
+      <Card className="p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-2">Reset Onboarding</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Clear onboarding completion flag and return to the onboarding flow.
+        </p>
+        <Button onClick={handleResetOnboarding} variant="outline">
+          Reset Onboarding
+        </Button>
+      </Card>
 
       {/* Language Pack Testing */}
       <Card className="p-6 mb-6">

@@ -6,7 +6,7 @@ const SERVICE_NAME: &str = "com.fluentdiary.app";
 
 /// Supabase configuration
 const SUPABASE_URL: &str = "https://xtflvvyitebirnsafvrm.supabase.co";
-const DESKTOP_CALLBACK_URL: &str = "https://xtflvvyitebirnsafvrm.supabase.co/desktop-auth-callback";
+const DESKTOP_CALLBACK_URL: &str = "https://www.fluentdiary.com/desktop-auth-callback";
 
 /// Credentials stored in the system keychain
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -65,6 +65,12 @@ pub async fn save_auth_credentials(
 
     entry.set_password(&json)
         .map_err(|e| format!("Failed to save credentials: {}", e))?;
+
+    // Emit a visible success marker for automated tests
+    println!(
+        "[TEST_SUCCESS] Credentials saved for user: {}",
+        credentials.user_id
+    );
 
     Ok(())
 }
@@ -134,6 +140,14 @@ pub async fn start_auth_flow() -> Result<(), String> {
         .map_err(|e| format!("Failed to open browser: {}", e))?;
 
     Ok(())
+}
+
+/// Tauri command: Open URL in default browser
+///
+/// Uses the system's default browser to open a URL.
+#[tauri::command]
+pub async fn open_url(url: String) -> Result<(), String> {
+    open::that(&url).map_err(|e| format!("Failed to open URL: {}", e))
 }
 
 #[cfg(test)]

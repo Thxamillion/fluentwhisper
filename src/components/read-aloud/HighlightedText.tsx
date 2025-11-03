@@ -73,7 +73,7 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
       let lemma = word.toLowerCase();
       try {
         const lemmaResult = await Promise.race([
-          getLemma(word.toLowerCase(), language),
+          getLemma(word.toLowerCase(), language as any),
           new Promise<null>((_, reject) =>
             setTimeout(() => reject(new Error('Lemma timeout')), 3000)
           ),
@@ -94,7 +94,7 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
       try {
         const targetLang = 'en';
         const translationResult = await Promise.race([
-          getTranslation(lemma, language, targetLang),
+          getTranslation(lemma, language as any, targetLang),
           new Promise<null>((_, reject) =>
             setTimeout(() => reject(new Error('Translation timeout')), 3000)
           ),

@@ -171,3 +171,10 @@ pub async fn complete_recording_session(app_handle: tauri::AppHandle,
     .await
     .map_err(|e| e.to_string())
 }
+
+/// Read audio file as bytes for cloud transcription
+#[tauri::command]
+pub async fn read_audio_file(path: String) -> Result<Vec<u8>, String> {
+    std::fs::read(&path)
+        .map_err(|e| format!("Failed to read audio file: {}", e))
+}

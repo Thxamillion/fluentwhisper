@@ -1,7 +1,7 @@
 {
   "productName": "Fluent Diary",
   "version": "0.1.0",
-  "identifier": "com.fluentdiary.app",
+  "identifier": "com.fluentdiary.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -41,7 +41,10 @@
     "copyright": "",
     "category": "Education",
     "shortDescription": "Privacy-first speech practice app",
-    "longDescription": "Desktop app for speech practice with offline transcription and metrics tracking"
+    "longDescription": "Desktop app for speech practice with offline transcription and metrics tracking",
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   },
   "plugins": {
     "shell": {

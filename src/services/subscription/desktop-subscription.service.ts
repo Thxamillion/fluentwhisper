@@ -80,8 +80,7 @@ export class DesktopSubscriptionService {
     // Open web app upgrade page (user will upgrade via Stripe on web)
     const url = 'https://xtflvvyitebirnsafvrm.supabase.co'
 
-    // Use Tauri shell API to open URL in default browser
-    const { open } = await import('@tauri-apps/api/shell')
-    await open(url)
+    // Use Tauri command to open URL in default browser
+    await invoke('open_url', { url })
   }
 }

@@ -14,7 +14,7 @@ export function ReadAloud() {
   const navigate = useNavigate();
 
   const { data: textItem, isLoading: isLoadingText } = useTextLibraryItem(textLibraryId!);
-  const { data: userVocab = [] } = useUserVocab(textItem?.language || 'es');
+  const { data: userVocab = [] } = useUserVocab((textItem?.language || 'es') as any);
   const {
     isRecording,
     sessionId,
@@ -256,7 +256,7 @@ export function ReadAloud() {
                             <Play className="w-6 h-6 text-green-600" />
                           </div>
                           <span className="text-sm font-mono text-muted-foreground">
-                            {formatTime(recordingResult.durationSeconds)}
+                            {formatTime(recordingResult?.durationSeconds || 0)}
                           </span>
                         </div>
                       )}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluent Diary - Authentication</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .container {
+      background: white;
+      padding: 3rem;
+      border-radius: 1rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 400px;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      margin: 0 auto 1.5rem;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+    p {
+      color: #666;
+      margin-bottom: 1rem;
+    }
+    .error {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+    .success {
+      color: #2d7a2d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <h1 id="status">Completing sign in...</h1>
+    <p id="message">Please wait while we redirect you back to Fluent Diary</p>
+    <div id="error" class="error" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Parse URL hash for Supabase auth tokens
+    function parseHashParams() {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      return {
+        access_token: params.get('access_token'),
+        refresh_token: params.get('refresh_token'),
+        error: params.get('error'),
+        error_description: params.get('error_description')
+      };
+    }
+
+    // Main authentication flow
+    async function handleAuth() {
+      const statusEl = document.getElementById('status');
+      const messageEl = document.getElementById('message');
+      const errorEl = document.getElementById('error');
+
+      try {
+        const params = parseHashParams();
+
+        // Check for errors from Supabase
+        if (params.error) {
+          throw new Error(params.error_description || params.error);
+        }
+
+        // Validate we have tokens
+        if (!params.access_token || !params.refresh_token) {
+          throw new Error('Missing authentication tokens');
+        }
+
+        // Build deep link URL for desktop app
+        const deepLinkUrl = `fluentwhisper://auth-callback?access_token=${encodeURIComponent(params.access_token)}&refresh_token=${encodeURIComponent(params.refresh_token)}`;
+
+        // Update UI
+        statusEl.textContent = 'Success!';
+        statusEl.className = 'success';
+        messageEl.textContent = 'Redirecting to Fluent Diary...';
+
+        // Redirect to deep link
+        window.location.href = deepLinkUrl;
+
+        // Fallback: Show manual instructions after 3 seconds
+        setTimeout(() => {
+          messageEl.innerHTML = `
+            If Fluent Diary didn't open automatically:<br>
+            <strong>Please return to the app.</strong>
+          `;
+        }, 3000);
+
+      } catch (error) {
+        // Show error
+        document.querySelector('.spinner').style.display = 'none';
+        statusEl.textContent = 'Authentication Failed';
+        messageEl.textContent = 'There was a problem signing you in.';
+        errorEl.textContent = error.message;
+        errorEl.style.display = 'block';
+
+        console.error('Auth error:', error);
+      }
+    }
+
+    // Run on page load
+    window.addEventListener('load', handleAuth);
+  </script>
+</body>
+</html>

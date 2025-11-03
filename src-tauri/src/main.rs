@@ -4,7 +4,12 @@
 use fluent_diary::commands::{auth, langpack, models, recording, sessions, stats, text_library, vocabulary};
 use fluent_diary::services::recording::RecorderState;
 use std::sync::{Arc, Mutex};
-use tauri::Emitter;
+use tauri::Manager;
+
+#[tauri::command]
+fn log_marker(message: String) {
+    println!("[TEST_JS] {}", message);
+}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -12,70 +17,28 @@ fn greet(name: &str) -> String {
 }
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    println!("[DeepLink][Rust] App starting with args: {:?}", args);
+    
+    // Check if we were launched with a deep link URL
+    for arg in &args {
+        if arg.starts_with("fluentwhisper://") {
+            println!("[TEST_SUCCESS] Deep link URL detected in launch args: {}", arg);
+        }
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
-            // Register deep link handler for OAuth callbacks
-            #[cfg(desktop)]
-            {
-                use tauri_plugin_deep_link::DeepLinkExt;
-
-                // Try to register deep links, but don't fail if it doesn't work
-                match app.deep_link().register_all() {
-                    Ok(_) => {
-                        println!("Deep links registered successfully");
-
-                        let handle = app.handle().clone();
-                        app.deep_link().on_open_url(move |event| {
-                            let url = event.urls().first().map(|u| u.to_string());
-
-                            if let Some(url_str) = url {
-                                println!("Received deep link: {}", url_str);
-
-                                // Parse fluentwhisper://auth-callback?access_token=...&refresh_token=...
-                                if url_str.starts_with("fluentwhisper://auth-callback") {
-                                    if let Ok(url) = url::Url::parse(&url_str) {
-                                        let params: std::collections::HashMap<_, _> = url.query_pairs().collect();
-
-                                        // Check for error
-                                        if let Some(error) = params.get("error") {
-                                            eprintln!("Auth error: {}", error);
-                                            let _ = handle.emit("auth-error", error.to_string());
-                                            return;
-                                        }
-
-                                        // Extract tokens
-                                        if let (Some(access_token), Some(refresh_token)) =
-                                            (params.get("access_token"), params.get("refresh_token")) {
-
-                                            let payload = serde_json::json!({
-                                                "access_token": access_token.to_string(),
-                                                "refresh_token": refresh_token.to_string(),
-                                                "user_id": params.get("user_id").map(|s| s.to_string()),
-                                                "email": params.get("email").map(|s| s.to_string()),
-                                            });
-
-                                            println!("Emitting auth-success event");
-                                            let _ = handle.emit("auth-success", payload);
-                                        } else {
-                                            eprintln!("Missing tokens in deep link");
-                                            let _ = handle.emit("auth-error", "Missing authentication tokens");
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    Err(e) => {
-                        eprintln!("Warning: Failed to register deep links: {}. Auth will not work via deep links.", e);
-                        // Continue anyway - app will still work, just without deep link auth
-                    }
-                }
+            println!("[DeepLink][Rust] Deep link plugin initialized");
+            if let Some(win) = app.get_webview_window("main") {
+                println!("[DeepLink][Rust] Main window created: {}", win.label());
+            } else {
+                println!("[DeepLink][Rust] Main window not yet available at setup");
             }
-
             Ok(())
         })
         .manage(recording::RecorderStateWrapper(Mutex::new(
@@ -86,11 +49,13 @@ fn main() {
         ))))
         .invoke_handler(tauri::generate_handler![
             greet,
+            log_marker,
             auth::save_auth_credentials,
             auth::get_auth_credentials,
             auth::delete_auth_credentials,
             auth::is_authenticated,
             auth::start_auth_flow,
+            auth::open_url,
             langpack::get_lemma,
             langpack::get_translation,
             langpack::lemmatize_batch,
@@ -108,6 +73,7 @@ fn main() {
             recording::transcribe,
             recording::create_recording_session,
             recording::complete_recording_session,
+            recording::read_audio_file,
             models::get_whisper_models,
             models::check_model_installed,
             models::check_default_model_installed,

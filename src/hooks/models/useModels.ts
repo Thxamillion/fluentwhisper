@@ -116,12 +116,25 @@ export function useDeleteModel() {
 
   return useMutation({
     mutationFn: async (modelName: string) => {
+      console.log('[useDeleteModel] Attempting to delete model:', modelName);
       const result = await modelService.deleteModel(modelName);
-      if (!result.success) throw new Error(result.error);
+      console.log('[useDeleteModel] Result:', result);
+      if (!result.success) {
+        console.error('[useDeleteModel] Delete failed:', result.error);
+        throw new Error(result.error);
+      }
+      console.log('[useDeleteModel] Delete successful');
     },
     onSuccess: () => {
+      console.log('[useDeleteModel] onSuccess - invalidating queries');
       // Invalidate queries to refresh installed status
       queryClient.invalidateQueries({ queryKey: ['models'] });
+      // Show success message
+      alert('Model deleted successfully!');
+    },
+    onError: (error) => {
+      console.error('[useDeleteModel] onError:', error);
+      alert(`Failed to delete model: ${error.message}`);
     },
   });
 }
