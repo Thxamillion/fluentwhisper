@@ -42,13 +42,67 @@ This document outlines the complete implementation plan for FluentWhisper's lang
 
 ---
 
-## 🏗️ Phase 2: On-Demand Language Downloads (Strategy C)
+## 🏗️ Phase 2: On-Demand Language Downloads (Strategy C) - IN PROGRESS 🚧
 
 **Goal:** Users only download languages they need. English lemmas bundled, everything else on-demand.
 
-**Estimated Time:** 9-12 hours
+**Estimated Time:** 9-12 hours (6 hours completed, 3-4 hours remaining)
 
-### 2.1 Architecture & Data Setup (2-3 hours)
+**Status:** Backend complete ✅ | Frontend pending ⏳
+
+### ✅ Completed Work (6 hours)
+
+**Backend Infrastructure:**
+- Language pack download service with progress tracking
+- Tauri commands for all download operations
+- Database path resolution (bundled → downloaded → development)
+- AppHandle threaded through entire service layer
+- Parallel download support
+- Pack management (install, check, delete)
+
+**Files Created/Modified:**
+- `src/services/language_packs.rs` (new, 310 lines)
+- `src/commands/language_packs.rs` (new, 180 lines)
+- `src/db/langpack.rs` (updated path resolution)
+- `src/services/lemmatization.rs` (added AppHandle)
+- `src/services/translation.rs` (added AppHandle)
+- `src/services/sessions.rs` (added AppHandle)
+- `src/services/vocabulary.rs` (uses AppHandle)
+- `src/commands/langpack.rs` (passes AppHandle)
+- `src/commands/recording.rs` (passes AppHandle)
+- `Cargo.toml` (added reqwest json feature)
+
+**Automatic Language Detection:**
+When user selects language pair (e.g., Primary: English, Target: Spanish):
+1. Backend checks what's installed via `get_required_packs()`
+2. Returns `{ lemmas: ["es"], translations: [("en", "es")] }` if needed
+3. Frontend calls `download_language_pair()` with manifest URL
+4. Downloads happen in parallel with progress events
+5. User can use app immediately after download
+
+### ⏳ Remaining Work (3-4 hours)
+
+**Next Steps:**
+1. **Create Manifest File** (~30 min)
+   - Build `public/language-packs.json` with all pack URLs
+   - Upload packs to GitHub Releases
+   - Get real download URLs
+
+2. **Frontend Auto-Download** (~2 hours)
+   - Create `useAutoDownload` hook
+   - Watches `settings.targetLanguage` and `settings.primaryLanguage`
+   - Calls `download_language_pair` when language changes
+   - Shows progress UI during download
+
+3. **Testing** (~1 hour)
+   - Test fresh install scenario
+   - Test language switching
+   - Test progress tracking
+   - Test error handling
+
+---
+
+### 2.1 Architecture & Data Setup (2-3 hours) ⏳ PENDING
 
 #### Create Type Definitions
 ```typescript
@@ -142,7 +196,40 @@ export interface LanguagePackManifest {
 }
 ```
 
-### 2.2 Backend (Rust) - Download Service (3-4 hours)
+### 2.2 Backend (Rust) - Download Service (3-4 hours) ✅ COMPLETED
+
+**Implementation:** `src/services/language_packs.rs` + `src/commands/language_packs.rs`
+
+**Completed Features:**
+- ✅ Download with progress tracking (emits `download_progress` events)
+- ✅ Parallel downloads for lemmas + translations
+- ✅ Check installed languages
+- ✅ Get required packs for any language pair
+- ✅ Delete language packs
+- ✅ Path resolution: bundled → downloaded → development
+- ✅ AppHandle threaded through all service layers
+
+**Key Functions:**
+```rust
+// Main command frontend will use
+download_language_pair(app, primary_lang, target_lang, manifest_url)
+
+// Lower-level commands
+download_lemmas(app, lang, url)
+download_translation(app, from_lang, to_lang, url)
+get_required_packs(app, primary_lang, target_lang)
+get_installed_languages(app)
+is_lemmas_installed(app, lang)
+is_translation_installed(app, from_lang, to_lang)
+delete_language_pack(app, lang)
+```
+
+**Path Resolution Logic:**
+1. Check bundled resources (English only in .app/Contents/Resources/)
+2. Check downloaded packs (~/Library/Application Support/fluentwhisper/langpacks/)
+3. Fall back to development paths (./langpacks/ and ./translations/)
+
+**Original Plan:**
 
 #### Create Download Service
 ```rust
@@ -243,7 +330,9 @@ futures-util = "0.3"
 tokio = { version = "1", features = ["full"] }
 ```
 
-### 2.3 Frontend (React) - UI Components (2-3 hours)
+### 2.3 Frontend (React) - UI Components (2-3 hours) ⏳ PENDING
+
+**What's Needed:**
 
 #### Download UI Component
 ```tsx
@@ -289,7 +378,7 @@ export function LanguageManagement() {
 }
 ```
 
-### 2.4 Integration & Testing (2 hours)
+### 2.4 Integration & Testing (2 hours) ⏳ PENDING
 
 #### Testing Checklist
 - [ ] Fresh install with no language packs
