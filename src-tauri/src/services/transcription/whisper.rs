@@ -1,19 +1,38 @@
 use super::error::TranscriptionError;
 use hound::WavReader;
 use rubato::{Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction};
+use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 use std::path::Path;
 use whisper_rs::{WhisperContext, WhisperContextParameters, FullParams, SamplingStrategy};
+
+/// A segment of transcribed text with timing information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptSegment {
+    pub text: String,
+    pub start_time: f32,  // seconds
+    pub end_time: f32,    // seconds
+}
+
+/// Transcription result with full text and timed segments
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptionWithSegments {
+    pub text: String,
+    pub segments: Vec<TranscriptSegment>,
+}
 
 /// Transcribe an audio file to text using Whisper
 ///
 /// Loads the Whisper model from disk and transcribes the audio file.
 /// The audio file should be in WAV format (16kHz, mono, 16-bit PCM is optimal).
+/// Returns both the full text and timed segments.
 pub async fn transcribe_audio_file(
     audio_path: &Path,
     model_path: &Path,
     language: Option<&str>,
-) -> Result<String, TranscriptionError> {
+) -> Result<TranscriptionWithSegments, TranscriptionError> {
     // Run the CPU-intensive transcription in a blocking task
     let audio_path = audio_path.to_path_buf();
     let model_path = model_path.to_path_buf();
@@ -33,7 +52,7 @@ fn transcribe_blocking(
     audio_path: &Path,
     model_path: &Path,
     language: Option<&str>,
-) -> Result<String, TranscriptionError> {
+) -> Result<TranscriptionWithSegments, TranscriptionError> {
     // Create Whisper context
     let ctx = WhisperContext::new_with_params(
         model_path.to_str().ok_or_else(|| TranscriptionError::ModelError {
@@ -81,19 +100,39 @@ fn transcribe_blocking(
             message: format!("Transcription failed: {}", e),
         })?;
 
-    // Extract transcribed text
+    // Extract segments with timestamps
     let num_segments = state.full_n_segments();
 
-    let mut transcription = String::new();
+    let mut segments = Vec::new();
+    let mut full_text = String::new();
+
     for i in 0..num_segments {
         if let Some(segment) = state.get_segment(i) {
-            // WhisperSegment likely has a Display impl or text() method
-            transcription.push_str(&format!("{}", segment));
-            transcription.push(' '); // Add space between segments
+            // Get segment text
+            let segment_text = format!("{}", segment);
+
+            // Get timestamps - whisper_rs provides start/end time in the segment
+            // Timestamps are in centiseconds (1/100th of a second)
+            let start_time = segment.start_timestamp() as f32 / 100.0;
+            let end_time = segment.end_timestamp() as f32 / 100.0;
+
+            // Add to segments list
+            segments.push(TranscriptSegment {
+                text: segment_text.trim().to_string(),
+                start_time,
+                end_time,
+            });
+
+            // Build full text
+            full_text.push_str(segment_text.trim());
+            full_text.push(' ');
         }
     }
 
-    Ok(transcription.trim().to_string())
+    Ok(TranscriptionWithSegments {
+        text: full_text.trim().to_string(),
+        segments,
+    })
 }
 
 /// Read audio samples as f32 from WAV data
