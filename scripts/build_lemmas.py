@@ -23,6 +23,7 @@ SPACY_MODELS = {
     "en": "en_core_web_sm",   # English
     "fr": "fr_core_news_sm",  # French
     "de": "de_core_news_sm",  # German
+    "it": "it_core_news_sm",  # Italian
 }
 
 
@@ -215,7 +216,7 @@ def insert_lemmas(conn: sqlite3.Connection, lemmas: list):
 
 def main():
     parser = argparse.ArgumentParser(description="Build lemmatization database from SpaCy")
-    parser.add_argument("--language", required=True, choices=["es", "en", "fr", "de"],
+    parser.add_argument("--language", required=True, choices=["es", "en", "fr", "de", "it"],
                         help="Language code (es, en, fr, de)")
     parser.add_argument("--output", required=True, type=Path,
                         help="Output database path (e.g., langpacks/es/lemmas.db)")
@@ -252,7 +253,8 @@ def main():
         "es": "spanish",
         "en": "english",
         "fr": "french",
-        "de": "german"
+        "de": "german",
+        "it": "italian"
     }[args.language]
 
     lemmas = enhance_with_kaikki_lemmas(lang_full, lemmas)

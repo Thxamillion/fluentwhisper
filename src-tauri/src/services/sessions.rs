@@ -91,6 +91,7 @@ pub async fn create_session(
 /// Complete a session with transcript and audio data
 pub async fn complete_session(
     pool: &SqlitePool,
+    app_handle: &tauri::AppHandle,
     session_id: &str,
     audio_path: &str,
     transcript: &str,
@@ -105,7 +106,7 @@ pub async fn complete_session(
     let duration = duration_seconds as i64;
 
     // Process the transcript to extract words and calculate stats
-    let stats = process_transcript(pool, session_id, transcript, duration, language).await?;
+    let stats = process_transcript(pool, app_handle, session_id, transcript, duration, language).await?;
 
     // Update the session with all data
     sqlx::query(
@@ -151,6 +152,7 @@ pub async fn complete_session(
 /// Process transcript to extract words, lemmatize, and save to vocabulary
 async fn process_transcript(
     pool: &SqlitePool,
+    app_handle: &tauri::AppHandle,
     session_id: &str,
     transcript: &str,
     duration_seconds: i64,
@@ -174,7 +176,7 @@ async fn process_transcript(
 
     for word in &words {
         // Lemmatize the word
-        let lemma = get_lemma(word, language)
+        let lemma = get_lemma(word, language, app_handle)
             .await
             .ok()
             .flatten()

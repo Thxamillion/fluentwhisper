@@ -103,8 +103,8 @@ function CleanupListener() {
 
   useEffect(() => {
     const runCleanup = async () => {
-      // Only run if auto-delete is enabled and retention period is set
-      if (settings.autoDeleteEnabled && settings.retentionDays) {
+      // Only run if retention period is set (null = never delete)
+      if (settings.retentionDays) {
         console.log(`[Cleanup] Running automatic cleanup with ${settings.retentionDays} day retention`)
         try {
           const stats = await invoke<{ deletedCount: number; failedCount: number }>('run_cleanup', {
@@ -115,7 +115,7 @@ function CleanupListener() {
           console.error('[Cleanup] Failed:', error)
         }
       } else {
-        console.log('[Cleanup] Auto-delete disabled, skipping cleanup')
+        console.log('[Cleanup] Retention set to "Never delete", skipping cleanup')
       }
     }
 

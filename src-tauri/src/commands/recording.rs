@@ -179,6 +179,7 @@ pub async fn complete_recording_session(app_handle: tauri::AppHandle,
 
     complete_session(
         &pool,
+        &app_handle,
         &request.session_id,
         &request.audio_path,
         &request.transcript,

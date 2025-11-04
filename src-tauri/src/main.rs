@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use fluent_diary::commands::{auth, cleanup, langpack, models, recording, sessions, stats, text_library, vocabulary};
+use fluent_diary::commands::{auth, cleanup, langpack, language_packs, models, recording, sessions, stats, text_library, vocabulary};
 use fluent_diary::services::recording::RecorderState;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -104,6 +104,14 @@ fn main() {
             text_library::get_text_library_by_language_command,
             text_library::update_text_library_item_command,
             text_library::delete_text_library_item_command,
+            language_packs::is_lemmas_installed,
+            language_packs::is_translation_installed,
+            language_packs::get_installed_languages,
+            language_packs::download_lemmas,
+            language_packs::download_translation,
+            language_packs::delete_language_pack,
+            language_packs::get_required_packs,
+            language_packs::download_language_pair,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

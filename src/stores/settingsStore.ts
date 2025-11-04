@@ -20,7 +20,6 @@ export interface AppSettings {
   dailyGoalMinutes: number
 
   // Privacy settings
-  autoDeleteEnabled: boolean
   retentionDays: number | null  // null = never delete, number = days to keep
 }
 
@@ -51,7 +50,6 @@ const defaultSettings: AppSettings = {
   dailyGoalMinutes: 15,
 
   // Privacy defaults - never delete by default
-  autoDeleteEnabled: false,
   retentionDays: null,
 }
 

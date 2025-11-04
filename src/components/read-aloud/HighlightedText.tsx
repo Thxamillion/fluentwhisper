@@ -31,34 +31,6 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
     return new Set(userVocab.map((v) => v.lemma.toLowerCase()));
   }, [userVocab]);
 
-  // Tokenize text while preserving whitespace and punctuation
-  const tokens = useMemo((): Token[] => {
-    const result: Token[] = [];
-    let currentIndex = 0;
-
-    // Match words (including accented characters), spaces, and punctuation
-    // \p{L} matches any Unicode letter (including á, é, í, ó, ú, ñ, etc.)
-    // \p{N} matches any Unicode number
-    const regex = /([\p{L}\p{N}]+(?:'[\p{L}\p{N}]+)?)|(\s+)|([^\p{L}\p{N}\s]+)/gu;
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-      const [fullMatch, word, space, punct] = match;
-
-      if (word) {
-        result.push({ type: 'word', text: word, index: currentIndex });
-      } else if (space) {
-        result.push({ type: 'space', text: space, index: currentIndex });
-      } else if (punct) {
-        result.push({ type: 'punctuation', text: punct, index: currentIndex });
-      }
-
-      currentIndex++;
-    }
-
-    return result;
-  }, [text]);
-
   const handleWordClick = async (word: string, event: React.MouseEvent) => {
     // Prevent any default behavior
     event.preventDefault();
@@ -170,37 +142,66 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
     setSelectedWord(null);
   };
 
+  // Split text into paragraphs for proper rendering with spacing
+  const paragraphs = useMemo(() => {
+    return text.split('\n\n').filter(p => p.trim());
+  }, [text]);
+
   return (
     <>
-      <div className="text-lg leading-relaxed">
-        {tokens.map((token, index) => {
-          if (token.type === 'word') {
-            const lemma = token.text.toLowerCase();
-            const isKnown = knownLemmas.has(lemma);
+      <div className="text-lg leading-relaxed space-y-4">
+        {paragraphs.map((paragraph, paraIndex) => {
+          // Tokenize this paragraph only
+          const paraTokens: Token[] = [];
+          let currentIndex = 0;
+          const regex = /([\p{L}\p{N}]+(?:'[\p{L}\p{N}]+)?)|(\s+)|([^\p{L}\p{N}\s]+)/gu;
+          let match;
 
-            return (
-              <span
-                key={index}
-                className={`
-                  ${!isKnown ? 'bg-yellow-200 dark:bg-yellow-900/40 px-1 rounded cursor-pointer hover:bg-yellow-300 dark:hover:bg-yellow-900/60 transition-colors' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-0.5 rounded transition-colors'}
-                  ${loadingTranslation ? 'opacity-50' : ''}
-                `}
-                onClick={(e) => handleWordClick(token.text, e)}
-                title={!isKnown ? 'New word - Click for translation' : 'Click for translation'}
-              >
-                {token.text}
-              </span>
-            );
-          } else if (token.type === 'space') {
-            return <span key={index}>{token.text}</span>;
-          } else {
-            // Punctuation
-            return (
-              <span key={index} className="text-gray-600 dark:text-gray-400">
-                {token.text}
-              </span>
-            );
+          while ((match = regex.exec(paragraph)) !== null) {
+            const [fullMatch, word, space, punct] = match;
+            if (word) {
+              paraTokens.push({ type: 'word', text: word, index: currentIndex });
+            } else if (space) {
+              paraTokens.push({ type: 'space', text: space, index: currentIndex });
+            } else if (punct) {
+              paraTokens.push({ type: 'punctuation', text: punct, index: currentIndex });
+            }
+            currentIndex++;
           }
+
+          return (
+            <p key={paraIndex} className="mb-4">
+              {paraTokens.map((token, index) => {
+                if (token.type === 'word') {
+                  const lemma = token.text.toLowerCase();
+                  const isKnown = knownLemmas.has(lemma);
+
+                  return (
+                    <span
+                      key={`${paraIndex}-${index}`}
+                      className={`
+                        ${!isKnown ? 'bg-yellow-200 dark:bg-yellow-900/40 px-1 rounded cursor-pointer hover:bg-yellow-300 dark:hover:bg-yellow-900/60 transition-colors' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-0.5 rounded transition-colors'}
+                        ${loadingTranslation ? 'opacity-50' : ''}
+                      `}
+                      onClick={(e) => handleWordClick(token.text, e)}
+                      title={!isKnown ? 'New word - Click for translation' : 'Click for translation'}
+                    >
+                      {token.text}
+                    </span>
+                  );
+                } else if (token.type === 'space') {
+                  return <span key={`${paraIndex}-${index}`}>{token.text}</span>;
+                } else {
+                  // Punctuation
+                  return (
+                    <span key={`${paraIndex}-${index}`} className="text-gray-600 dark:text-gray-400">
+                      {token.text}
+                    </span>
+                  );
+                }
+              })}
+            </p>
+          );
         })}
       </div>
 

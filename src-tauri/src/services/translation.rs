@@ -1,5 +1,6 @@
 use anyhow::Result;
 use sqlx::{Row, SqlitePool};
+use tauri::AppHandle;
 
 use crate::db::langpack;
 
@@ -9,6 +10,7 @@ use crate::db::langpack;
 /// * `lemma` - The base form of the word (e.g., "estar", "run")
 /// * `from_lang` - Source language code (e.g., "es")
 /// * `to_lang` - Target language code (e.g., "en")
+/// * `app` - Tauri app handle for path resolution
 ///
 /// # Returns
 /// * `Some(translation)` if found (e.g., "to be")
@@ -16,11 +18,11 @@ use crate::db::langpack;
 ///
 /// # Example
 /// ```
-/// let translation = get_translation("estar", "es", "en").await?;
+/// let translation = get_translation("estar", "es", "en", &app).await?;
 /// assert_eq!(translation, Some("to be".to_string()));
 /// ```
-pub async fn get_translation(lemma: &str, from_lang: &str, to_lang: &str) -> Result<Option<String>> {
-    let pool = langpack::open_translation_db(from_lang, to_lang).await?;
+pub async fn get_translation(lemma: &str, from_lang: &str, to_lang: &str, app: &AppHandle) -> Result<Option<String>> {
+    let pool = langpack::open_translation_db(from_lang, to_lang, app).await?;
 
     let lemma_lower = lemma.to_lowercase();
 
@@ -71,6 +73,7 @@ pub async fn translate_batch(
     from_lang: &str,
     to_lang: &str,
     user_pool: Option<&SqlitePool>,
+    app: &AppHandle,
 ) -> Result<Vec<(String, Option<String>)>> {
     println!("[translate_batch] from_lang={}, to_lang={}, lemmas={:?}", from_lang, to_lang, lemmas);
 
@@ -111,7 +114,7 @@ pub async fn translate_batch(
 
     // 2. Query official translations for remaining lemmas
     if !remaining_lemmas.is_empty() {
-        let pool = langpack::open_translation_db(from_lang, to_lang).await?;
+        let pool = langpack::open_translation_db(from_lang, to_lang, app).await?;
         println!("[translate_batch] Checking official translations for {} remaining lemmas", remaining_lemmas.len());
 
         for lemma in remaining_lemmas {

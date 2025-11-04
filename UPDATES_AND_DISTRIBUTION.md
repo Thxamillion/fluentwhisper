@@ -147,3 +147,4 @@ You can also listen to updater events like `tauri://update-available` and `tauri
 - Test end-to-end
   - Dry-run a pre-release to verify auto-update on each OS/arch
   - Validate signature checks, download integrity, and restart
+

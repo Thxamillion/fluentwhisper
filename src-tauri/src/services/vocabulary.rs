@@ -283,7 +283,7 @@ pub async fn clean_punctuation(pool: &SqlitePool) -> Result<i32> {
 /// Returns words learned in the last N days, with translations to primary language
 pub async fn get_recent_vocab(
     pool: &SqlitePool,
-    _app_handle: &tauri::AppHandle,
+    app_handle: &tauri::AppHandle,
     language: &str,
     primary_language: &str,
     days: i32,
@@ -318,7 +318,7 @@ pub async fn get_recent_vocab(
             Ok(Some(custom)) => Some(custom),
             _ => {
                 // 2. Fall back to official translation database
-                crate::services::translation::get_translation(&lemma, language, primary_language)
+                crate::services::translation::get_translation(&lemma, language, primary_language, app_handle)
                     .await
                     .ok()
                     .flatten()

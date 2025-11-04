@@ -96,42 +96,27 @@ export function Settings() {
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Privacy & Data</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Auto-delete old recordings</h3>
-                <p className="text-sm text-gray-600">
-                  Automatically remove recordings and sessions after a set period
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                className="rounded"
-                checked={settings.autoDeleteEnabled}
-                onChange={(e) => updateSetting('autoDeleteEnabled', e.target.checked)}
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium mb-2">Data retention period</label>
               <select
-                className="w-full max-w-md p-3 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full max-w-md p-3 border border-gray-300 rounded-lg"
                 value={settings.retentionDays ?? 'never'}
-                disabled={!settings.autoDeleteEnabled}
                 onChange={(e) => {
                   const value = e.target.value === 'never' ? null : parseInt(e.target.value);
                   updateSetting('retentionDays', value);
                 }}
               >
-                <option value="30">30 days</option>
-                <option value="60">60 days</option>
-                <option value="90">90 days</option>
-                <option value="never">Never delete</option>
+                <option value="never">Never delete (keep forever)</option>
+                <option value="30">Delete after 30 days</option>
+                <option value="60">Delete after 60 days</option>
+                <option value="90">Delete after 90 days</option>
               </select>
               <p className="text-sm text-gray-600 mt-2">
-                Sessions older than this will be permanently deleted, including audio files.
-                Cleanup runs automatically when you start the app.
+                Automatically delete old sessions and audio files.
+                Cleanup runs when you start the app.
               </p>
             </div>
-            {settings.autoDeleteEnabled && settings.retentionDays && (
+            {settings.retentionDays && (
               <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                 <p className="text-xs text-yellow-800">
                   <strong>Warning:</strong> Sessions older than {settings.retentionDays} days will be permanently deleted.

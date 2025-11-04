@@ -39,6 +39,7 @@ KAIKKI_URLS = {
     "English": f"{KAIKKI_BASE_URL}/English/kaikki.org-dictionary-English.jsonl",
     "French": f"{KAIKKI_BASE_URL}/French/kaikki.org-dictionary-French.jsonl",
     "German": f"{KAIKKI_BASE_URL}/German/kaikki.org-dictionary-German.jsonl",
+    "Italian": f"{KAIKKI_BASE_URL}/Italian/kaikki.org-dictionary-Italian.jsonl",
 }
 
 LANG_CODES = {
@@ -46,6 +47,7 @@ LANG_CODES = {
     "English": "en",
     "French": "fr",
     "German": "de",
+    "Italian": "it",
 }
 
 LANG_NAMES = {v: k for k, v in LANG_CODES.items()}
@@ -133,6 +135,11 @@ def is_inflected_form_definition(gloss: str) -> bool:
         'singular of',
         'masculine of',
         'feminine of',
+        'neuter of',
+        'genitive of',
+        'dative of',
+        'nominative of',
+        'accusative of',
         'past participle of',
         'gerund of',
         'present participle of',
@@ -165,6 +172,45 @@ def is_inflected_form_definition(gloss: str) -> bool:
         r'future .+? of \w+',
     ]
 
+    # German-style grammatical form descriptions (without "X of Y" pattern)
+    # These describe the inflection directly without mentioning the base form
+    german_inflection_patterns = [
+        # Case/number/gender patterns
+        r'^(weak|strong|mixed)(/\w+)* (nominative|genitive|dative|accusative)',
+        r'^(nominative|genitive|dative|accusative) (singular|plural)',
+        r'\b(singular|plural) (nominative|genitive|dative|accusative)\b',
+
+        # Multi-case patterns (nominative/accusative/genitive)
+        r'(nominative|genitive|dative|accusative)/(nominative|genitive|dative|accusative)',
+
+        # Degree patterns
+        r'^(comparative|superlative) degree',
+        r'\b(comparative|superlative) degree of\b',
+
+        # Person/number/tense patterns (without "of")
+        r'^(first|second|third)-person (singular|plural)',
+        r'\b(first|second|third)-person .+? (present|past|future|subjunctive|imperative|preterite)$',
+
+        # Multi-person patterns (first/third-person)
+        r'(first|second|third)/(first|second|third)-person',
+
+        # All-case patterns
+        r'\ball-case (singular|plural)\b',
+        r'\ball-gender (singular|plural)\b',
+
+        # Imperative forms
+        r'^(singular|plural) imperative$',
+
+        # Combined case descriptions
+        r'^(weak|strong|mixed) .+? (singular|plural) (comparative|superlative)',
+
+        # Patterns with "degree of" at the end
+        r'\b(comparative|superlative|positive) degree of \w+$',
+
+        # Dependent forms
+        r'\bdependent (subjunctive|preterite|imperative)\b',
+    ]
+
     gloss_lower = gloss.lower()
 
     if any(keyword in gloss_lower for keyword in inflection_keywords):
@@ -175,6 +221,10 @@ def is_inflected_form_definition(gloss: str) -> bool:
             return True
 
     for pattern in inflection_patterns:
+        if re.search(pattern, gloss_lower):
+            return True
+
+    for pattern in german_inflection_patterns:
         if re.search(pattern, gloss_lower):
             return True
 
@@ -247,8 +297,12 @@ def extract_translations(jsonl_file: Path, lang_from: str, lang_to: str) -> list
     """
     Extract translations from Kaikki JSONL file.
 
+    Handles two cases:
+    1. Extracting FROM English: Use translations[] array (e.g., en→es, en→fr)
+    2. Extracting TO English: Use glosses[] (e.g., es→en, fr→en)
+
     Filters out inflected forms, technical definitions, and letter names.
-    Takes up to 3 valid glosses per sense for better coverage.
+    Takes up to 3 valid translations per sense for better coverage.
 
     Returns list of tuples: (lemma, lang_from, translation, lang_to)
     """
@@ -256,7 +310,14 @@ def extract_translations(jsonl_file: Path, lang_from: str, lang_to: str) -> list
     skipped_inflections = 0
     skipped_technical = 0
 
+    # Determine extraction strategy
+    extracting_from_english = (lang_from == 'en')
+
     print(f"\nExtracting {lang_from}→{lang_to} translations from {jsonl_file.name}...")
+    if extracting_from_english:
+        print(f"Strategy: Using 'translations' array (filtering by code='{lang_to}')")
+    else:
+        print(f"Strategy: Using 'glosses' (English definitions)")
 
     with open(jsonl_file, 'r', encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
@@ -277,40 +338,90 @@ def extract_translations(jsonl_file: Path, lang_from: str, lang_to: str) -> list
                 skipped_technical += 1
                 continue
 
-            senses = entry.get('senses', [])
-            for sense in senses:
-                glosses = sense.get('glosses', [])
+            if extracting_from_english:
+                # Extract from translations[] array (English → Foreign Language)
+                trans_list = entry.get('translations', [])
 
-                categories = sense.get('categories', [])
-                category_names = [cat.get('orig', '') for cat in categories if isinstance(cat, dict)]
-
-                # Skip if ANY gloss is an inflected form reference
-                if any(is_inflected_form_definition(g) for g in glosses if isinstance(g, str)):
-                    skipped_inflections += 1
-                    continue
-
-                # Take up to 3 valid glosses per sense
-                glosses_added = 0
-                for gloss in glosses:
-                    if not gloss or not isinstance(gloss, str):
+                # Take up to 3 translations per entry
+                translations_added = 0
+                for trans in trans_list:
+                    if trans.get('code') != lang_to:
                         continue
 
-                    if is_technical_definition(gloss, category_names):
+                    translation_word = trans.get('word', '').strip().lower()
+                    if not translation_word or translation_word == word:
+                        continue
+
+                    # Skip if single-letter (alphabet entries)
+                    if len(translation_word) == 1:
                         skipped_technical += 1
                         continue
 
-                    translation = gloss.strip().lower()
-                    if translation and translation != word:
-                        translations.append((word, lang_from, translation, lang_to))
-                        glosses_added += 1
+                    translations.append((word, lang_from, translation_word, lang_to))
+                    translations_added += 1
 
-                        if glosses_added >= 3:
-                            break
+                    if translations_added >= 3:
+                        break
+
+            else:
+                # Extract from glosses[] (Foreign Language → English)
+                senses = entry.get('senses', [])
+                for sense in senses:
+                    glosses = sense.get('glosses', [])
+
+                    categories = sense.get('categories', [])
+                    category_names = [cat.get('orig', '') for cat in categories if isinstance(cat, dict)]
+
+                    # Take up to 3 valid glosses per sense
+                    # Changed: Skip individual inflection glosses, not the whole sense
+                    glosses_added = 0
+                    for gloss in glosses:
+                        if not gloss or not isinstance(gloss, str):
+                            continue
+
+                        # Skip individual inflection definitions
+                        if is_inflected_form_definition(gloss):
+                            skipped_inflections += 1
+                            continue
+
+                        if is_technical_definition(gloss, category_names):
+                            skipped_technical += 1
+                            continue
+
+                        translation = gloss.strip().lower()
+                        if translation and translation != word:
+                            translations.append((word, lang_from, translation, lang_to))
+                            glosses_added += 1
+
+                            if glosses_added >= 3:
+                                break
 
     print(f"\n✓ Found {len(translations):,} translations")
     print(f"✓ Skipped {skipped_inflections:,} inflected forms")
     print(f"✓ Skipped {skipped_technical:,} technical definitions")
     return translations
+
+
+def reverse_translations(translations: list) -> list:
+    """
+    Reverse translation tuples to create opposite direction translations.
+
+    Example: ('perro', 'es', 'dog', 'en') → ('dog', 'en', 'perro', 'es')
+
+    This allows augmenting sparse translation directions by reversing
+    the richer direction. Handles many-to-one mappings gracefully.
+
+    Args:
+        translations: List of (lemma_from, lang_from, translation, lang_to) tuples
+
+    Returns:
+        List of reversed tuples: (translation, lang_to, lemma_from, lang_from)
+    """
+    reversed_trans = []
+    for lemma_from, lang_from, translation, lang_to in translations:
+        # Swap: translation becomes the source lemma, original lemma becomes translation
+        reversed_trans.append((translation, lang_to, lemma_from, lang_from))
+    return reversed_trans
 
 
 def insert_translations(conn: sqlite3.Connection, translations: list, direction: str):
@@ -406,6 +517,36 @@ Note: The pair order doesn't matter (es-en is the same as en-es).
     if not translations1 and not translations2:
         print("✗ No translations found in either direction!")
         sys.exit(1)
+
+    # Augment sparse directions by reversing the richer direction
+    print(f"\n[4.5/5] Checking for sparse translations to augment...")
+    SPARSE_THRESHOLD = 10000  # Consider <10k translations as "sparse"
+    RICH_THRESHOLD = 100000   # Consider >100k translations as "rich"
+
+    original_count1 = len(translations1)
+    original_count2 = len(translations2)
+
+    if original_count1 < SPARSE_THRESHOLD and original_count2 > RICH_THRESHOLD:
+        print(f"  ⚠️  {lang1}→{lang2} has only {original_count1:,} translations (sparse)")
+        print(f"  ✓ {lang2}→{lang1} has {original_count2:,} translations (rich)")
+        print(f"  → Augmenting {lang1}→{lang2} by reversing {lang2}→{lang1}...")
+        reversed = reverse_translations(translations2)
+        translations1.extend(reversed)
+        print(f"  ✓ Augmented {lang1}→{lang2}: {original_count1:,} → {len(translations1):,} translations (+{len(reversed):,})")
+
+    elif original_count2 < SPARSE_THRESHOLD and original_count1 > RICH_THRESHOLD:
+        print(f"  ⚠️  {lang2}→{lang1} has only {original_count2:,} translations (sparse)")
+        print(f"  ✓ {lang1}→{lang2} has {original_count1:,} translations (rich)")
+        print(f"  → Augmenting {lang2}→{lang1} by reversing {lang1}→{lang2}...")
+        reversed = reverse_translations(translations1)
+        translations2.extend(reversed)
+        print(f"  ✓ Augmented {lang2}→{lang1}: {original_count2:,} → {len(translations2):,} translations (+{len(reversed):,})")
+
+    else:
+        print(f"  ✓ Both directions have reasonable coverage:")
+        print(f"    • {lang1}→{lang2}: {original_count1:,}")
+        print(f"    • {lang2}→{lang1}: {original_count2:,}")
+        print(f"  → No augmentation needed")
 
     # Create database and insert both directions
     print(f"\n[5/5] Creating database: {args.output}")

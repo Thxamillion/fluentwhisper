@@ -5,8 +5,8 @@ use crate::services::{lemmatization, translation};
 ///
 /// Called from TypeScript: `invoke('get_lemma', { word: 'estás', lang: 'es' })`
 #[tauri::command]
-pub async fn get_lemma(word: String, lang: String) -> Result<Option<String>, String> {
-    lemmatization::get_lemma(&word, &lang)
+pub async fn get_lemma(app_handle: tauri::AppHandle, word: String, lang: String) -> Result<Option<String>, String> {
+    lemmatization::get_lemma(&word, &lang, &app_handle)
         .await
         .map_err(|e| e.to_string())
 }
@@ -17,11 +17,12 @@ pub async fn get_lemma(word: String, lang: String) -> Result<Option<String>, Str
 /// `invoke('get_translation', { lemma: 'estar', fromLang: 'es', toLang: 'en' })`
 #[tauri::command]
 pub async fn get_translation(
+    app_handle: tauri::AppHandle,
     lemma: String,
     from_lang: String,
     to_lang: String,
 ) -> Result<Option<String>, String> {
-    translation::get_translation(&lemma, &from_lang, &to_lang)
+    translation::get_translation(&lemma, &from_lang, &to_lang, &app_handle)
         .await
         .map_err(|e| e.to_string())
 }
@@ -35,8 +36,8 @@ pub async fn get_translation(
 ///
 /// Returns: Array of [originalWord, lemma] tuples
 #[tauri::command]
-pub async fn lemmatize_batch(words: Vec<String>, lang: String) -> Result<Vec<(String, String)>, String> {
-    lemmatization::lemmatize_batch(&words, &lang)
+pub async fn lemmatize_batch(app_handle: tauri::AppHandle, words: Vec<String>, lang: String) -> Result<Vec<(String, String)>, String> {
+    lemmatization::lemmatize_batch(&words, &lang, &app_handle)
         .await
         .map_err(|e| e.to_string())
 }
@@ -62,7 +63,7 @@ pub async fn translate_batch(
         .await
         .map_err(|e| e.to_string())?;
 
-    translation::translate_batch(&lemmas, &from_lang, &to_lang, Some(&user_pool))
+    translation::translate_batch(&lemmas, &from_lang, &to_lang, Some(&user_pool), &app_handle)
         .await
         .map_err(|e| e.to_string())
 }
@@ -84,7 +85,7 @@ pub async fn process_words(
     target_lang: String,
 ) -> Result<Vec<WordResult>, String> {
     // Step 1: Lemmatize all words
-    let lemma_results = lemmatization::lemmatize_batch(&words, &lang)
+    let lemma_results = lemmatization::lemmatize_batch(&words, &lang, &app_handle)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -97,7 +98,7 @@ pub async fn process_words(
         .map_err(|e| e.to_string())?;
 
     // Step 4: Translate lemmas (checks custom translations first)
-    let translation_results = translation::translate_batch(&lemmas, &lang, &target_lang, Some(&user_pool))
+    let translation_results = translation::translate_batch(&lemmas, &lang, &target_lang, Some(&user_pool), &app_handle)
         .await
         .map_err(|e| e.to_string())?;
 

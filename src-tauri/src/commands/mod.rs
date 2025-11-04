@@ -3,6 +3,7 @@
 pub mod auth;
 pub mod cleanup;
 pub mod langpack;
+pub mod language_packs;
 pub mod models;
 pub mod recording;
 pub mod sessions;

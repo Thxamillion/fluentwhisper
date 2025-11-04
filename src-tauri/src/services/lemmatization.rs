@@ -1,5 +1,6 @@
 use anyhow::Result;
 use sqlx::Row;
+use tauri::AppHandle;
 
 use crate::db::langpack;
 
@@ -8,6 +9,7 @@ use crate::db::langpack;
 /// # Arguments
 /// * `word` - The inflected word form (e.g., "estás", "running")
 /// * `lang` - Language code (e.g., "es", "en")
+/// * `app` - Tauri app handle for path resolution
 ///
 /// # Returns
 /// * `Some(lemma)` if found in database (e.g., "estar", "run")
@@ -15,11 +17,11 @@ use crate::db::langpack;
 ///
 /// # Example
 /// ```
-/// let lemma = get_lemma("estás", "es").await?;
+/// let lemma = get_lemma("estás", "es", &app).await?;
 /// assert_eq!(lemma, Some("estar".to_string()));
 /// ```
-pub async fn get_lemma(word: &str, lang: &str) -> Result<Option<String>> {
-    let pool = langpack::open_lemma_db(lang).await?;
+pub async fn get_lemma(word: &str, lang: &str, app: &AppHandle) -> Result<Option<String>> {
+    let pool = langpack::open_lemma_db(lang, app).await?;
 
     let word_lower = word.to_lowercase();
 
@@ -44,6 +46,7 @@ pub async fn get_lemma(word: &str, lang: &str) -> Result<Option<String>> {
 /// # Arguments
 /// * `words` - List of words to lemmatize
 /// * `lang` - Language code
+/// * `app` - Tauri app handle for path resolution
 ///
 /// # Returns
 /// Vector of (original_word, lemma) tuples.
@@ -52,11 +55,11 @@ pub async fn get_lemma(word: &str, lang: &str) -> Result<Option<String>> {
 /// # Example
 /// ```
 /// let words = vec!["estoy", "corriendo", "casa"];
-/// let lemmas = lemmatize_batch(&words, "es").await?;
+/// let lemmas = lemmatize_batch(&words, "es", &app).await?;
 /// // Returns: [("estoy", "estar"), ("corriendo", "correr"), ("casa", "casa")]
 /// ```
-pub async fn lemmatize_batch(words: &[String], lang: &str) -> Result<Vec<(String, String)>> {
-    let pool = langpack::open_lemma_db(lang).await?;
+pub async fn lemmatize_batch(words: &[String], lang: &str, app: &AppHandle) -> Result<Vec<(String, String)>> {
+    let pool = langpack::open_lemma_db(lang, app).await?;
 
     let mut results = Vec::with_capacity(words.len());
 

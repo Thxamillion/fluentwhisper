@@ -1,16 +1,20 @@
 use anyhow::{Context, Result};
 use sqlx::sqlite::SqlitePool;
 use std::path::PathBuf;
+use tauri::AppHandle;
 
 /// Opens a connection to a lemmatization database
 ///
+/// Checks bundled resources first (English), then downloaded packs
+///
 /// # Arguments
 /// * `lang` - Language code (e.g., "es", "en", "fr", "de")
+/// * `app` - Tauri app handle for path resolution
 ///
 /// # Returns
 /// Connection pool to langpacks/{lang}/lemmas.db
-pub async fn open_lemma_db(lang: &str) -> Result<SqlitePool> {
-    let db_path = get_lemma_db_path(lang)?;
+pub async fn open_lemma_db(lang: &str, app: &AppHandle) -> Result<SqlitePool> {
+    let db_path = get_lemma_db_path(lang, app)?;
 
     let connection_string = format!("sqlite://{}?mode=ro", db_path.display());
 
@@ -21,14 +25,17 @@ pub async fn open_lemma_db(lang: &str) -> Result<SqlitePool> {
 
 /// Opens a connection to a translation database
 ///
+/// Checks downloaded packs in app data directory
+///
 /// # Arguments
 /// * `from_lang` - Source language code (e.g., "es")
 /// * `to_lang` - Target language code (e.g., "en")
+/// * `app` - Tauri app handle for path resolution
 ///
 /// # Returns
 /// Connection pool to translations/{from_lang}-{to_lang}.db
-pub async fn open_translation_db(from_lang: &str, to_lang: &str) -> Result<SqlitePool> {
-    let db_path = get_translation_db_path(from_lang, to_lang)?;
+pub async fn open_translation_db(from_lang: &str, to_lang: &str, app: &AppHandle) -> Result<SqlitePool> {
+    let db_path = get_translation_db_path(from_lang, to_lang, app)?;
 
     let connection_string = format!("sqlite://{}?mode=ro", db_path.display());
 
@@ -42,37 +49,98 @@ pub async fn open_translation_db(from_lang: &str, to_lang: &str) -> Result<Sqlit
 
 /// Resolves path to lemma database
 ///
-/// For now, uses local development paths relative to project root.
-/// In production, this will use Tauri's app data directory.
-fn get_lemma_db_path(lang: &str) -> Result<PathBuf> {
-    // TODO: Use Tauri app data directory in production
-    let path = PathBuf::from(format!("langpacks/{}/lemmas.db", lang));
+/// Priority order:
+/// 1. Bundled resources (English only)
+/// 2. Downloaded packs in app data directory
+/// 3. Development paths (for testing)
+fn get_lemma_db_path(lang: &str, app: &AppHandle) -> Result<PathBuf> {
+    use tauri::Manager;
 
-    if !path.exists() {
-        anyhow::bail!("Lemma database not found for language: {}", lang);
+    // 1. Check if English (bundled with app)
+    if lang == "en" {
+        // Try bundled resource first
+        if let Ok(resource_path) = app.path().resource_dir() {
+            let bundled_path = resource_path.join("langpacks").join("en").join("lemmas.db");
+            if bundled_path.exists() {
+                println!("[get_lemma_db_path] Using bundled English: {:?}", bundled_path);
+                return Ok(bundled_path);
+            }
+        }
     }
 
-    Ok(path)
+    // 2. Check downloaded packs in app data directory
+    if let Ok(app_data_dir) = app.path().app_data_dir() {
+        let downloaded_path = app_data_dir
+            .join("langpacks")
+            .join(lang)
+            .join("lemmas.db");
+
+        if downloaded_path.exists() {
+            println!("[get_lemma_db_path] Using downloaded pack: {:?}", downloaded_path);
+            return Ok(downloaded_path);
+        }
+    }
+
+    // 3. Fall back to development path (for local testing)
+    let dev_path = PathBuf::from(format!("langpacks/{}/lemmas.db", lang));
+    if dev_path.exists() {
+        println!("[get_lemma_db_path] Using development path: {:?}", dev_path);
+        return Ok(dev_path);
+    }
+
+    anyhow::bail!(
+        "Lemma database not found for language: {}. Please download the language pack first.",
+        lang
+    )
 }
 
 /// Resolves path to translation database
 ///
 /// Supports bidirectional lookups - will check both {from}-{to} and {to}-{from}
-fn get_translation_db_path(from_lang: &str, to_lang: &str) -> Result<PathBuf> {
-    // Try primary direction first
-    let primary_path = PathBuf::from(format!("translations/{}-{}.db", from_lang, to_lang));
-    if primary_path.exists() {
-        return Ok(primary_path);
+///
+/// Priority order:
+/// 1. Downloaded packs in app data directory
+/// 2. Development paths (for testing)
+fn get_translation_db_path(from_lang: &str, to_lang: &str, app: &AppHandle) -> Result<PathBuf> {
+    use tauri::Manager;
+
+    let primary_name = format!("{}-{}.db", from_lang, to_lang);
+    let reverse_name = format!("{}-{}.db", to_lang, from_lang);
+
+    // 1. Check downloaded packs in app data directory
+    if let Ok(app_data_dir) = app.path().app_data_dir() {
+        let translations_dir = app_data_dir.join("langpacks").join("translations");
+
+        // Try primary direction
+        let downloaded_primary = translations_dir.join(&primary_name);
+        if downloaded_primary.exists() {
+            println!("[get_translation_db_path] Using downloaded (primary): {:?}", downloaded_primary);
+            return Ok(downloaded_primary);
+        }
+
+        // Try reverse direction
+        let downloaded_reverse = translations_dir.join(&reverse_name);
+        if downloaded_reverse.exists() {
+            println!("[get_translation_db_path] Using downloaded (reverse): {:?}", downloaded_reverse);
+            return Ok(downloaded_reverse);
+        }
     }
 
-    // Try reverse direction (bidirectional support)
-    let reverse_path = PathBuf::from(format!("translations/{}-{}.db", to_lang, from_lang));
-    if reverse_path.exists() {
-        return Ok(reverse_path);
+    // 2. Fall back to development paths
+    let dev_primary = PathBuf::from(format!("translations/{}", primary_name));
+    if dev_primary.exists() {
+        println!("[get_translation_db_path] Using development (primary): {:?}", dev_primary);
+        return Ok(dev_primary);
+    }
+
+    let dev_reverse = PathBuf::from(format!("translations/{}", reverse_name));
+    if dev_reverse.exists() {
+        println!("[get_translation_db_path] Using development (reverse): {:?}", dev_reverse);
+        return Ok(dev_reverse);
     }
 
     anyhow::bail!(
-        "Translation database not found for {}-{} (tried both directions)",
+        "Translation database not found for {}-{} (tried both directions). Please download the language pack first.",
         from_lang,
         to_lang
     );
