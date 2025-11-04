@@ -95,26 +95,41 @@ pub async fn get_overall_stats(pool: &SqlitePool, language: Option<&str>) -> Res
     .fetch_one(pool)
     .await?;
 
-    // Average WPM
+    // Average WPM - properly construct WHERE clause
+    let wpm_where = if let Some(lang) = language {
+        format!("WHERE language = '{}' AND wpm IS NOT NULL", lang)
+    } else {
+        "WHERE wpm IS NOT NULL".to_string()
+    };
     let avg_wpm: Option<f64> = sqlx::query_scalar(&format!(
-        "SELECT AVG(wpm) FROM sessions {} AND wpm IS NOT NULL",
-        language_filter.replace("WHERE", "WHERE").replace("  ", " ")
+        "SELECT AVG(wpm) FROM sessions {}",
+        wpm_where
     ))
     .fetch_one(pool)
     .await?;
 
-    // Average unique words per session
+    // Average unique words per session - properly construct WHERE clause
+    let unique_where = if let Some(lang) = language {
+        format!("WHERE language = '{}' AND unique_word_count IS NOT NULL", lang)
+    } else {
+        "WHERE unique_word_count IS NOT NULL".to_string()
+    };
     let avg_unique: Option<f64> = sqlx::query_scalar(&format!(
-        "SELECT AVG(unique_word_count) FROM sessions {} AND unique_word_count IS NOT NULL",
-        language_filter.replace("WHERE", "WHERE").replace("  ", " ")
+        "SELECT AVG(unique_word_count) FROM sessions {}",
+        unique_where
     ))
     .fetch_one(pool)
     .await?;
 
-    // Average new words per session
+    // Average new words per session - properly construct WHERE clause
+    let new_where = if let Some(lang) = language {
+        format!("WHERE language = '{}' AND new_word_count IS NOT NULL", lang)
+    } else {
+        "WHERE new_word_count IS NOT NULL".to_string()
+    };
     let avg_new: Option<f64> = sqlx::query_scalar(&format!(
-        "SELECT AVG(new_word_count) FROM sessions {} AND new_word_count IS NOT NULL",
-        language_filter.replace("WHERE", "WHERE").replace("  ", " ")
+        "SELECT AVG(new_word_count) FROM sessions {}",
+        new_where
     ))
     .fetch_one(pool)
     .await?;
@@ -183,9 +198,10 @@ pub async fn get_daily_session_counts(
     };
 
     let days_filter = if let Some(d) = days {
+        let connector = if language_filter.is_empty() { "WHERE" } else { "AND" };
         format!(
-            "AND started_at >= strftime('%s', 'now', '-{} days')",
-            d
+            "{} started_at >= strftime('%s', 'now', '-{} days')",
+            connector, d
         )
     } else {
         String::new()
