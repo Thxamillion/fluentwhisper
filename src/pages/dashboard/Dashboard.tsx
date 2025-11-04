@@ -60,7 +60,7 @@ export function Dashboard() {
 
     // Add empty cells for days before month starts
     for (let i = 0; i < firstDayOfWeek; i++) {
-      days.push({ date: null, day: null, count: 0 })
+      days.push({ date: null, day: null, minutes: 0 })
     }
 
     // Add all days in month with session counts
@@ -68,14 +68,14 @@ export function Dashboard() {
       const date = new Date(year, month, day)
       const dateStr = date.toISOString().split('T')[0]
 
-      // Find session count for this day
+      // Find total minutes for this day
       const dayData = dailySessions?.find(d => d.date === dateStr)
-      const count = dayData?.sessionCount || 0
+      const minutes = dayData?.totalMinutes || 0
 
       days.push({
         date: dateStr,
         day,
-        count,
+        minutes,
         isToday: day === now.getDate()
       })
     }
@@ -85,12 +85,15 @@ export function Dashboard() {
 
   const calendarData = generateCalendarData()
 
-  const getHeatmapColor = (count: number) => {
-    if (count === 0) return 'bg-gray-100 dark:bg-gray-800'
-    if (count === 1) return 'bg-green-200 dark:bg-green-900'
-    if (count === 2) return 'bg-green-400 dark:bg-green-700'
-    if (count === 3) return 'bg-green-500 dark:bg-green-600'
-    return 'bg-green-600 dark:bg-green-500'
+  const getHeatmapColor = (minutes: number) => {
+    if (minutes === 0) return 'bg-gray-100 dark:bg-gray-800'
+
+    const percentage = (minutes / dailyGoalMinutes) * 100
+
+    if (percentage < 25) return 'bg-green-200 dark:bg-green-900'   // 1-24%
+    if (percentage < 50) return 'bg-green-400 dark:bg-green-700'   // 25-49%
+    if (percentage < 75) return 'bg-green-500 dark:bg-green-600'   // 50-74%
+    return 'bg-green-600 dark:bg-green-500'                        // 75%+
   }
 
   return (
@@ -311,31 +314,34 @@ export function Dashboard() {
 
                     {/* Calendar grid */}
                     <div className="grid grid-cols-7 gap-1.5">
-                      {calendarData.days.map((day, index) => (
-                        <div
-                          key={index}
-                          className={`
-                            aspect-square rounded flex items-center justify-center text-xs font-medium
-                            ${day.date ? getHeatmapColor(day.count) : 'bg-transparent'}
-                            ${day.date ? 'cursor-pointer hover:ring-2 hover:ring-gray-400 transition-all' : ''}
-                            ${day.isToday ? 'ring-2 ring-blue-500' : ''}
-                            ${day.count > 0 ? 'text-white' : 'text-gray-700 dark:text-gray-300'}
-                          `}
-                          title={day.date ? `${day.date}: ${day.count} session${day.count !== 1 ? 's' : ''}` : ''}
-                        >
-                          {day.day}
-                        </div>
-                      ))}
+                      {calendarData.days.map((day, index) => {
+                        const percentage = day.minutes > 0 ? Math.round((day.minutes / dailyGoalMinutes) * 100) : 0
+                        return (
+                          <div
+                            key={index}
+                            className={`
+                              aspect-square rounded flex items-center justify-center text-xs font-medium
+                              ${day.date ? getHeatmapColor(day.minutes) : 'bg-transparent'}
+                              ${day.date ? 'cursor-pointer hover:ring-2 hover:ring-gray-400 transition-all' : ''}
+                              ${day.isToday ? 'ring-2 ring-blue-500' : ''}
+                              ${day.minutes > 0 ? 'text-white' : 'text-gray-700 dark:text-gray-300'}
+                            `}
+                            title={day.date ? `${day.date}: ${day.minutes} min (${percentage}% of goal)` : ''}
+                          >
+                            {day.day}
+                          </div>
+                        )
+                      })}
                     </div>
 
                     {/* Legend */}
                     <div className="flex items-center justify-center gap-2 mt-3 pt-2 border-t border-gray-200 dark:border-gray-800 text-xs text-muted-foreground">
                       <span>Less</span>
                       <div className="flex gap-1.5">
-                        {[0, 1, 2, 3, 4].map((level) => (
+                        {[0, Math.round(dailyGoalMinutes * 0.12), Math.round(dailyGoalMinutes * 0.37), Math.round(dailyGoalMinutes * 0.62), Math.round(dailyGoalMinutes * 0.87)].map((minutes, idx) => (
                           <div
-                            key={level}
-                            className={`w-4 h-4 rounded ${getHeatmapColor(level)}`}
+                            key={idx}
+                            className={`w-4 h-4 rounded ${getHeatmapColor(minutes)}`}
                           />
                         ))}
                       </div>

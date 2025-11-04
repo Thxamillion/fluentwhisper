@@ -22,6 +22,7 @@ export interface TopWord {
 export interface DailySessionCount {
   date: string; // YYYY-MM-DD
   sessionCount: number;
+  totalMinutes: number;
 }
 
 export interface WpmTrend {

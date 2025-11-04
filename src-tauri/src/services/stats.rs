@@ -38,6 +38,7 @@ pub struct TopWord {
 pub struct DailySessionCount {
     pub date: String, // YYYY-MM-DD format
     pub session_count: i64,
+    pub total_minutes: i64,
 }
 
 /// WPM trend data point
@@ -211,7 +212,8 @@ pub async fn get_daily_session_counts(
         r#"
         SELECT
             DATE(started_at, 'unixepoch') as date,
-            COUNT(*) as session_count
+            COUNT(*) as session_count,
+            COALESCE(SUM(duration) / 60, 0) as total_minutes
         FROM sessions
         {}
         {}
@@ -221,15 +223,16 @@ pub async fn get_daily_session_counts(
         language_filter, days_filter
     );
 
-    let rows = sqlx::query_as::<_, (String, i64)>(&query)
+    let rows = sqlx::query_as::<_, (String, i64, i64)>(&query)
         .fetch_all(pool)
         .await?;
 
     let daily_counts = rows
         .into_iter()
-        .map(|(date, count)| DailySessionCount {
+        .map(|(date, count, minutes)| DailySessionCount {
             date,
             session_count: count,
+            total_minutes: minutes,
         })
         .collect();
 
