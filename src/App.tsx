@@ -15,7 +15,9 @@ import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
 import { Login } from '@/pages/login/Login'
 import { LoginCallback } from '@/pages/login/LoginCallback'
+import { TranslationTest } from '@/pages/translation-test/TranslationTest'
 import { useSettings } from '@/hooks/settings'
+import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { invoke } from '@tauri-apps/api/core'
@@ -95,12 +97,42 @@ function AuthStateListener() {
   return null // This component doesn't render anything
 }
 
+// Auto-cleanup listener - runs cleanup on app startup
+function CleanupListener() {
+  const { settings } = useSettingsStore()
+
+  useEffect(() => {
+    const runCleanup = async () => {
+      // Only run if auto-delete is enabled and retention period is set
+      if (settings.autoDeleteEnabled && settings.retentionDays) {
+        console.log(`[Cleanup] Running automatic cleanup with ${settings.retentionDays} day retention`)
+        try {
+          const stats = await invoke<{ deletedCount: number; failedCount: number }>('run_cleanup', {
+            retentionDays: settings.retentionDays
+          })
+          console.log(`[Cleanup] Complete: deleted ${stats.deletedCount} sessions, ${stats.failedCount} failures`)
+        } catch (error) {
+          console.error('[Cleanup] Failed:', error)
+        }
+      } else {
+        console.log('[Cleanup] Auto-delete disabled, skipping cleanup')
+      }
+    }
+
+    // Run cleanup on mount (app startup)
+    runCleanup()
+  }, []) // Empty deps - only run once on mount
+
+  return null
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        {/* Global auth state listener - always active */}
+        {/* Global listeners - always active */}
         <AuthStateListener />
+        <CleanupListener />
 
         <Routes>
           {/* Auth pages - standalone, no layout */}
@@ -123,6 +155,7 @@ function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
             <Route path="test" element={<Test />} />
+            <Route path="translation-test" element={<TranslationTest />} />
           </Route>
         </Routes>
       </Router>

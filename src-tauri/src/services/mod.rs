@@ -1,5 +1,6 @@
 // Service layer - pure business logic, no UI dependencies
 
+pub mod cleanup;
 pub mod lemmatization;
 pub mod model_download;
 pub mod recording;

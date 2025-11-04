@@ -1,10 +1,44 @@
 import { WhisperModelSection } from '../../components/settings/WhisperModelSection';
 import { UnifiedModelDropdown } from '../../components/settings/UnifiedModelDropdown';
 import { Card } from '@/components/ui/card';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useState, useEffect } from 'react';
+import { Check } from 'lucide-react';
 
 export function Settings() {
+  const { settings, updateSetting } = useSettingsStore();
+  const [showSaved, setShowSaved] = useState(false);
+
+  // Show "Saved" indicator when settings change
+  useEffect(() => {
+    setShowSaved(true);
+    const timer = setTimeout(() => setShowSaved(false), 2000);
+    return () => clearTimeout(timer);
+  }, [settings]);
+
+  const languageOptions = [
+    { code: 'en', label: 'English' },
+    { code: 'es', label: 'Spanish' },
+    { code: 'fr', label: 'French' },
+    { code: 'de', label: 'German' },
+  ];
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
+      {/* Auto-save indicator */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="text-sm text-gray-600 mt-1">Changes are saved automatically</p>
+        </div>
+        {showSaved && (
+          <div className="flex items-center gap-2 text-green-600 text-sm font-medium animate-in fade-in duration-200">
+            <Check className="w-4 h-4" />
+            Saved
+          </div>
+        )}
+      </div>
+
       <div className="space-y-8">
         {/* Unified Model Selection */}
         <UnifiedModelDropdown />
@@ -12,128 +46,104 @@ export function Settings() {
         {/* Whisper Model Download Section */}
         <WhisperModelSection />
 
-        {/* Audio Settings */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Audio Settings</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Default Microphone</label>
-              <select className="w-full max-w-md p-3 border border-gray-300 rounded-lg">
-                <option>MacBook Air Microphone</option>
-                <option>External Microphone</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Audio Quality</label>
-              <select className="w-full max-w-md p-3 border border-gray-300 rounded-lg">
-                <option>High (48kHz)</option>
-                <option>Medium (44kHz)</option>
-                <option>Low (22kHz)</option>
-              </select>
-            </div>
-            <div className="flex items-center">
-              <input type="checkbox" id="noiseReduction" className="rounded" />
-              <label htmlFor="noiseReduction" className="ml-2 text-sm">
-                Enable noise reduction
-              </label>
-            </div>
-          </div>
-        </Card>
 
         {/* Language Settings */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Language Settings</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Primary Language</label>
-              <select className="w-full max-w-md p-3 border border-gray-300 rounded-lg">
-                <option>English (US)</option>
-                <option>Spanish</option>
-                <option>French</option>
-                <option>German</option>
+              <label className="block text-sm font-medium mb-2">
+                Target Language (the language you're learning/practicing)
+              </label>
+              <select
+                className="w-full max-w-md p-3 border border-gray-300 rounded-lg"
+                value={settings.targetLanguage}
+                onChange={(e) => updateSetting('targetLanguage', e.target.value)}
+              >
+                {languageOptions.map(lang => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </option>
+                ))}
               </select>
+              <p className="text-sm text-gray-600 mt-2">
+                This is the language Whisper will transcribe and the language you'll practice speaking.
+              </p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Target Languages</label>
-              <div className="flex flex-wrap gap-2">
-                {['Spanish', 'French', 'German', 'Italian'].map((lang) => (
-                  <span
-                    key={lang}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                  >
-                    {lang} ×
-                  </span>
+              <label className="block text-sm font-medium mb-2">
+                Primary Language (your native language - for translations)
+              </label>
+              <select
+                className="w-full max-w-md p-3 border border-gray-300 rounded-lg"
+                value={settings.primaryLanguage}
+                onChange={(e) => updateSetting('primaryLanguage', e.target.value)}
+              >
+                {languageOptions.map(lang => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </option>
                 ))}
-              </div>
+              </select>
+              <p className="text-sm text-gray-600 mt-2">
+                Vocabulary translations will be shown in this language.
+              </p>
             </div>
           </div>
         </Card>
 
-        {/* Privacy Settings */}
+        {/* Privacy & Data */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Privacy & Data</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Local Processing</h3>
-                <p className="text-sm text-gray-600">All transcription happens on your device</p>
-              </div>
-              <input type="checkbox" checked disabled className="rounded" />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
                 <h3 className="font-medium">Auto-delete old recordings</h3>
-                <p className="text-sm text-gray-600">Automatically remove recordings after 30 days</p>
+                <p className="text-sm text-gray-600">
+                  Automatically remove recordings and sessions after a set period
+                </p>
               </div>
-              <input type="checkbox" className="rounded" />
+              <input
+                type="checkbox"
+                className="rounded"
+                checked={settings.autoDeleteEnabled}
+                onChange={(e) => updateSetting('autoDeleteEnabled', e.target.checked)}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Data retention period</label>
-              <select className="w-full max-w-md p-3 border border-gray-300 rounded-lg">
-                <option>30 days</option>
-                <option>60 days</option>
-                <option>90 days</option>
-                <option>Never delete</option>
+              <select
+                className="w-full max-w-md p-3 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                value={settings.retentionDays ?? 'never'}
+                disabled={!settings.autoDeleteEnabled}
+                onChange={(e) => {
+                  const value = e.target.value === 'never' ? null : parseInt(e.target.value);
+                  updateSetting('retentionDays', value);
+                }}
+              >
+                <option value="30">30 days</option>
+                <option value="60">60 days</option>
+                <option value="90">90 days</option>
+                <option value="never">Never delete</option>
               </select>
+              <p className="text-sm text-gray-600 mt-2">
+                Sessions older than this will be permanently deleted, including audio files.
+                Cleanup runs automatically when you start the app.
+              </p>
             </div>
+            {settings.autoDeleteEnabled && settings.retentionDays && (
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <p className="text-xs text-yellow-800">
+                  <strong>Warning:</strong> Sessions older than {settings.retentionDays} days will be permanently deleted.
+                  This cannot be undone.
+                </p>
+              </div>
+            )}
           </div>
         </Card>
 
-        {/* App Settings */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">App Settings</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Start on system boot</h3>
-                <p className="text-sm text-gray-600">Launch Fluent when your computer starts</p>
-              </div>
-              <input type="checkbox" className="rounded" />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Minimize to system tray</h3>
-                <p className="text-sm text-gray-600">Keep app running in background</p>
-              </div>
-              <input type="checkbox" className="rounded" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Theme</label>
-              <select className="w-full max-w-md p-3 border border-gray-300 rounded-lg">
-                <option>Light</option>
-                <option>Dark</option>
-                <option>System</option>
-              </select>
-            </div>
-          </div>
-        </Card>
 
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium">
-            Save Settings
-          </button>
-        </div>
+
       </div>
     </div>
   )

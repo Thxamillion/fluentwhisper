@@ -18,6 +18,10 @@ export interface AppSettings {
 
   // Practice settings
   dailyGoalMinutes: number
+
+  // Privacy settings
+  autoDeleteEnabled: boolean
+  retentionDays: number | null  // null = never delete, number = days to keep
 }
 
 // Helper to determine if model is cloud-based
@@ -45,6 +49,10 @@ const defaultSettings: AppSettings = {
   targetLanguage: 'es',
 
   dailyGoalMinutes: 15,
+
+  // Privacy defaults - never delete by default
+  autoDeleteEnabled: false,
+  retentionDays: null,
 }
 
 export const useSettingsStore = create<SettingsState>()(
