@@ -31,6 +31,7 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             println!("[App][Rust] Fluent Diary initialized");
             if let Some(win) = app.get_webview_window("main") {
@@ -65,6 +66,7 @@ fn main() {
             vocabulary::is_new_word,
             vocabulary::get_vocab_stats,
             vocabulary::clean_vocab_punctuation,
+            vocabulary::get_recent_vocab,
             recording::get_recording_devices,
             recording::start_recording,
             recording::stop_recording,

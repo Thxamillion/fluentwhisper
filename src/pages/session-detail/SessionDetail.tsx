@@ -1,10 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSession, useSessionWords, useDeleteSession } from '@/hooks/sessions';
-import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles } from 'lucide-react';
+import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles, ArrowUp } from 'lucide-react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useState, useEffect, useRef } from 'react';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -14,6 +16,89 @@ export function SessionDetail() {
   const { data: session, isLoading: sessionLoading } = useSession(sessionId!);
   const { data: words, isLoading: wordsLoading } = useSessionWords(sessionId!);
   const deleteSession = useDeleteSession();
+
+  // Infinite scroll state
+  const [displayedWords, setDisplayedWords] = useState<typeof words>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
+  const WORDS_PER_LOAD = 15; // Load 15 words at a time (5 rows of 3)
+
+  // Scroll to top button state - show when words are loaded and > 15
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Track scroll position
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const scrollY = target.scrollTop || window.scrollY || document.documentElement.scrollTop;
+      setShowScrollTop(scrollY > 200);
+    };
+
+    // Add listeners to both window and main content
+    window.addEventListener('scroll', handleScroll);
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.addEventListener('scroll', handleScroll);
+    }
+
+    // Initial check - show button if we have many words
+    if (words && words.length > 15) {
+      setShowScrollTop(true);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (mainElement) {
+        mainElement.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [words]);
+
+  const scrollToTop = () => {
+    // Scroll both window and main element
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Initialize with first batch of words
+  useEffect(() => {
+    if (words && words.length > 0) {
+      setDisplayedWords(words.slice(0, WORDS_PER_LOAD));
+      setHasMore(words.length > WORDS_PER_LOAD);
+    }
+  }, [words]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && words) {
+          // Load more words
+          const currentLength = displayedWords.length;
+          const nextBatch = words.slice(currentLength, currentLength + WORDS_PER_LOAD);
+
+          if (nextBatch.length > 0) {
+            setDisplayedWords((prev) => [...prev, ...nextBatch]);
+            setHasMore(currentLength + nextBatch.length < words.length);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [displayedWords, hasMore, words]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -200,24 +285,41 @@ export function SessionDetail() {
                 <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
               </div>
             ) : words && words.length > 0 ? (
-              <Card className="divide-y">
-                {words.map((word) => (
-                  <div key={word.lemma} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-medium text-gray-900">{word.lemma}</span>
-                      {word.isNew && (
-                        <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                          <Sparkles className="w-3 h-3" />
-                          New
+              <div>
+                <div className="grid grid-cols-3 gap-3">
+                  {displayedWords.map((word) => (
+                    <Card key={word.lemma} className="p-3 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <span className="text-base font-medium text-gray-900 truncate">
+                          {word.lemma}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      Used {word.count} {word.count === 1 ? 'time' : 'times'}
-                    </span>
+                        {word.isNew && (
+                          <span className="flex-shrink-0 flex items-center gap-0.5 text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                            <Sparkles className="w-3 h-3" />
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        × {word.count}
+                      </span>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Infinite scroll trigger */}
+                {hasMore && (
+                  <div ref={observerTarget} className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                   </div>
-                ))}
-              </Card>
+                )}
+
+                {/* End message */}
+                {!hasMore && words.length > WORDS_PER_LOAD && (
+                  <div className="text-center py-6 text-sm text-gray-500">
+                    All {words.length} words loaded
+                  </div>
+                )}
+              </div>
             ) : (
               <Card className="p-6 text-center text-gray-500">
                 No vocabulary data available
@@ -282,6 +384,21 @@ export function SessionDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed right-8 z-50 h-10 w-10 rounded-full shadow-lg hover:shadow-xl transition-all"
+          style={{
+            bottom: audioSrc ? '120px' : '32px' // Above audio player if present
+          }}
+          size="icon"
+          title="Scroll to top"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </Button>
+      )}
     </div>
   );
 }

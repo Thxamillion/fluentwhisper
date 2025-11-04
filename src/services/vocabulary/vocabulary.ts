@@ -4,7 +4,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import type { LangCode, VocabWord, VocabStats, ServiceResult } from './types';
+import type { LangCode, VocabWord, VocabWordWithTranslation, VocabStats, ServiceResult } from './types';
 
 /**
  * Record a word in user's vocabulary
@@ -79,6 +79,30 @@ export async function getVocabStats(
     return { success: true, data: stats };
   } catch (error) {
     console.error('[getVocabStats] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get recently learned vocabulary with translations
+ */
+export async function getRecentVocab(
+  language: LangCode,
+  days: number = 7,
+  limit: number = 6
+): Promise<ServiceResult<VocabWordWithTranslation[]>> {
+  try {
+    const vocab = await invoke<VocabWordWithTranslation[]>('get_recent_vocab', {
+      language,
+      days,
+      limit,
+    });
+    return { success: true, data: vocab };
+  } catch (error) {
+    console.error('[getRecentVocab] Error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, FileText, Video, BookOpen, Clock, Trash2, Play } from 'lucide-react';
+import { Search, Plus, FileText, BookOpen, Clock, Trash2, Play, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTextLibrary, useDeleteTextLibraryItem } from '@/hooks/text-library';
 import type { TextLibraryItem } from '@/services/text-library';
@@ -17,8 +17,8 @@ function formatDuration(seconds: number): string {
 }
 
 const sourceIcons = {
-  youtube: Video,
   manual: FileText,
+  text_file: Upload,
   book: BookOpen,
   article: FileText,
 };

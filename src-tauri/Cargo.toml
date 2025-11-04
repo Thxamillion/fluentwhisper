@@ -15,6 +15,7 @@ tauri = { version = "2.0", features = ["macos-private-api", "protocol-asset"] }
 tauri-plugin-shell = "2.0"
 tauri-plugin-http = "2.0"      # HTTP client for downloads
 tauri-plugin-fs = "2.0"        # File system operations
+tauri-plugin-dialog = "2.0"    # File dialogs for text import
 tauri-plugin-deep-link = "2.0" # Deep link handling for OAuth callbacks
 keyring = "3.6"               # Secure credential storage (Keychain on macOS, Credential Manager on Windows)
 open = "5.0"                  # Open URLs in default browser

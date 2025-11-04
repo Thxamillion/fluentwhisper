@@ -15,6 +15,9 @@ export interface AppSettings {
   // Language settings
   primaryLanguage: string
   targetLanguage: string
+
+  // Practice settings
+  dailyGoalMinutes: number
 }
 
 // Helper to determine if model is cloud-based
@@ -40,6 +43,8 @@ const defaultSettings: AppSettings = {
 
   primaryLanguage: 'en',
   targetLanguage: 'es',
+
+  dailyGoalMinutes: 15,
 }
 
 export const useSettingsStore = create<SettingsState>()(

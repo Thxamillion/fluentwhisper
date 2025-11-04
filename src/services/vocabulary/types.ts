@@ -15,6 +15,10 @@ export interface VocabWord {
   mastered: boolean;
 }
 
+export interface VocabWordWithTranslation extends VocabWord {
+  translation: string | null;
+}
+
 export interface VocabStats {
   total_words: number;
   mastered_words: number;

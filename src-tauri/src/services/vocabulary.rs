@@ -25,6 +25,19 @@ pub struct VocabWord {
     pub mastered: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VocabWordWithTranslation {
+    pub id: i64,
+    pub language: String,
+    pub lemma: String,
+    pub forms_spoken: Vec<String>,
+    pub first_seen_at: i64,
+    pub last_seen_at: i64,
+    pub usage_count: i32,
+    pub mastered: bool,
+    pub translation: Option<String>,
+}
+
 /// Get current Unix timestamp in seconds
 fn now() -> i64 {
     SystemTime::now()
@@ -264,6 +277,63 @@ pub async fn clean_punctuation(pool: &SqlitePool) -> Result<i32> {
     }
 
     Ok(cleaned_count)
+}
+
+/// Get recently learned vocabulary with translations
+/// Returns words learned in the last N days, with translations from primary language
+pub async fn get_recent_vocab(
+    pool: &SqlitePool,
+    app_handle: &tauri::AppHandle,
+    language: &str,
+    days: i32,
+    limit: i32,
+) -> Result<Vec<VocabWordWithTranslation>> {
+    let cutoff = now() - (days as i64 * 24 * 60 * 60);
+
+    // Get recent words
+    let rows = sqlx::query(
+        r#"
+        SELECT id, language, lemma, forms_spoken, first_seen_at, last_seen_at, usage_count, mastered
+        FROM vocab
+        WHERE language = ? AND first_seen_at >= ?
+        ORDER BY first_seen_at DESC
+        LIMIT ?
+        "#
+    )
+    .bind(language)
+    .bind(cutoff)
+    .bind(limit)
+    .fetch_all(pool)
+    .await?;
+
+    let mut words = Vec::new();
+
+    for row in rows {
+        let lemma: String = row.get("lemma");
+        let forms_json: String = row.get("forms_spoken");
+
+        // Get translation (assume target language is English for now)
+        // In the future, this could be configurable
+        let target_lang = if language == "en" { "es" } else { "en" };
+        let translation = crate::services::translation::get_translation(&lemma, language, target_lang)
+            .await
+            .ok()
+            .flatten();
+
+        words.push(VocabWordWithTranslation {
+            id: row.get("id"),
+            language: row.get("language"),
+            lemma,
+            forms_spoken: serde_json::from_str(&forms_json).unwrap_or_default(),
+            first_seen_at: row.get("first_seen_at"),
+            last_seen_at: row.get("last_seen_at"),
+            usage_count: row.get("usage_count"),
+            mastered: row.get("mastered"),
+            translation,
+        });
+    }
+
+    Ok(words)
 }
 
 #[cfg(test)]

@@ -4,7 +4,7 @@
  */
 
 use crate::db::user::open_user_db;
-use crate::services::vocabulary::{self, VocabStats, VocabWord};
+use crate::services::vocabulary::{self, VocabStats, VocabWord, VocabWordWithTranslation};
 
 /// Record a word in user's vocabulary
 /// Returns true if word is new, false if already existed
@@ -58,6 +58,21 @@ pub async fn clean_vocab_punctuation(app_handle: tauri::AppHandle, ) -> Result<i
     let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
 
     vocabulary::clean_punctuation(&pool)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Get recently learned vocabulary with translations
+#[tauri::command]
+pub async fn get_recent_vocab(
+    app_handle: tauri::AppHandle,
+    language: String,
+    days: i32,
+    limit: i32,
+) -> Result<Vec<VocabWordWithTranslation>, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::get_recent_vocab(&pool, &app_handle, &language, days, limit)
         .await
         .map_err(|e| e.to_string())
 }

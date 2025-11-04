@@ -13,6 +13,7 @@ This script:
 
 import argparse
 import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -106,10 +107,14 @@ def is_inflected_form_definition(gloss: str) -> bool:
     - "third-person plural future indicative of muñir"
     - "gerund of acoderar combined with las"
     - "masculine plural of limeño"
+
+    Examples to KEEP:
+    - "first-person singular pronoun; I" (this is a translation, not an inflection)
+    - "to be" (this is a translation)
     """
     inflection_keywords = [
         'inflection of',
-        'form of',
+        # 'form of',  # Too broad - catches "apocopic form of"
         'plural of',
         'singular of',
         'masculine of',
@@ -118,12 +123,6 @@ def is_inflected_form_definition(gloss: str) -> bool:
         'gerund of',
         'present participle of',
         'imperative of',
-        'subjunctive',
-        'indicative',
-        'conditional',
-        'preterite',
-        'imperfect',
-        'future',
         'combined with',
         'alternative spelling of',
         'alternative form of',
@@ -132,14 +131,47 @@ def is_inflected_form_definition(gloss: str) -> bool:
         'female equivalent',
         'male equivalent',
         'voseo',
-        '-person',  # catches "first-person", "third-person", etc.
+    ]
+
+    # More specific patterns for "form of" that ARE inflections
+    specific_form_patterns = [
+        r'\b(superlative|comparative|diminutive|augmentative) form of\b',
+        r'\b(short|long|contracted|elided) form of\b',
+    ]
+
+    # Special patterns that indicate inflections (more specific than keywords)
+    # These patterns should match verb conjugation references, not pronoun definitions
+    inflection_patterns = [
+        r'\b\w+-person .+? (singular|plural) .+? of \w+$',  # "third-person plural present of hacer"
+        r'\b\w+-person .+? of \w+$',  # "third-person of hacer" at end of gloss
+        'subjunctive of',
+        'indicative of',
+        'conditional of',
+        'preterite of',
+        'imperfect of',
+        r'future .+? of \w+',  # "future indicative of hacer"
     ]
 
     gloss_lower = gloss.lower()
-    return any(keyword in gloss_lower for keyword in inflection_keywords)
+
+    # Check keyword matches
+    if any(keyword in gloss_lower for keyword in inflection_keywords):
+        return True
+
+    # Check specific form patterns (catches "form of" in right contexts)
+    for pattern in specific_form_patterns:
+        if re.search(pattern, gloss_lower):
+            return True
+
+    # Check inflection patterns (more specific, using regex)
+    for pattern in inflection_patterns:
+        if re.search(pattern, gloss_lower):
+            return True
+
+    return False
 
 
-def is_technical_definition(gloss: str, categories: list = None) -> bool:
+def is_technical_definition(gloss: str, category_names: list = None) -> bool:
     """
     Check if gloss is a technical definition, letter name, or other non-translation.
 
@@ -148,9 +180,13 @@ def is_technical_definition(gloss: str, categories: list = None) -> bool:
     - "Freud's concept of the ego" (technical jargon)
     - "a city in Lombardy" (geographic entries)
     - "initialism of América Latina" (abbreviations)
+
+    Args:
+        gloss: The gloss text to check
+        category_names: List of category name strings (e.g., ["es:Psychoanalysis", "Spanish nouns"])
     """
     # Check category tags first (most reliable)
-    if categories:
+    if category_names:
         bad_categories = [
             'letter names',  # catches "Latin letter names", "Greek letter names"
             'psychoanalysis',
@@ -158,34 +194,51 @@ def is_technical_definition(gloss: str, categories: list = None) -> bool:
             'provinces',
             'countries',
             'place names',
+            'toponyms',  # place names in some languages
         ]
-        for cat in categories:
-            cat_lower = cat.lower()
+        for cat_name in category_names:
+            if not isinstance(cat_name, str):
+                continue
+            cat_lower = cat_name.lower()
             if any(bad_cat in cat_lower for bad_cat in bad_categories):
                 return True
 
     # Check gloss text patterns
     technical_patterns = [
+        # Letter/alphabet definitions
         'letter of the',
         'name of the letter',  # catches "Name of the letter A."
         'the name of the',
         'called ye',
         'called i griega',
+        'called ef',  # Spanish letter names
         'alphabet',
+        'written in the latin script',
+        'written in the',
+
+        # Technical jargon
+        'freud',
+        'jung',
+        'psychoanalysis',
+        'concept of the',
+
+        # Greek/Latin letters
+        'greek letter',
+        'latin letter',
+        'latin-script letter',
+
+        # Linguistic meta-definitions
         'initialism',
         'abbreviation',
         'misspelling',
-        'written in the latin script',
-        'written in the',
-        'freud',
-        'jung',
-        'greek letter',
-        'latin letter',
         'diminutive of',
-        'concept of',
+        'augmentative of',
+
+        # Geographic entries
         'a city',
         'a suburb',
         'a town',
+        'a village',
         'a census-designated place',
         'a comune',
         'a province',
@@ -193,6 +246,8 @@ def is_technical_definition(gloss: str, categories: list = None) -> bool:
         'a state of',
         'a number of places',
         'county,',  # "como (a town in hertford county,"
+        'a country',
+        'a region',
     ]
 
     gloss_lower = gloss.lower()
@@ -227,6 +282,11 @@ def extract_translations(jsonl_file: Path, lang_from: str, lang_to: str) -> list
             # Get the word (lemma form)
             word = entry.get('word', '').strip().lower()
             if not word:
+                continue
+
+            # Skip single-letter words (likely alphabet entries)
+            if len(word) == 1:
+                skipped_technical += 1
                 continue
 
             # Extract translations from senses

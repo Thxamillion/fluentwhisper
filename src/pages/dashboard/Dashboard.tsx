@@ -1,188 +1,361 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Play, Leaf } from 'lucide-react'
+import { Mic, TrendingUp, Clock, Flame, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useOverallStats, useDailySessions, useWpmTrends } from '@/hooks/stats'
+import { useAllSessions } from '@/hooks/sessions'
+import { useRecentVocab } from '@/hooks/vocabulary'
+import { useSettingsStore } from '@/stores/settingsStore'
+import { formatRelativeTime, formatMinutes } from '@/utils/dateFormatting'
+import { calculateTodayStats, calculateWeekStats, calculateWpmChange, getRecentSessions } from '@/utils/sessionStats'
+import { DailyGoalModal } from '@/components/DailyGoalModal'
 
 export function Dashboard() {
+  const navigate = useNavigate()
+  const [goalModalOpen, setGoalModalOpen] = useState(false)
+
+  // Fetch data from backend
+  const { data: overallStats, isLoading: statsLoading } = useOverallStats()
+  const { data: allSessions, isLoading: sessionsLoading } = useAllSessions()
+  const { data: dailySessions, isLoading: calendarLoading } = useDailySessions(undefined, 31)
+  const { data: wpmTrends, isLoading: wpmLoading } = useWpmTrends(undefined, 14)
+
+  // Settings
+  const { settings, updateSetting } = useSettingsStore()
+  const dailyGoalMinutes = settings.dailyGoalMinutes
+
+  // Get recent vocabulary (last 7 days, limit 12)
+  const { data: recentVocab, isLoading: vocabLoading } = useRecentVocab(
+    settings.targetLanguage as any,
+    7,
+    12
+  )
+
+  // Calculate derived stats
+  const todayStats = allSessions ? calculateTodayStats(allSessions) : { sessions: 0, minutes: 0, newWords: 0 }
+  const weekStats = allSessions ? calculateWeekStats(allSessions) : { sessions: 0, minutes: 0, newWords: 0 }
+  const wpmChange = wpmTrends ? calculateWpmChange(wpmTrends) : 0
+  const recentSessions = allSessions ? getRecentSessions(allSessions, 4) : []
+
+  // Loading state
+  const isLoading = statsLoading || sessionsLoading
+
+  const handleSaveGoal = (newGoal: number) => {
+    updateSetting('dailyGoalMinutes', newGoal)
+  }
+
+  // Generate calendar data for current month
+  const generateCalendarData = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth()
+
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const firstDayOfWeek = firstDay.getDay()
+
+    const days = []
+
+    // Add empty cells for days before month starts
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      days.push({ date: null, day: null, count: 0 })
+    }
+
+    // Add all days in month with session counts
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day)
+      const dateStr = date.toISOString().split('T')[0]
+
+      // Find session count for this day
+      const dayData = dailySessions?.find(d => d.date === dateStr)
+      const count = dayData?.sessionCount || 0
+
+      days.push({
+        date: dateStr,
+        day,
+        count,
+        isToday: day === now.getDate()
+      })
+    }
+
+    return { days, monthName: firstDay.toLocaleString('default', { month: 'long', year: 'numeric' }) }
+  }
+
+  const calendarData = generateCalendarData()
+
+  const getHeatmapColor = (count: number) => {
+    if (count === 0) return 'bg-gray-100 dark:bg-gray-800'
+    if (count === 1) return 'bg-green-200 dark:bg-green-900'
+    if (count === 2) return 'bg-green-400 dark:bg-green-700'
+    if (count === 3) return 'bg-green-500 dark:bg-green-600'
+    return 'bg-green-600 dark:bg-green-500'
+  }
+
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-3 gap-6">
-        {/* Left Column - 2 cards stacked */}
-        <div className="col-span-2 space-y-6">
-          {/* Today / Record */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Today / Record</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-lg">
-                <div className="w-16 h-16 bg-orange-200 rounded-lg flex items-center justify-center">
-                  <Leaf className="w-8 h-8 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-lg">Today's Recording</h3>
-                  <p className="text-sm text-muted-foreground">Lingua Session - 24 May 2024</p>
-                </div>
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Play className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="p-6 max-w-6xl mx-auto space-y-4">
+      {/* Quick Start Banner */}
+      <Card className="border-gray-200 dark:border-gray-800">
+        <CardContent className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Ready to practice?</h2>
+              <p className="text-xs text-muted-foreground">Start a new recording session</p>
+            </div>
+            <Button
+              size="sm"
+              className="h-9 px-4"
+              onClick={() => navigate('/record')}
+            >
+              <Mic className="w-4 h-4 mr-2" />
+              Start Recording
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Performance Snapshot */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Performance Snapshot</CardTitle>
-                <Badge variant="secondary" className="text-green-600 bg-green-50">
-                  +10% vs Last 7 Days
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48 bg-muted rounded-lg flex items-center justify-center">
-                <div className="w-full h-full relative">
-                  <svg viewBox="0 0 400 200" className="w-full h-full">
-                    <path
-                      d="M 20 150 Q 50 100 80 120 T 140 110 T 200 130 T 260 90 T 320 110 T 380 80"
-                      stroke="#22c55e"
-                      strokeWidth="3"
-                      fill="none"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Loading state for stats */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
+      ) : (
+        <>
+          {/* Stats Row - 4 compact cards */}
+          <div className="grid grid-cols-4 gap-3">
+            {/* Streak */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>Streak</span>
+                </div>
+                <div className="text-2xl font-bold">{overallStats?.currentStreakDays || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  days • best: {overallStats?.longestStreakDays || 0}
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Right Column - 2 cards stacked */}
-        <div className="space-y-6">
-          {/* Streak */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Streak</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold mb-2">3 days</div>
-              <div className="text-sm text-muted-foreground mb-4">Daily Usage</div>
-              <div className="text-2xl font-bold">15 min</div>
-            </CardContent>
-          </Card>
+            {/* Today - Clickable to edit goal */}
+            <Card
+              className="border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+              onClick={() => setGoalModalOpen(true)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Daily Goal</span>
+                </div>
+                <div className="text-2xl font-bold">{todayStats.sessions}</div>
+                <p className="text-xs text-muted-foreground">
+                  {todayStats.minutes}/{dailyGoalMinutes} min goal
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* This Week */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>This Week</span>
+                </div>
+                <div className="text-2xl font-bold">{weekStats.minutes}m</div>
+                <p className="text-xs text-muted-foreground">+{weekStats.newWords} words</p>
+              </CardContent>
+            </Card>
+
+            {/* Avg WPM */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Avg WPM</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {overallStats?.averageWpm ? Math.round(overallStats.averageWpm) : 0}
+                </div>
+                <p className={`text-xs ${wpmChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {wpmChange >= 0 ? '↑' : '↓'} {Math.abs(wpmChange)}% vs last week
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Recent Sessions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Sessions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-4 gap-2 text-xs text-muted-foreground font-medium">
-                  <div>DATE</div>
-                  <div>LESSON</div>
-                  <div>DURATION</div>
-                  <div>SCORE</div>
-                </div>
-                {[
-                  { date: 'May 20', lesson: 'Lesson 1', duration: '10 min', score: '85%', color: 'text-green-600' },
-                  { date: 'May 19', lesson: 'Lesson 2', duration: '15 min', score: '90%', color: 'text-green-600' },
-                  { date: 'May 18', lesson: 'Lesson 3', duration: '20 min', score: '75%', color: 'text-yellow-600' },
-                  { date: 'May 17', lesson: 'Lesson 4', duration: '12 min', score: '65%', color: 'text-red-600' },
-                ].map((session) => (
-                  <div key={session.date} className="grid grid-cols-4 gap-2 text-sm">
-                    <div className="font-medium">{session.date}</div>
-                    <div>{session.lesson}</div>
-                    <div>{session.duration}</div>
-                    <div className={session.color}>{session.score}</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Calendar Heatmap - Full width */}
-        <div className="col-span-3 mt-6">
-          <Card>
-            <CardHeader>
+          <Card className="border-gray-200 dark:border-gray-800">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle>Calendar Heatmap</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm">‹</Button>
-                  <span className="font-medium">May 2024</span>
-                  <Button variant="ghost" size="sm">›</Button>
-                </div>
+                <CardTitle className="text-sm font-semibold">Recent Sessions</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => navigate('/history')}
+                >
+                  View all
+                  <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2">
-                <div className="text-center text-xs text-muted-foreground font-medium">S</div>
-                <div className="text-center text-xs text-muted-foreground font-medium">M</div>
-                <div className="text-center text-xs text-muted-foreground font-medium">T</div>
-                <div className="text-center text-xs text-muted-foreground font-medium">W</div>
-                <div className="text-center text-xs text-muted-foreground font-medium">T</div>
-                <div className="text-center text-xs text-muted-foreground font-medium">F</div>
-                <div className="text-center text-xs text-muted-foreground font-medium">S</div>
-
-                {/* Empty cells for start of month */}
-                <div></div><div></div><div></div><div></div><div></div><div></div>
-
-                {/* Calendar days */}
-                {Array.from({ length: 31 }, (_, i) => {
-                  const day = i + 1;
-                  let bgColor = 'bg-gray-100';
-
-                  if (day === 5) bgColor = 'bg-blue-500 text-white';
-                  else if (day === 15) bgColor = 'bg-green-400';
-                  else if (day === 19) bgColor = 'bg-green-500';
-                  else if (day === 20) bgColor = 'bg-green-500';
-                  else if (day === 27) bgColor = 'bg-green-400';
-                  else if (day === 28) bgColor = 'bg-yellow-400';
-                  else if (day === 30) bgColor = 'bg-red-400';
-
-                  return (
-                    <div
-                      key={day}
-                      className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${bgColor}`}
-                    >
-                      {day}
+            <CardContent className="space-y-2">
+              {recentSessions.length > 0 ? (
+                recentSessions.map((session) => (
+                  <button
+                    key={session.id}
+                    onClick={() => navigate(`/session/${session.id}`)}
+                    className="w-full text-left px-3 py-2 rounded-md border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                  >
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {formatRelativeTime(session.startedAt)}
+                      </span>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{formatMinutes(session.duration || 0)}m</span>
+                        <span>•</span>
+                        <span>{Math.round(session.wpm || 0)} WPM</span>
+                        <span>•</span>
+                        <span className="text-green-600 dark:text-green-400">
+                          {session.newWordCount || 0} new
+                        </span>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No sessions yet</p>
+                  <p className="text-xs mt-1">Start recording to see your progress here</p>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </div>
 
-        {/* Vocabulary Inbox - Full width */}
-        <div className="col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vocabulary Inbox</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-xs text-muted-foreground font-medium">WORD</div>
-                <div className="text-xs text-muted-foreground font-medium">DEFINITION</div>
-                <div className="text-xs text-muted-foreground font-medium">EXAMPLE</div>
+          {/* Bottom Row: New Words + Calendar */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* New Words This Week */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    New Words This Week
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => navigate('/vocabulary')}
+                  >
+                    View all
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="flex flex-col" style={{ height: 'calc(100% - 3.5rem)' }}>
+                {vocabLoading ? (
+                  <div className="flex items-center justify-center flex-1">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : recentVocab && recentVocab.length > 0 ? (
+                  <div className="space-y-1.5 overflow-y-auto flex-1 pr-1">
+                    {recentVocab.map((word) => (
+                      <div
+                        key={word.id}
+                        className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                      >
+                        <span className="text-sm font-medium">{word.lemma}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {word.translation || 'No translation'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground flex-1 flex flex-col justify-center">
+                    <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No new words yet</p>
+                    <p className="text-xs mt-1">Start practicing to discover new vocabulary</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                <div className="font-medium">Bonjour</div>
-                <div>Hello</div>
-                <div className="text-muted-foreground italic">"Bonjour, comment allez-vous ?"</div>
+            {/* Practice Calendar */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Flame className="w-4 h-4" />
+                  Practice Calendar
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">{calendarData.monthName}</p>
+              </CardHeader>
+              <CardContent>
+                {calendarLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Day headers */}
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                        <div key={day} className="text-center text-xs font-medium text-muted-foreground">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
 
-                <div className="font-medium">Merci</div>
-                <div>Thank you</div>
-                <div className="text-muted-foreground italic">"Merci beaucoup pour votre aide."</div>
+                    {/* Calendar grid */}
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {calendarData.days.map((day, index) => (
+                        <div
+                          key={index}
+                          className={`
+                            aspect-square rounded flex items-center justify-center text-xs font-medium
+                            ${day.date ? getHeatmapColor(day.count) : 'bg-transparent'}
+                            ${day.date ? 'cursor-pointer hover:ring-2 hover:ring-gray-400 transition-all' : ''}
+                            ${day.isToday ? 'ring-2 ring-blue-500' : ''}
+                            ${day.count > 0 ? 'text-white' : 'text-gray-700 dark:text-gray-300'}
+                          `}
+                          title={day.date ? `${day.date}: ${day.count} session${day.count !== 1 ? 's' : ''}` : ''}
+                        >
+                          {day.day}
+                        </div>
+                      ))}
+                    </div>
 
-                <div className="font-medium">Au revoir</div>
-                <div>Goodbye</div>
-                <div className="text-muted-foreground italic">"Au revoir, à bientôt."</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                    {/* Legend */}
+                    <div className="flex items-center justify-center gap-2 mt-3 pt-2 border-t border-gray-200 dark:border-gray-800 text-xs text-muted-foreground">
+                      <span>Less</span>
+                      <div className="flex gap-1.5">
+                        {[0, 1, 2, 3, 4].map((level) => (
+                          <div
+                            key={level}
+                            className={`w-4 h-4 rounded ${getHeatmapColor(level)}`}
+                          />
+                        ))}
+                      </div>
+                      <span>More</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {/* Daily Goal Modal */}
+      <DailyGoalModal
+        open={goalModalOpen}
+        onOpenChange={setGoalModalOpen}
+        currentGoal={dailyGoalMinutes}
+        onSave={handleSaveGoal}
+      />
     </div>
   )
 }

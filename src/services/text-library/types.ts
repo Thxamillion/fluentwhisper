@@ -3,7 +3,7 @@
  * Matches Rust TextLibraryItem struct
  */
 
-export type SourceType = 'youtube' | 'manual' | 'book' | 'article';
+export type SourceType = 'manual' | 'text_file';
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface TextLibraryItem {

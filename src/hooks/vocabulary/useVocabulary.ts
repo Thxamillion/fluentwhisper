@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { recordWord, getUserVocab, getVocabStats } from '@/services/vocabulary';
+import { recordWord, getUserVocab, getVocabStats, getRecentVocab } from '@/services/vocabulary';
 import type { LangCode } from '@/services/vocabulary/types';
 
 /**
@@ -43,6 +43,24 @@ export function useVocabStats(language: LangCode, enabled = true) {
 }
 
 /**
+ * Hook to get recently learned vocabulary with translations
+ */
+export function useRecentVocab(language: LangCode, days: number = 7, limit: number = 6, enabled = true) {
+  return useQuery({
+    queryKey: ['recentVocab', language, days, limit],
+    queryFn: async () => {
+      const result = await getRecentVocab(language, days, limit);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get recent vocabulary');
+      }
+      return result.data!;
+    },
+    enabled,
+    staleTime: 1000 * 60, // 1 minute
+  });
+}
+
+/**
  * Hook to record a word (mutation)
  * Returns whether the word was new
  */
@@ -69,6 +87,7 @@ export function useRecordWord() {
       // Invalidate vocabulary and stats queries to refetch
       queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['recentVocab', variables.language] });
     },
   });
 }
