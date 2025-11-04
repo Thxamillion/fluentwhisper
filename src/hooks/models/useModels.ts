@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import * as modelService from '../../services/models';
 import type { DownloadProgress } from '../../services/models';
+import { useDownloadStore } from '@/stores/downloadStore';
 
 /**
  * Get list of available Whisper models
@@ -66,17 +67,30 @@ export function useInstalledModels() {
 
 /**
  * Download a Whisper model with progress tracking
+ * Now integrated with global download store for persistent toast UI
  */
 export function useDownloadModel() {
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
+  const [currentModelName, setCurrentModelName] = useState<string | null>(null);
+  const { setModelProgress, clearDownload } = useDownloadStore();
 
-  // Listen for progress events
+  // Listen for progress events - update both local state and global store
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
     listen<DownloadProgress>('model-download-progress', (event) => {
       setProgress(event.payload);
+
+      // Update global download store to show toast
+      // Model name comes from the mutation state
+      if (currentModelName) {
+        setModelProgress({
+          downloaded_bytes: event.payload.downloadedBytes,
+          total_bytes: event.payload.totalBytes,
+          percentage: event.payload.percentage,
+        }, currentModelName);
+      }
     }).then((unlistenFn) => {
       unlisten = unlistenFn;
     });
@@ -84,10 +98,13 @@ export function useDownloadModel() {
     return () => {
       if (unlisten) unlisten();
     };
-  }, []);
+  }, [setModelProgress, currentModelName]);
 
   const mutation = useMutation({
     mutationFn: async (modelName: string) => {
+      // Store model name for progress tracking
+      setCurrentModelName(modelName);
+
       const result = await modelService.downloadModel(modelName);
       if (!result.success) throw new Error(result.error);
       return result.data!;
@@ -96,9 +113,15 @@ export function useDownloadModel() {
       // Invalidate queries to refresh installed status
       queryClient.invalidateQueries({ queryKey: ['models'] });
       setProgress(null);
+      setCurrentModelName(null);
+
+      // Clear global download toast after a delay (handled by toast auto-hide)
+      // Don't clear immediately to let user see completion
     },
     onError: () => {
       setProgress(null);
+      setCurrentModelName(null);
+      clearDownload();
     },
   });
 

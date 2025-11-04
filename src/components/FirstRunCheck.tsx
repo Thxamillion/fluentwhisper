@@ -4,13 +4,15 @@
 
 import { AlertCircle, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useDefaultModelInstalled } from '../hooks/models';
+import { useModelInstalled } from '../hooks/models';
+import { useSettingsStore } from '../stores/settingsStore';
 
 export function FirstRunCheck() {
-  const { data: isInstalled, isLoading } = useDefaultModelInstalled();
+  const { settings } = useSettingsStore();
+  const { data: isInstalled, isLoading } = useModelInstalled(settings.selectedModel || 'base');
 
-  // Don't show anything while loading or if model is installed
-  if (isLoading || isInstalled) {
+  // Don't show anything while loading, if model is installed, or if no model selected yet
+  if (isLoading || isInstalled || !settings.selectedModel) {
     return null;
   }
 

@@ -244,6 +244,19 @@ pub async fn open_user_db(app_handle: &tauri::AppHandle) -> Result<SqlitePool> {
         .context("Failed to open user database")?;
 
     // Run migrations for existing databases
+
+    // Migration: Add primary_language column to existing sessions tables
+    let _ = sqlx::query("ALTER TABLE sessions ADD COLUMN primary_language TEXT DEFAULT 'en'")
+        .execute(&pool)
+        .await;
+    // Ignore errors - column might already exist
+
+    // Migration: Add segments column to existing sessions tables
+    let _ = sqlx::query("ALTER TABLE sessions ADD COLUMN segments TEXT")
+        .execute(&pool)
+        .await;
+    // Ignore errors - column might already exist
+
     // Migration: Add custom_translations table if it doesn't exist
     sqlx::query(
         r#"

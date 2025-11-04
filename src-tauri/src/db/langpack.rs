@@ -52,7 +52,6 @@ pub async fn open_translation_db(from_lang: &str, to_lang: &str, app: &AppHandle
 /// Priority order:
 /// 1. Bundled resources (English only)
 /// 2. Downloaded packs in app data directory
-/// 3. Development paths (for testing)
 fn get_lemma_db_path(lang: &str, app: &AppHandle) -> Result<PathBuf> {
     use tauri::Manager;
 
@@ -81,13 +80,6 @@ fn get_lemma_db_path(lang: &str, app: &AppHandle) -> Result<PathBuf> {
         }
     }
 
-    // 3. Fall back to development path (for local testing)
-    let dev_path = PathBuf::from(format!("langpacks/{}/lemmas.db", lang));
-    if dev_path.exists() {
-        println!("[get_lemma_db_path] Using development path: {:?}", dev_path);
-        return Ok(dev_path);
-    }
-
     anyhow::bail!(
         "Lemma database not found for language: {}. Please download the language pack first.",
         lang
@@ -100,14 +92,13 @@ fn get_lemma_db_path(lang: &str, app: &AppHandle) -> Result<PathBuf> {
 ///
 /// Priority order:
 /// 1. Downloaded packs in app data directory
-/// 2. Development paths (for testing)
 fn get_translation_db_path(from_lang: &str, to_lang: &str, app: &AppHandle) -> Result<PathBuf> {
     use tauri::Manager;
 
     let primary_name = format!("{}-{}.db", from_lang, to_lang);
     let reverse_name = format!("{}-{}.db", to_lang, from_lang);
 
-    // 1. Check downloaded packs in app data directory
+    // Check downloaded packs in app data directory
     if let Ok(app_data_dir) = app.path().app_data_dir() {
         let translations_dir = app_data_dir.join("langpacks").join("translations");
 
@@ -124,19 +115,6 @@ fn get_translation_db_path(from_lang: &str, to_lang: &str, app: &AppHandle) -> R
             println!("[get_translation_db_path] Using downloaded (reverse): {:?}", downloaded_reverse);
             return Ok(downloaded_reverse);
         }
-    }
-
-    // 2. Fall back to development paths
-    let dev_primary = PathBuf::from(format!("translations/{}", primary_name));
-    if dev_primary.exists() {
-        println!("[get_translation_db_path] Using development (primary): {:?}", dev_primary);
-        return Ok(dev_primary);
-    }
-
-    let dev_reverse = PathBuf::from(format!("translations/{}", reverse_name));
-    if dev_reverse.exists() {
-        println!("[get_translation_db_path] Using development (reverse): {:?}", dev_reverse);
-        return Ok(dev_reverse);
     }
 
     anyhow::bail!(

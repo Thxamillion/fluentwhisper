@@ -11,6 +11,18 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tauri::{AppHandle, Emitter, Manager};
 
+/// Lock file guard - automatically deletes lock file when dropped
+struct LockFileGuard {
+    path: PathBuf,
+}
+
+impl Drop for LockFileGuard {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.path);
+        println!("[LockFileGuard] Removed lock file: {:?}", self.path);
+    }
+}
+
 /// Progress update for a single file download
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DownloadProgress {
@@ -120,6 +132,19 @@ async fn download_file_with_progress(
         std::fs::create_dir_all(parent)
             .context("Failed to create destination directory")?;
     }
+
+    // Create lock file to prevent duplicate downloads
+    let lock_file = destination.with_extension("lock");
+    if lock_file.exists() {
+        anyhow::bail!("Download already in progress for {}", language_pair);
+    }
+    std::fs::File::create(&lock_file)
+        .context("Failed to create lock file")?;
+
+    // Ensure lock file is cleaned up on error or success
+    let _guard = LockFileGuard {
+        path: lock_file.clone(),
+    };
 
     // Start download
     let client = reqwest::Client::new();

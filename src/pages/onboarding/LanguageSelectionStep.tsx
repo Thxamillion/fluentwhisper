@@ -9,18 +9,13 @@ interface LanguageSelectionStepProps {
   onContinue: () => void
 }
 
+// Only show languages with available language packs
 const LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },
   { code: 'de', name: 'German' },
   { code: 'it', name: 'Italian' },
-  { code: 'pt', name: 'Portuguese' },
-  { code: 'zh', name: 'Chinese' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'ar', name: 'Arabic' },
-  { code: 'ru', name: 'Russian' },
 ]
 
 export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
@@ -38,6 +33,9 @@ export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
             <label className="block text-sm font-medium mb-2">
               What's your native language?
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              We detected {LANGUAGES.find(l => l.code === props.primaryLanguage)?.name || 'your language'}. You can change this if needed.
+            </p>
             <select
               value={props.primaryLanguage}
               onChange={(e) => props.onPrimaryLanguageChange(e.target.value)}

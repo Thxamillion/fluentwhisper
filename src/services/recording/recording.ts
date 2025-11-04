@@ -39,6 +39,14 @@ export async function createSession(
   sourceText?: string
 ): Promise<ServiceResult<string>> {
   try {
+    console.log('[createSession] Calling create_recording_session with:', {
+      language,
+      primaryLanguage,
+      sessionType: sessionType || null,
+      textLibraryId: textLibraryId || null,
+      sourceText: sourceText || null,
+    });
+
     const sessionId = await invoke<string>('create_recording_session', {
       language,
       primaryLanguage,
@@ -46,12 +54,16 @@ export async function createSession(
       textLibraryId: textLibraryId || null,
       sourceText: sourceText || null,
     });
+
+    console.log('[createSession] Success, session ID:', sessionId);
     return { success: true, data: sessionId };
   } catch (error) {
-    console.error('Failed to create session:', error);
+    console.error('[createSession] Failed:', error);
+    console.error('[createSession] Error type:', typeof error);
+    console.error('[createSession] Error keys:', error ? Object.keys(error) : 'null');
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }

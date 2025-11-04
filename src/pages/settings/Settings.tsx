@@ -4,10 +4,19 @@ import { Card } from '@/components/ui/card';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
+import { useAutoDownload } from '@/hooks/language-packs';
 
 export function Settings() {
   const { settings, updateSetting } = useSettingsStore();
   const [showSaved, setShowSaved] = useState(false);
+
+  // Auto-download language packs when languages change
+  // Progress shown in global download toast
+  useAutoDownload({
+    primaryLanguage: settings.primaryLanguage,
+    targetLanguage: settings.targetLanguage,
+    enabled: true,
+  });
 
   // Show "Saved" indicator when settings change
   useEffect(() => {
@@ -16,11 +25,13 @@ export function Settings() {
     return () => clearTimeout(timer);
   }, [settings]);
 
+  // Only languages with available language packs
   const languageOptions = [
     { code: 'en', label: 'English' },
     { code: 'es', label: 'Spanish' },
     { code: 'fr', label: 'French' },
     { code: 'de', label: 'German' },
+    { code: 'it', label: 'Italian' },
   ];
 
   return (

@@ -1,0 +1,80 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-04",
+
+  "languages": {
+    "en": {
+      "lemmas_url": "bundled",
+      "bundled": true
+    },
+    "es": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/es-lemmas.db",
+      "bundled": false
+    },
+    "fr": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/fr-lemmas.db",
+      "bundled": false
+    },
+    "de": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/de-lemmas.db",
+      "bundled": false
+    },
+    "it": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/it-lemmas.db",
+      "bundled": false
+    }
+  },
+
+  "translations": [
+    {
+      "from_lang": "es",
+      "to_lang": "en",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/es-en.db"
+    },
+    {
+      "from_lang": "en",
+      "to_lang": "fr",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/en-fr.db"
+    },
+    {
+      "from_lang": "en",
+      "to_lang": "de",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/en-de.db"
+    },
+    {
+      "from_lang": "en",
+      "to_lang": "it",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/en-it.db"
+    },
+    {
+      "from_lang": "es",
+      "to_lang": "fr",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/es-fr.db"
+    },
+    {
+      "from_lang": "es",
+      "to_lang": "de",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/es-de.db"
+    },
+    {
+      "from_lang": "es",
+      "to_lang": "it",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/es-it.db"
+    },
+    {
+      "from_lang": "fr",
+      "to_lang": "de",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/fr-de.db"
+    },
+    {
+      "from_lang": "fr",
+      "to_lang": "it",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/fr-it.db"
+    },
+    {
+      "from_lang": "de",
+      "to_lang": "it",
+      "url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/de-it.db"
+    }
+  ]
+}

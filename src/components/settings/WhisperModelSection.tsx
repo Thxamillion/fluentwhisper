@@ -5,7 +5,6 @@
 import { Download, Check, Trash2, Loader2 } from 'lucide-react';
 import {
   useAvailableModels,
-  useDefaultModelInstalled,
   useDownloadModel,
   useDeleteModel,
   useInstalledModels,
@@ -14,8 +13,7 @@ import { useSubscription } from '@/hooks/subscription';
 
 export function WhisperModelSection() {
   const { data: availableModels, isLoading: loadingAvailable } = useAvailableModels();
-  const { data: isDefaultInstalled, isLoading: loadingInstalled } = useDefaultModelInstalled();
-  const { data: installedModels } = useInstalledModels();
+  const { data: installedModels, isLoading: loadingInstalled } = useInstalledModels();
   const { data: subscription } = useSubscription();
   const downloadModel = useDownloadModel();
   const deleteModel = useDeleteModel();
@@ -47,7 +45,7 @@ export function WhisperModelSection() {
     );
   }
 
-  const _defaultModel = availableModels?.find((m) => m.name === 'base');
+  const hasAnyModelInstalled = installedModels && installedModels.length > 0;
   const isDownloading = downloadModel.isPending;
   const progress = downloadModel.progress;
 
@@ -56,13 +54,13 @@ export function WhisperModelSection() {
       <h2 className="text-xl font-semibold mb-4">Whisper Model</h2>
 
       {/* Status Banner */}
-      {isDefaultInstalled ? (
+      {hasAnyModelInstalled ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 flex items-start gap-3">
           <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-medium text-green-900">Model Installed</h3>
             <p className="text-sm text-green-700">
-              The Whisper model is installed and ready for transcription.
+              You have {installedModels?.length} Whisper model{installedModels?.length !== 1 ? 's' : ''} installed and ready for transcription.
             </p>
           </div>
         </div>

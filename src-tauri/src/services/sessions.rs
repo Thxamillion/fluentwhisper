@@ -65,7 +65,7 @@ pub async fn create_session(
     let session_id = Uuid::new_v4().to_string();
     let now = Utc::now().timestamp();
 
-    sqlx::query(
+    let result = sqlx::query(
         r#"
         INSERT INTO sessions (
             id, language, primary_language, started_at, created_at, updated_at, session_type, text_library_id, source_text
@@ -82,8 +82,12 @@ pub async fn create_session(
     .bind(text_library_id)
     .bind(source_text)
     .execute(pool)
-    .await
-    .context("Failed to create session")?;
+    .await;
+
+    if let Err(e) = result {
+        eprintln!("[create_session] SQL error: {:?}", e);
+        return Err(anyhow::anyhow!("Failed to create session: {}", e));
+    }
 
     Ok(session_id)
 }
