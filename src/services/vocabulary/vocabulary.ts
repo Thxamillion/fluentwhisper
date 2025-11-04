@@ -91,12 +91,14 @@ export async function getVocabStats(
  */
 export async function getRecentVocab(
   language: LangCode,
+  primaryLanguage: LangCode,
   days: number = 7,
   limit: number = 6
 ): Promise<ServiceResult<VocabWordWithTranslation[]>> {
   try {
     const vocab = await invoke<VocabWordWithTranslation[]>('get_recent_vocab', {
       language,
+      primaryLanguage,
       days,
       limit,
     });

@@ -21,8 +21,15 @@ export interface RecordingState {
   startTime: number | null;
 }
 
+export interface TranscriptSegment {
+  text: string;
+  startTime: number;  // seconds
+  endTime: number;    // seconds
+}
+
 export interface TranscriptionResult {
   text: string;
+  segments: TranscriptSegment[];
   sessionId: string;
   audioPath: string;
   durationSeconds: number;

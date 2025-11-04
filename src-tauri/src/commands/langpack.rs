@@ -1,3 +1,4 @@
+use crate::db::user::open_user_db;
 use crate::services::{lemmatization, translation};
 
 /// Tauri command: Get lemma (base form) for a word
@@ -43,6 +44,7 @@ pub async fn lemmatize_batch(words: Vec<String>, lang: String) -> Result<Vec<(St
 /// Tauri command: Translate a batch of lemmas
 ///
 /// More efficient for processing multiple words.
+/// Checks custom user translations first, then falls back to official translation database.
 ///
 /// Called from TypeScript:
 /// `invoke('translate_batch', { lemmas: ['estar', 'correr'], fromLang: 'es', toLang: 'en' })`
@@ -50,11 +52,17 @@ pub async fn lemmatize_batch(words: Vec<String>, lang: String) -> Result<Vec<(St
 /// Returns: Array of [lemma, translation | null] tuples
 #[tauri::command]
 pub async fn translate_batch(
+    app_handle: tauri::AppHandle,
     lemmas: Vec<String>,
     from_lang: String,
     to_lang: String,
 ) -> Result<Vec<(String, Option<String>)>, String> {
-    translation::translate_batch(&lemmas, &from_lang, &to_lang)
+    // Open user database to check for custom translations
+    let user_pool = open_user_db(&app_handle)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    translation::translate_batch(&lemmas, &from_lang, &to_lang, Some(&user_pool))
         .await
         .map_err(|e| e.to_string())
 }
@@ -62,6 +70,7 @@ pub async fn translate_batch(
 /// Tauri command: Full pipeline - lemmatize + translate words
 ///
 /// Convenience command that does both steps at once.
+/// Checks custom user translations first, then falls back to official translation database.
 ///
 /// Called from TypeScript:
 /// `invoke('process_words', { words: ['estoy', 'corriendo'], lang: 'es', targetLang: 'en' })`
@@ -69,6 +78,7 @@ pub async fn translate_batch(
 /// Returns: Array of { word, lemma, translation } objects
 #[tauri::command]
 pub async fn process_words(
+    app_handle: tauri::AppHandle,
     words: Vec<String>,
     lang: String,
     target_lang: String,
@@ -81,12 +91,17 @@ pub async fn process_words(
     // Step 2: Extract unique lemmas for translation
     let lemmas: Vec<String> = lemma_results.iter().map(|(_, lemma)| lemma.clone()).collect();
 
-    // Step 3: Translate lemmas
-    let translation_results = translation::translate_batch(&lemmas, &lang, &target_lang)
+    // Step 3: Open user database to check for custom translations
+    let user_pool = open_user_db(&app_handle)
         .await
         .map_err(|e| e.to_string())?;
 
-    // Step 4: Combine results
+    // Step 4: Translate lemmas (checks custom translations first)
+    let translation_results = translation::translate_batch(&lemmas, &lang, &target_lang, Some(&user_pool))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Step 5: Combine results
     let mut results = Vec::with_capacity(words.len());
 
     for (i, (word, lemma)) in lemma_results.iter().enumerate() {

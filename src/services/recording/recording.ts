@@ -3,7 +3,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import type { DeviceInfo, RecordingResult, TranscriptionResult } from './types';
+import type { DeviceInfo, RecordingResult, TranscriptionResult, TranscriptSegment } from './types';
 import { CloudTranscriptionService } from '../transcription/cloud-transcription.service';
 import { isCloudModel } from '@/stores/settingsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -33,6 +33,7 @@ export async function getRecordingDevices(): Promise<ServiceResult<DeviceInfo[]>
  */
 export async function createSession(
   language: string,
+  primaryLanguage: string,
   sessionType?: 'free_speak' | 'read_aloud',
   textLibraryId?: string,
   sourceText?: string
@@ -40,6 +41,7 @@ export async function createSession(
   try {
     const sessionId = await invoke<string>('create_recording_session', {
       language,
+      primaryLanguage,
       sessionType: sessionType || null,
       textLibraryId: textLibraryId || null,
       sourceText: sourceText || null,
@@ -99,7 +101,7 @@ export async function transcribeAudio(
   audioPath: string,
   language?: string,
   modelPath?: string
-): Promise<ServiceResult<string>> {
+): Promise<ServiceResult<{ text: string; segments: TranscriptSegment[] }>> {
   try {
     // Get selected model from settings
     const selectedModel = useSettingsStore.getState().settings.selectedModel;
@@ -128,18 +130,19 @@ export async function transcribeAudio(
 
       console.log(`Cloud transcription completed: ${result.durationSeconds}s, cost: $${result.costUsd.toFixed(4)}`);
 
-      return { success: true, data: result.text };
+      // Cloud transcription doesn't provide segments yet, return empty array
+      return { success: true, data: { text: result.text, segments: [] } };
     } else {
       // Local transcription (existing code)
       console.log('Using local transcription with model:', selectedModel);
 
-      const text = await invoke<string>('transcribe', {
+      const response = await invoke<{ text: string; segments: TranscriptSegment[] }>('transcribe', {
         audioPath,
         language: language || '',
         modelPath: modelPath || null,
       });
 
-      return { success: true, data: text };
+      return { success: true, data: response };
     }
   } catch (error) {
     console.error('Failed to transcribe audio:', error);
@@ -157,6 +160,7 @@ export async function completeSession(
   sessionId: string,
   audioPath: string,
   transcript: string,
+  segments: TranscriptSegment[],
   durationSeconds: number,
   language: string,
   sessionType?: 'free_speak' | 'read_aloud',
@@ -169,6 +173,7 @@ export async function completeSession(
         sessionId,
         audioPath,
         transcript,
+        segments,
         durationSeconds,
         language,
         sessionType: sessionType || null,
@@ -181,6 +186,7 @@ export async function completeSession(
       success: true,
       data: {
         text: transcript,
+        segments,
         sessionId,
         audioPath,
         durationSeconds,

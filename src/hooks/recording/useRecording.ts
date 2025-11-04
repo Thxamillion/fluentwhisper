@@ -43,12 +43,14 @@ export function useRecording() {
     mutationFn: async ({
       deviceName,
       language,
+      primaryLanguage,
       sessionType,
       textLibraryId,
       sourceText,
     }: {
       deviceName?: string;
       language: string;
+      primaryLanguage: string;
       sessionType?: 'free_speak' | 'read_aloud';
       textLibraryId?: string;
       sourceText?: string;
@@ -56,6 +58,7 @@ export function useRecording() {
       // First create the session in the database with all metadata
       const sessionResult = await recordingService.createSession(
         language,
+        primaryLanguage,
         sessionType,
         textLibraryId,
         sourceText
@@ -138,6 +141,7 @@ export function useRecording() {
       sessionId,
       audioPath,
       transcript,
+      segments,
       durationSeconds,
       language,
       sessionType,
@@ -147,6 +151,7 @@ export function useRecording() {
       sessionId: string;
       audioPath: string;
       transcript: string;
+      segments: import('../../services/recording/types').TranscriptSegment[];
       durationSeconds: number;
       language: string;
       sessionType?: 'free_speak' | 'read_aloud';
@@ -157,6 +162,7 @@ export function useRecording() {
         sessionId,
         audioPath,
         transcript,
+        segments,
         durationSeconds,
         language,
         sessionType,
@@ -188,6 +194,7 @@ export function useRecording() {
     (
       language: string,
       deviceName?: string,
+      primaryLanguage?: string,
       type: 'free_speak' | 'read_aloud' = 'free_speak',
       libraryId?: string,
       text?: string
@@ -198,6 +205,7 @@ export function useRecording() {
       startMutation.mutate({
         deviceName,
         language,
+        primaryLanguage: primaryLanguage || 'en',
         sessionType: type,
         textLibraryId: libraryId,
         sourceText: text,
@@ -225,6 +233,7 @@ export function useRecording() {
       sessionId: string,
       audioPath: string,
       transcript: string,
+      segments: import('../../services/recording/types').TranscriptSegment[],
       durationSeconds: number,
       language: string
     ) => {
@@ -232,6 +241,7 @@ export function useRecording() {
         sessionId,
         audioPath,
         transcript,
+        segments,
         durationSeconds,
         language,
         sessionType,

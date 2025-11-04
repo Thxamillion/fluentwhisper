@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use fluent_diary::commands::{auth, langpack, models, recording, sessions, stats, text_library, vocabulary};
+use fluent_diary::commands::{auth, cleanup, langpack, models, recording, sessions, stats, text_library, vocabulary};
 use fluent_diary::services::recording::RecorderState;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -67,6 +67,9 @@ fn main() {
             vocabulary::get_vocab_stats,
             vocabulary::clean_vocab_punctuation,
             vocabulary::get_recent_vocab,
+            vocabulary::delete_vocab_word,
+            vocabulary::set_custom_translation,
+            vocabulary::delete_custom_translation,
             recording::get_recording_devices,
             recording::start_recording,
             recording::stop_recording,
@@ -94,6 +97,7 @@ fn main() {
             sessions::get_sessions_by_language_command,
             sessions::get_session_words_command,
             sessions::delete_session_command,
+            cleanup::run_cleanup,
             text_library::create_text_library_item_command,
             text_library::get_text_library_item_command,
             text_library::get_all_text_library_items_command,

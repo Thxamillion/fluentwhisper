@@ -280,11 +280,12 @@ pub async fn clean_punctuation(pool: &SqlitePool) -> Result<i32> {
 }
 
 /// Get recently learned vocabulary with translations
-/// Returns words learned in the last N days, with translations from primary language
+/// Returns words learned in the last N days, with translations to primary language
 pub async fn get_recent_vocab(
     pool: &SqlitePool,
-    app_handle: &tauri::AppHandle,
+    _app_handle: &tauri::AppHandle,
     language: &str,
+    primary_language: &str,
     days: i32,
     limit: i32,
 ) -> Result<Vec<VocabWordWithTranslation>> {
@@ -312,13 +313,17 @@ pub async fn get_recent_vocab(
         let lemma: String = row.get("lemma");
         let forms_json: String = row.get("forms_spoken");
 
-        // Get translation (assume target language is English for now)
-        // In the future, this could be configurable
-        let target_lang = if language == "en" { "es" } else { "en" };
-        let translation = crate::services::translation::get_translation(&lemma, language, target_lang)
-            .await
-            .ok()
-            .flatten();
+        // 1. Check for custom translation first
+        let translation = match get_custom_translation(pool, &lemma, language, primary_language).await {
+            Ok(Some(custom)) => Some(custom),
+            _ => {
+                // 2. Fall back to official translation database
+                crate::services::translation::get_translation(&lemma, language, primary_language)
+                    .await
+                    .ok()
+                    .flatten()
+            }
+        };
 
         words.push(VocabWordWithTranslation {
             id: row.get("id"),
@@ -334,6 +339,105 @@ pub async fn get_recent_vocab(
     }
 
     Ok(words)
+}
+
+/// Custom translation entry for user-edited translations
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomTranslation {
+    pub id: i64,
+    pub lemma: String,
+    pub lang_from: String,
+    pub lang_to: String,
+    pub custom_translation: String,
+    pub notes: Option<String>,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+/// Delete a word from user's vocabulary
+pub async fn delete_word(pool: &SqlitePool, lemma: &str, language: &str) -> Result<()> {
+    sqlx::query("DELETE FROM vocab WHERE lemma = ? AND language = ?")
+        .bind(lemma)
+        .bind(language)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+/// Set a custom translation for a word (creates or updates)
+pub async fn set_custom_translation(
+    pool: &SqlitePool,
+    lemma: &str,
+    lang_from: &str,
+    lang_to: &str,
+    custom_translation: &str,
+    notes: Option<&str>,
+) -> Result<()> {
+    let timestamp = now();
+
+    sqlx::query(
+        r#"
+        INSERT INTO custom_translations
+        (lemma, lang_from, lang_to, custom_translation, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(lemma, lang_from, lang_to)
+        DO UPDATE SET
+            custom_translation = excluded.custom_translation,
+            notes = excluded.notes,
+            updated_at = excluded.updated_at
+        "#
+    )
+    .bind(lemma)
+    .bind(lang_from)
+    .bind(lang_to)
+    .bind(custom_translation)
+    .bind(notes)
+    .bind(timestamp)
+    .bind(timestamp)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Get custom translation if exists
+pub async fn get_custom_translation(
+    pool: &SqlitePool,
+    lemma: &str,
+    lang_from: &str,
+    lang_to: &str,
+) -> Result<Option<String>> {
+    let result = sqlx::query_scalar(
+        "SELECT custom_translation FROM custom_translations
+         WHERE lemma = ? AND lang_from = ? AND lang_to = ?"
+    )
+    .bind(lemma)
+    .bind(lang_from)
+    .bind(lang_to)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(result)
+}
+
+/// Delete custom translation (reset to default)
+pub async fn delete_custom_translation(
+    pool: &SqlitePool,
+    lemma: &str,
+    lang_from: &str,
+    lang_to: &str,
+) -> Result<()> {
+    sqlx::query(
+        "DELETE FROM custom_translations
+         WHERE lemma = ? AND lang_from = ? AND lang_to = ?"
+    )
+    .bind(lemma)
+    .bind(lang_from)
+    .bind(lang_to)
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
 
 #[cfg(test)]

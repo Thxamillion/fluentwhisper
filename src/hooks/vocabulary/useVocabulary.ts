@@ -45,11 +45,17 @@ export function useVocabStats(language: LangCode, enabled = true) {
 /**
  * Hook to get recently learned vocabulary with translations
  */
-export function useRecentVocab(language: LangCode, days: number = 7, limit: number = 6, enabled = true) {
+export function useRecentVocab(
+  language: LangCode,
+  primaryLanguage: LangCode,
+  days: number = 7,
+  limit: number = 6,
+  enabled = true
+) {
   return useQuery({
-    queryKey: ['recentVocab', language, days, limit],
+    queryKey: ['recentVocab', language, primaryLanguage, days, limit],
     queryFn: async () => {
-      const result = await getRecentVocab(language, days, limit);
+      const result = await getRecentVocab(language, primaryLanguage, days, limit);
       if (!result.success) {
         throw new Error(result.error || 'Failed to get recent vocabulary');
       }

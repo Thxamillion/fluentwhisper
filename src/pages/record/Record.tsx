@@ -8,15 +8,19 @@ import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '@/components/AudioPlayer'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { useSidebar } from '@/contexts/SidebarContext'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 export function Record() {
   const navigate = useNavigate();
   const { isCollapsed } = useSidebar();
+  const { settings, updateSetting } = useSettingsStore();
   const { data: isModelInstalled } = useDefaultModelInstalled();
   const { data: devices, isLoading: devicesLoading } = useRecordingDevices();
   const recording = useRecording();
 
-  const [selectedLanguage, setSelectedLanguage] = useState('es');
+  // Use targetLanguage from settings (the language you're learning/practicing)
+  const selectedLanguage = settings.targetLanguage;
+  const primaryLanguage = settings.primaryLanguage;
   const [selectedDevice, setSelectedDevice] = useState<string | undefined>();
   const [transcript, setTranscript] = useState('');
   const [processingStage, setProcessingStage] = useState<'idle' | 'transcribing' | 'review' | 'saving' | 'complete'>('idle');
@@ -52,7 +56,7 @@ export function Record() {
       setTranscript('');
       setRecordingData(null);
       setProcessingStage('idle');
-      recording.startRecording(selectedLanguage, selectedDevice);
+      recording.startRecording(selectedLanguage, selectedDevice, primaryLanguage);
     }
   };
 
@@ -62,15 +66,18 @@ export function Record() {
     // First transcribe
     setProcessingStage('transcribing');
     try {
-      const transcriptText = await recording.transcribe(recordingData.filePath, selectedLanguage);
-      setTranscript(transcriptText);
+      const transcriptResult = await recording.transcribe(recordingData.filePath, selectedLanguage);
+      setTranscript(transcriptResult.text);
+
+      console.log(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
 
       // Then save
       setProcessingStage('saving');
       await recording.completeSession(
         recording.sessionId,
         recordingData.filePath,
-        transcriptText,
+        transcriptResult.text,
+        transcriptResult.segments,
         recordingData.durationSeconds,
         selectedLanguage
       );

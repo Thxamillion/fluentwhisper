@@ -1,13 +1,27 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useUserVocab } from '@/hooks/vocabulary';
-import { Loader2, Search, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { LangCode } from '@/services/vocabulary/types';
+import { Loader2, Search, BookOpen, ChevronLeft, ChevronRight, MoreVertical, Trash2, Edit } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSettingsStore } from '@/stores/settingsStore';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export function Vocabulary() {
-  const [selectedLanguage, setSelectedLanguage] = useState<LangCode>('es');
+  const { settings } = useSettingsStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMastered, setFilterMastered] = useState<'all' | 'mastered' | 'learning'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,7 +29,18 @@ export function Vocabulary() {
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
 
-  const { data: vocab, isLoading } = useUserVocab(selectedLanguage);
+  // Dialog states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedWord, setSelectedWord] = useState<{ lemma: string; language: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Inline editing state
+  const [editingWordId, setEditingWordId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Always show target language (language you're learning)
+  const { data: vocab, isLoading, refetch: refetchVocab } = useUserVocab(settings.targetLanguage as any);
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString('en-US', {
@@ -30,6 +55,7 @@ export function Vocabulary() {
       es: 'Spanish',
       en: 'English',
       fr: 'French',
+      de: 'German',
     };
     return names[code] || code;
   };
@@ -67,11 +93,6 @@ export function Vocabulary() {
     setCurrentPage(1);
   };
 
-  const handleLanguageChange = (lang: LangCode) => {
-    setSelectedLanguage(lang);
-    setCurrentPage(1);
-  };
-
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
@@ -80,6 +101,77 @@ export function Vocabulary() {
   const handleItemsPerPageChange = (items: number) => {
     setItemsPerPage(items);
     setCurrentPage(1);
+  };
+
+  // Delete word handlers
+  const handleDeleteClick = (lemma: string, language: string) => {
+    setSelectedWord({ lemma, language });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedWord) return;
+
+    setIsDeleting(true);
+    try {
+      await invoke('delete_vocab_word', {
+        lemma: selectedWord.lemma,
+        language: selectedWord.language,
+      });
+
+      // Refetch vocabulary to update UI
+      refetchVocab();
+
+      // Close dialog
+      setDeleteDialogOpen(false);
+      setSelectedWord(null);
+    } catch (error) {
+      console.error('Failed to delete word:', error);
+      alert(`Failed to delete word: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Inline edit handlers
+  const handleEditClick = (wordId: number, currentTranslation: string) => {
+    setEditingWordId(wordId);
+    setEditValue(currentTranslation || '');
+  };
+
+  const handleEditSave = async (lemma: string, language: string) => {
+    if (!editValue.trim()) return;
+
+    setIsSaving(true);
+    try {
+      await invoke('set_custom_translation', {
+        lemma,
+        langFrom: language,
+        langTo: settings.primaryLanguage,
+        customTranslation: editValue.trim(),
+        notes: null,
+      });
+
+      // Update local translations state
+      setTranslations((prev) => ({
+        ...prev,
+        [lemma]: editValue.trim(),
+      }));
+
+      // Exit edit mode
+      setEditingWordId(null);
+      setEditValue('');
+    } catch (error) {
+      console.error('Failed to save translation:', error);
+      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingWordId(null);
+    setEditValue('');
   };
 
   // Fetch translations for visible words
@@ -96,11 +188,19 @@ export function Vocabulary() {
       const lemmas = pageWords.map((w) => w.lemma);
 
       try {
+        console.log('[Vocabulary] Fetching translations:', {
+          lemmas,
+          fromLang: settings.targetLanguage,
+          toLang: settings.primaryLanguage,
+        });
+
         const results = await invoke<Array<[string, string | null]>>('translate_batch', {
           lemmas,
-          fromLang: selectedLanguage,
-          toLang: 'en', // Always translate to English for now
+          fromLang: settings.targetLanguage, // From target language (learning)
+          toLang: settings.primaryLanguage,  // To primary language (native)
         });
+
+        console.log('[Vocabulary] Translation results:', results);
 
         const translationMap: Record<string, string> = {};
         results.forEach(([lemma, translation]) => {
@@ -118,24 +218,12 @@ export function Vocabulary() {
     };
 
     fetchTranslations();
-  }, [currentPage, itemsPerPage, filteredVocab, selectedLanguage]);
+  }, [currentPage, itemsPerPage, filteredVocab, settings.targetLanguage, settings.primaryLanguage]);
 
   return (
     <div className="p-8">
       {/* Filters */}
       <div className="flex items-center gap-4 mb-8">
-        {/* Language selector */}
-        <Select value={selectedLanguage} onValueChange={(value) => handleLanguageChange(value as LangCode)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-          </SelectContent>
-        </Select>
-
         {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -187,6 +275,7 @@ export function Vocabulary() {
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Forms Used</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Usage</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">First Seen</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900 w-16">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -205,11 +294,33 @@ export function Vocabulary() {
                     <td className="px-4 py-3 text-gray-700">
                       {loadingTranslations ? (
                         <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                      ) : editingWordId === word.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleEditSave(word.lemma, word.language);
+                              if (e.key === 'Escape') handleEditCancel();
+                            }}
+                            onBlur={() => handleEditSave(word.lemma, word.language)}
+                            className="flex-1 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            autoFocus
+                            disabled={isSaving}
+                          />
+                          {isSaving && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+                        </div>
                       ) : (
-                        translations[word.lemma] || '-'
+                        <button
+                          onClick={() => handleEditClick(word.id, translations[word.lemma] || '')}
+                          className="flex items-center gap-2 hover:text-blue-600 transition-colors group"
+                        >
+                          <span>{translations[word.lemma] || '-'}</span>
+                          <Edit className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
+                    </td>                    <td className="px-4 py-3">
                       {word.forms_spoken.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {word.forms_spoken.map((form, idx) => (
@@ -229,6 +340,26 @@ export function Vocabulary() {
                       <span className="font-medium">{word.usage_count}</span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{formatDate(word.first_seen_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                              <MoreVertical className="w-4 h-4 text-gray-600" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(word.lemma, word.language)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Word
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -318,10 +449,37 @@ export function Vocabulary() {
           <p className="text-gray-600">
             {searchQuery || filterMastered !== 'all'
               ? 'Try adjusting your search or filters'
-              : `Start recording sessions in ${getLanguageName(selectedLanguage)} to build your vocabulary!`}
+              : `Start recording sessions in ${getLanguageName(settings.targetLanguage)} to build your vocabulary!`}
           </p>
         </div>
       )}
+
+      {/* Delete Word Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Word</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedWord?.lemma}" from your vocabulary? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={isDeleting}>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

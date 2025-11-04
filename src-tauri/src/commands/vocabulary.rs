@@ -67,12 +67,59 @@ pub async fn clean_vocab_punctuation(app_handle: tauri::AppHandle, ) -> Result<i
 pub async fn get_recent_vocab(
     app_handle: tauri::AppHandle,
     language: String,
+    primary_language: String,
     days: i32,
     limit: i32,
 ) -> Result<Vec<VocabWordWithTranslation>, String> {
     let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
 
-    vocabulary::get_recent_vocab(&pool, &app_handle, &language, days, limit)
+    vocabulary::get_recent_vocab(&pool, &app_handle, &language, &primary_language, days, limit)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Delete a word from user's vocabulary
+#[tauri::command]
+pub async fn delete_vocab_word(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    language: String,
+) -> Result<(), String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::delete_word(&pool, &lemma, &language)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Set a custom translation for a word
+#[tauri::command]
+pub async fn set_custom_translation(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    lang_from: String,
+    lang_to: String,
+    custom_translation: String,
+    notes: Option<String>,
+) -> Result<(), String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::set_custom_translation(&pool, &lemma, &lang_from, &lang_to, &custom_translation, notes.as_deref())
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Delete a custom translation (reset to default)
+#[tauri::command]
+pub async fn delete_custom_translation(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    lang_from: String,
+    lang_to: String,
+) -> Result<(), String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::delete_custom_translation(&pool, &lemma, &lang_from, &lang_to)
         .await
         .map_err(|e| e.to_string())
 }

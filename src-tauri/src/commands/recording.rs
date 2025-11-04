@@ -22,7 +22,7 @@ unsafe impl Sync for RecorderStateWrapper {}
 
 /// Get list of available recording devices
 #[tauri::command]
-pub async fn get_recording_devices(app_handle: tauri::AppHandle, 
+pub async fn get_recording_devices(_app_handle: tauri::AppHandle,
     recorder: State<'_, RecorderStateWrapper>,
 ) -> Result<Vec<DeviceInfo>, String> {
     let state = recorder.inner().0.lock().map_err(|e| e.to_string())?;
@@ -31,7 +31,7 @@ pub async fn get_recording_devices(app_handle: tauri::AppHandle,
 
 /// Start recording audio
 #[tauri::command]
-pub async fn start_recording(app_handle: tauri::AppHandle, 
+pub async fn start_recording(_app_handle: tauri::AppHandle,
     app: tauri::AppHandle,
     recorder: State<'_, RecorderStateWrapper>,
     device_name: Option<String>,
@@ -58,7 +58,7 @@ pub async fn start_recording(app_handle: tauri::AppHandle,
 
 /// Stop recording and return metadata
 #[tauri::command]
-pub async fn stop_recording(app_handle: tauri::AppHandle, 
+pub async fn stop_recording(_app_handle: tauri::AppHandle,
     recorder: State<'_, RecorderStateWrapper>,
 ) -> Result<RecordingResult, String> {
     let mut state = recorder.inner().0.lock().map_err(|e| e.to_string())?;
@@ -67,18 +67,26 @@ pub async fn stop_recording(app_handle: tauri::AppHandle,
 
 /// Check if currently recording
 #[tauri::command]
-pub async fn is_recording(app_handle: tauri::AppHandle, recorder: State<'_, RecorderStateWrapper>) -> Result<bool, String> {
+pub async fn is_recording(_app_handle: tauri::AppHandle, recorder: State<'_, RecorderStateWrapper>) -> Result<bool, String> {
     let state = recorder.inner().0.lock().map_err(|e| e.to_string())?;
     Ok(state.is_recording())
 }
 
+/// Transcription response with text and segments
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptionResponse {
+    pub text: String,
+    pub segments: Vec<crate::services::transcription::TranscriptSegment>,
+}
+
 /// Transcribe an audio file
 #[tauri::command]
-pub async fn transcribe(app_handle: tauri::AppHandle, 
+pub async fn transcribe(_app_handle: tauri::AppHandle,
     audio_path: String,
     language: String,
     model_path: Option<String>,
-) -> Result<String, String> {
+) -> Result<TranscriptionResponse, String> {
     let audio = Path::new(&audio_path);
 
     // Use default model path if not provided
@@ -112,9 +120,14 @@ pub async fn transcribe(app_handle: tauri::AppHandle,
         Some(language.as_str())
     };
 
-    transcribe_audio_file(audio, &model, language_opt)
+    let result = transcribe_audio_file(audio, &model, language_opt)
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    Ok(TranscriptionResponse {
+        text: result.text,
+        segments: result.segments,
+    })
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -123,6 +136,7 @@ pub struct CompleteSessionRequest {
     pub session_id: String,
     pub audio_path: String,
     pub transcript: String,
+    pub segments: Vec<crate::services::transcription::TranscriptSegment>,
     pub duration_seconds: f32,
     pub language: String,
     pub session_type: Option<String>,
@@ -132,8 +146,9 @@ pub struct CompleteSessionRequest {
 
 /// Create a new recording session
 #[tauri::command]
-pub async fn create_recording_session(app_handle: tauri::AppHandle, 
+pub async fn create_recording_session(app_handle: tauri::AppHandle,
     language: String,
+    primary_language: String,
     session_type: Option<String>,
     text_library_id: Option<String>,
     source_text: Option<String>,
@@ -142,6 +157,7 @@ pub async fn create_recording_session(app_handle: tauri::AppHandle,
     create_session(
         &pool,
         &language,
+        &primary_language,
         session_type.as_deref(),
         text_library_id.as_deref(),
         source_text.as_deref(),
@@ -152,16 +168,21 @@ pub async fn create_recording_session(app_handle: tauri::AppHandle,
 
 /// Complete a recording session with transcript and stats
 #[tauri::command]
-pub async fn complete_recording_session(app_handle: tauri::AppHandle, 
+pub async fn complete_recording_session(app_handle: tauri::AppHandle,
     request: CompleteSessionRequest,
 ) -> Result<SessionStats, String> {
     let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    // Serialize segments to JSON
+    let segments_json = serde_json::to_string(&request.segments)
+        .map_err(|e| format!("Failed to serialize segments: {}", e))?;
 
     complete_session(
         &pool,
         &request.session_id,
         &request.audio_path,
         &request.transcript,
+        &segments_json,
         request.duration_seconds,
         &request.language,
         request.session_type.as_deref(),
