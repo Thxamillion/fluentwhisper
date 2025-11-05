@@ -2,7 +2,7 @@
  * Whisper Model Download Section for Settings
  */
 
-import { Download, Check, Trash2, Loader2 } from 'lucide-react';
+import { Download, Check, Trash2, Loader2, Cpu, AlertTriangle } from 'lucide-react';
 import {
   useAvailableModels,
   useDownloadModel,
@@ -10,10 +10,12 @@ import {
   useInstalledModels,
 } from '../../hooks/models';
 import { useSubscription } from '@/hooks/subscription';
+import { useSystemSpecs } from '@/hooks/system';
 
 export function WhisperModelSection() {
   const { data: availableModels, isLoading: loadingAvailable } = useAvailableModels();
   const { data: installedModels, isLoading: loadingInstalled } = useInstalledModels();
+  const { data: systemSpecs, isLoading: loadingSpecs } = useSystemSpecs();
   const { data: subscription } = useSubscription();
   const downloadModel = useDownloadModel();
   const deleteModel = useDeleteModel();
@@ -34,7 +36,7 @@ export function WhisperModelSection() {
     }
   };
 
-  if (loadingAvailable || loadingInstalled) {
+  if (loadingAvailable || loadingInstalled || loadingSpecs) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm border">
         <h2 className="text-xl font-semibold mb-4">Whisper Model</h2>
@@ -48,10 +50,42 @@ export function WhisperModelSection() {
   const hasAnyModelInstalled = installedModels && installedModels.length > 0;
   const isDownloading = downloadModel.isPending;
   const progress = downloadModel.progress;
+  const recommendedModel = systemSpecs?.recommended_model;
+
+  // Helper to check if model might be slow on this system
+  const isModelTooLarge = (modelName: string): boolean => {
+    if (!systemSpecs) return false;
+
+    const ram = systemSpecs.total_memory_gb;
+
+    // Warn if model requires more RAM than available
+    if (modelName === 'large' || modelName === 'large-v2' || modelName === 'large-v3') {
+      return ram < 8;
+    }
+    if (modelName === 'medium') {
+      return ram < 4;
+    }
+    return false;
+  };
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border">
       <h2 className="text-xl font-semibold mb-4">Whisper Model</h2>
+
+      {/* System Specs Info */}
+      {systemSpecs && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-start gap-3">
+          <Cpu className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs text-blue-900 font-medium">
+              Your System: {Math.round(systemSpecs.total_memory_gb)}GB RAM, {systemSpecs.cpu_cores} cores
+            </p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              {systemSpecs.cpu_brand}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Status Banner */}
       {hasAnyModelInstalled ? (
@@ -81,6 +115,8 @@ export function WhisperModelSection() {
         {availableModels?.map((model) => {
           const isInstalled = installedModels?.some((m) => m.name === model.name);
           const isCurrentlyDownloading = isDownloading && downloadModel.variables === model.name;
+          const isRecommended = model.name === recommendedModel;
+          const isTooLarge = isModelTooLarge(model.name);
 
           return (
             <div
@@ -89,7 +125,7 @@ export function WhisperModelSection() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h3 className="font-medium">{model.displayName}</h3>
                     {isInstalled && (
                       <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
@@ -101,9 +137,15 @@ export function WhisperModelSection() {
                         🔒 Premium
                       </span>
                     )}
-                    {model.name === 'base' && (
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        Recommended
+                    {isRecommended && (
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center gap-1">
+                        ✨ Recommended for your system
+                      </span>
+                    )}
+                    {isTooLarge && (
+                      <span className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded-full flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        May be slow
                       </span>
                     )}
                   </div>
@@ -170,9 +212,9 @@ export function WhisperModelSection() {
       {/* Help Text */}
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
         <p className="text-xs text-gray-600">
-          <strong>Tip:</strong> The Base model is recommended for most users. It provides good
-          accuracy while maintaining fast processing speeds. Models are downloaded once and stored
-          locally.
+          <strong>Tip:</strong> Models are recommended based on your system specs. The recommended
+          model balances accuracy and speed for your hardware. All models are downloaded once and
+          stored locally for offline use.
         </p>
       </div>
     </div>

@@ -8,5 +8,6 @@ pub mod models;
 pub mod recording;
 pub mod sessions;
 pub mod stats;
+pub mod system;
 pub mod text_library;
 pub mod vocabulary;
