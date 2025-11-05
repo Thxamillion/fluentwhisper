@@ -9,12 +9,12 @@ import { listen } from '@tauri-apps/api/event';
 import { useDownloadStore } from '@/stores/downloadStore';
 
 interface LanguagePackProgressEvent {
-  file_type: string;
-  language_pair: string;
-  downloaded_bytes: number;
-  total_bytes: number;
+  fileType: string;
+  languagePair: string;
+  downloadedBytes: number;
+  totalBytes: number;
   percentage: number;
-  speed_mbps: number;
+  speedMbps: number;
 }
 
 interface ModelProgressEvent {
@@ -43,10 +43,10 @@ function getLanguageName(code: string): string {
 }
 
 function formatLanguagePackName(event: LanguagePackProgressEvent): string {
-  if (event.file_type === 'lemmas') {
-    return `${getLanguageName(event.language_pair)} lemmas`;
+  if (event.fileType === 'lemmas') {
+    return `${getLanguageName(event.languagePair)} lemmas`;
   } else {
-    const [from, to] = event.language_pair.split('-');
+    const [from, to] = event.languagePair.split('-');
     return `${getLanguageName(from)}-${getLanguageName(to)} translations`;
   }
 }
@@ -59,12 +59,12 @@ export function GlobalDownloadToast() {
     const unlistenPromise = listen<LanguagePackProgressEvent>('download_progress', (event) => {
       const name = formatLanguagePackName(event.payload);
       setLanguagePackProgress({
-        downloaded_bytes: event.payload.downloaded_bytes,
-        total_bytes: event.payload.total_bytes,
+        downloadedBytes: event.payload.downloadedBytes,
+        totalBytes: event.payload.totalBytes,
         percentage: event.payload.percentage,
-        speed_mbps: event.payload.speed_mbps,
-        file_type: event.payload.file_type,
-        language_pair: event.payload.language_pair,
+        speedMbps: event.payload.speedMbps,
+        fileType: event.payload.fileType,
+        languagePair: event.payload.languagePair,
       }, name);
     });
 
@@ -77,10 +77,10 @@ export function GlobalDownloadToast() {
   useEffect(() => {
     const unlistenPromise = listen<ModelProgressEvent>('model-download-progress', (event) => {
       // Extract model name from current download or use a default
-      const modelName = activeDownload?.progress.model_name || 'model';
+      const modelName = activeDownload?.progress.modelName || 'model';
       setModelProgress({
-        downloaded_bytes: event.payload.downloadedBytes,
-        total_bytes: event.payload.totalBytes,
+        downloadedBytes: event.payload.downloadedBytes,
+        totalBytes: event.payload.totalBytes,
         percentage: event.payload.percentage,
       }, modelName);
     });
@@ -158,11 +158,11 @@ export function GlobalDownloadToast() {
                 <div className="flex items-center justify-between text-xs text-gray-500 font-mono">
                   <span>{Math.round(progress)}%</span>
                   <span>
-                    {formatBytes(activeDownload.progress.downloaded_bytes)} / {formatBytes(activeDownload.progress.total_bytes)}
+                    {formatBytes(activeDownload.progress.downloadedBytes)} / {formatBytes(activeDownload.progress.totalBytes)}
                   </span>
-                  {activeDownload.progress.speed_mbps && activeDownload.progress.speed_mbps > 0 && !isComplete && (
+                  {activeDownload.progress.speedMbps && activeDownload.progress.speedMbps > 0 && !isComplete && (
                     <span className="text-blue-600">
-                      {activeDownload.progress.speed_mbps.toFixed(1)} MB/s
+                      {activeDownload.progress.speedMbps.toFixed(1)} MB/s
                     </span>
                   )}
                 </div>

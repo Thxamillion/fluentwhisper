@@ -9,17 +9,17 @@ export type DownloadType = 'language-pack' | 'whisper-model';
 
 export interface DownloadProgress {
   // Common fields for both types
-  downloaded_bytes: number;
-  total_bytes: number;
+  downloadedBytes: number;
+  totalBytes: number;
   percentage: number;
-  speed_mbps?: number;
+  speedMbps?: number;
 
   // Language pack specific
-  file_type?: string;        // "lemmas" or "translations"
-  language_pair?: string;    // "es" or "es-en"
+  fileType?: string;        // "lemmas" or "translations"
+  languagePair?: string;    // "es" or "es-en"
 
   // Model specific
-  model_name?: string;       // "base", "small", etc.
+  modelName?: string;       // "base", "small", etc.
 }
 
 export interface ActiveDownload {
@@ -62,7 +62,7 @@ export const useDownloadStore = create<DownloadState>((set) => ({
     set({
       activeDownload: {
         type: 'whisper-model',
-        progress: { ...progress, model_name: modelName },
+        progress: { ...progress, modelName: modelName },
         name: `Whisper ${modelName.charAt(0).toUpperCase() + modelName.slice(1)} Model`
       },
       isDownloading: true,

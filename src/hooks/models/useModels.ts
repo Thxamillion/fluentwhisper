@@ -86,8 +86,8 @@ export function useDownloadModel() {
       // Model name comes from the mutation state
       if (currentModelName) {
         setModelProgress({
-          downloaded_bytes: event.payload.downloadedBytes,
-          total_bytes: event.payload.totalBytes,
+          downloadedBytes: event.payload.downloadedBytes,
+          totalBytes: event.payload.totalBytes,
           percentage: event.payload.percentage,
         }, currentModelName);
       }
