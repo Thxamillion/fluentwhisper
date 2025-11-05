@@ -17,6 +17,7 @@ import { Login } from '@/pages/login/Login'
 import { LoginCallback } from '@/pages/login/LoginCallback'
 import { TranslationTest } from '@/pages/translation-test/TranslationTest'
 import { GlobalDownloadToast } from '@/components/GlobalDownloadToast'
+import { ModelSelectionGuard } from '@/components/ModelSelectionGuard'
 import { useSettings } from '@/hooks/settings'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
@@ -134,6 +135,7 @@ function App() {
         {/* Global listeners - always active */}
         <AuthStateListener />
         <CleanupListener />
+        <ModelSelectionGuard />
 
         {/* Global download toast - persists across pages */}
         <GlobalDownloadToast />

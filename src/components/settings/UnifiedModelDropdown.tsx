@@ -86,20 +86,26 @@ export function UnifiedModelDropdown() {
               <option value="">Select a model...</option>
             )}
 
-            <optgroup label="Local Models">
-              {LOCAL_MODELS.map(model => {
-                const isInstalled = installedModels?.some(m => m.name === model.id)
-                const isPremiumLocked = model.premiumRequired && !subscription?.isPremium
-                return (
-                  <option
-                    key={model.id}
-                    value={model.id}
-                    disabled={!isInstalled || isPremiumLocked}
-                  >
-                    {model.premiumRequired && '🔒 '}{model.name} ({model.size}) {isPremiumLocked ? '(Premium only)' : isInstalled ? '✓' : '⬇ Download first'}
-                  </option>
-                )
-              })}
+            <optgroup label="Local Models (Installed)">
+              {LOCAL_MODELS
+                .filter(model => {
+                  // Only show installed models
+                  const isInstalled = installedModels?.some(m => m.name === model.id)
+                  return isInstalled
+                })
+                .map(model => {
+                  const isPremiumLocked = model.premiumRequired && !subscription?.isPremium
+                  return (
+                    <option
+                      key={model.id}
+                      value={model.id}
+                      disabled={isPremiumLocked}
+                    >
+                      {model.premiumRequired && '🔒 '}{model.name} ({model.size}) {isPremiumLocked ? '(Premium only)' : '✓'}
+                    </option>
+                  )
+                })
+              }
             </optgroup>
 
             <optgroup label="Cloud Models (Premium)">

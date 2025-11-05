@@ -1,18 +1,19 @@
 /**
- * First Run Check - Shows banner if Whisper model is not installed
+ * First Run Check - Shows banner if NO Whisper models are installed
  */
 
 import { AlertCircle, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useModelInstalled } from '../hooks/models';
-import { useSettingsStore } from '../stores/settingsStore';
+import { useInstalledModels } from '../hooks/models';
 
 export function FirstRunCheck() {
-  const { settings } = useSettingsStore();
-  const { data: isInstalled, isLoading } = useModelInstalled(settings.selectedModel || 'base');
+  const { data: installedModels, isLoading } = useInstalledModels();
 
-  // Don't show anything while loading, if model is installed, or if no model selected yet
-  if (isLoading || isInstalled || !settings.selectedModel) {
+  // Check if ANY model is installed
+  const hasAnyModel = installedModels && installedModels.length > 0;
+
+  // Don't show banner if loading or if at least one model is installed
+  if (isLoading || hasAnyModel) {
     return null;
   }
 
