@@ -32,7 +32,7 @@ const navigation = [
   { name: 'Library', href: '/library', icon: BookOpen },
   { name: 'History', href: '/history', icon: History },
   { name: 'Vocabulary', href: '/vocabulary', icon: BookText },
-  { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+  { name: 'Progress', href: '/progress', icon: TrendingUp },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Test Langpack', href: '/test', icon: FlaskConical },
 ]

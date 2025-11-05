@@ -5,21 +5,22 @@ import { useAllSessions } from '@/hooks/sessions'
 import { useRecentVocab } from '@/hooks/vocabulary'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { calculateTodayStats, calculateWeekStats, calculateWpmChange, getRecentSessions } from '@/utils/sessionStats'
+import { calculateDailyGoalState } from '@/utils/dailyGoalState'
 import { DailyGoalModal } from '@/components/DailyGoalModal'
 import { StatCard, QuickStartBanner, RecentSessions, NewWords, PracticeCalendar } from '@/components/dashboard'
 
 export function Dashboard() {
   const [goalModalOpen, setGoalModalOpen] = useState(false)
 
-  // Fetch data from backend
-  const { data: overallStats, isLoading: statsLoading } = useOverallStats()
-  const { data: allSessions, isLoading: sessionsLoading } = useAllSessions()
-  const { data: dailySessions, isLoading: calendarLoading } = useDailySessions(undefined, 31)
-  const { data: wpmTrends, isLoading: wpmLoading } = useWpmTrends(undefined, 14)
-
   // Settings
   const { settings, updateSetting } = useSettingsStore()
   const dailyGoalMinutes = settings.dailyGoalMinutes
+
+  // Fetch data from backend
+  const { data: overallStats, isLoading: statsLoading } = useOverallStats(settings.targetLanguage)
+  const { data: allSessions, isLoading: sessionsLoading } = useAllSessions()
+  const { data: dailySessions, isLoading: calendarLoading } = useDailySessions(settings.targetLanguage, 31)
+  const { data: wpmTrends, isLoading: wpmLoading } = useWpmTrends(settings.targetLanguage, 14)
 
   // Get recent vocabulary (last 7 days, limit 12)
   const { data: recentVocab, isLoading: vocabLoading } = useRecentVocab(
@@ -34,6 +35,9 @@ export function Dashboard() {
   const weekStats = allSessions ? calculateWeekStats(allSessions) : { sessions: 0, minutes: 0, newWords: 0 }
   const wpmChange = wpmTrends ? calculateWpmChange(wpmTrends) : 0
   const recentSessions = allSessions ? getRecentSessions(allSessions, 4) : []
+
+  // Calculate daily goal state
+  const dailyGoalState = calculateDailyGoalState(todayStats.minutes, dailyGoalMinutes)
 
   // Loading state
   const isLoading = statsLoading || sessionsLoading
@@ -63,9 +67,13 @@ export function Dashboard() {
             <StatCard
               icon={Clock}
               label="Daily Goal"
-              value={todayStats.sessions}
-              subtitle={`${todayStats.minutes}/${dailyGoalMinutes} min goal`}
+              value={dailyGoalState.displayValue}
+              subtitle={dailyGoalState.subtitle}
+              subtitleClassName={dailyGoalState.subtitleClassName}
               onClick={() => setGoalModalOpen(true)}
+              showProgressRing={true}
+              progress={dailyGoalState.progress}
+              statusIcon={dailyGoalState.statusIcon}
             />
 
             <StatCard

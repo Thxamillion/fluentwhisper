@@ -7,7 +7,7 @@ import { Library } from '@/pages/library/Library'
 import { History } from '@/pages/history/History'
 import { SessionDetail } from '@/pages/session-detail/SessionDetail'
 import { Vocabulary } from '@/pages/vocabulary/Vocabulary'
-import { Analytics } from '@/pages/analytics/Analytics'
+import { Progress } from '@/pages/progress/Progress'
 import { Settings } from '@/pages/settings/Settings'
 import { Import } from '@/pages/import/Import'
 import { Test } from '@/pages/test/Test'
@@ -157,7 +157,7 @@ function App() {
             <Route path="history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="session/:sessionId" element={<ProtectedRoute><SessionDetail /></ProtectedRoute>} />
             <Route path="vocabulary" element={<ProtectedRoute><Vocabulary /></ProtectedRoute>} />
-            <Route path="analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
             <Route path="settings" element={<Settings />} />
             <Route path="import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
             <Route path="test" element={<Test />} />
