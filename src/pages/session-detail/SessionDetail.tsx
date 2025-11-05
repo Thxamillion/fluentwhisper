@@ -4,9 +4,11 @@ import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen,
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useState, useEffect, useRef } from 'react';
+import { toast } from '@/lib/toast';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -25,6 +27,9 @@ export function SessionDetail() {
 
   // Scroll to top button state - show when words are loaded and > 15
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Confirm dialog state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   // Track scroll position
   useEffect(() => {
@@ -75,13 +80,13 @@ export function SessionDetail() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && words) {
+        if (entries[0].isIntersecting && hasMore && words && displayedWords) {
           // Load more words
           const currentLength = displayedWords.length;
           const nextBatch = words.slice(currentLength, currentLength + WORDS_PER_LOAD);
 
           if (nextBatch.length > 0) {
-            setDisplayedWords((prev) => [...prev, ...nextBatch]);
+            setDisplayedWords((prev) => [...(prev ?? []), ...nextBatch]);
             setHasMore(currentLength + nextBatch.length < words.length);
           }
         }
@@ -132,13 +137,18 @@ export function SessionDetail() {
     return names[code] || code;
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this session? This cannot be undone.')) {
-      deleteSession.mutate(sessionId!, {
-        onSuccess: () => {
-          navigate('/history');
-        },
-      });
+  const handleDeleteClick = () => {
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteSession.mutateAsync(sessionId!);
+      toast.success('Session deleted successfully');
+      navigate('/history');
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+      toast.error('Failed to delete session');
     }
   };
 
@@ -198,7 +208,7 @@ export function SessionDetail() {
             <p className="text-gray-600">{getLanguageName(session.language)}</p>
           </div>
           <button
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             disabled={deleteSession.isPending}
             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
             title="Delete session"
@@ -287,7 +297,7 @@ export function SessionDetail() {
             ) : words && words.length > 0 ? (
               <div>
                 <div className="grid grid-cols-3 gap-3">
-                  {displayedWords.map((word) => (
+                  {(displayedWords ?? []).map((word) => (
                     <Card key={word.lemma} className="p-3 hover:bg-gray-50 transition-colors">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <span className="text-base font-medium text-gray-900 truncate">
@@ -399,6 +409,18 @@ export function SessionDetail() {
           <ArrowUp className="w-4 h-4" />
         </Button>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Session"
+        description="Are you sure you want to delete this recording session? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        loading={deleteSession.isPending}
+      />
     </div>
   );
 }

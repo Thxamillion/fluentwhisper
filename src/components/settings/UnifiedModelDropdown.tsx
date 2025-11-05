@@ -3,6 +3,7 @@ import { useSubscription } from '@/hooks/subscription'
 import { useInstalledModels } from '@/hooks/models'
 import { isCloudModel } from '@/stores/settingsStore'
 import { Card } from '@/components/ui/card'
+import { toast } from '@/lib/toast'
 
 interface LocalModel {
   id: string
@@ -46,7 +47,7 @@ export function UnifiedModelDropdown() {
   const handleModelChange = (modelId: string) => {
     // Check if cloud model and user is not premium
     if (isCloudModel(modelId) && !subscription?.isPremium) {
-      alert('Cloud models require a Premium subscription')
+      toast.warning('Cloud models require a Premium subscription')
       return
     }
 
@@ -54,14 +55,14 @@ export function UnifiedModelDropdown() {
     if (!isCloudModel(modelId)) {
       const model = LOCAL_MODELS.find(m => m.id === modelId)
       if (model?.premiumRequired && !subscription?.isPremium) {
-        alert('This model requires a Premium subscription')
+        toast.warning('This model requires a Premium subscription')
         return
       }
 
       // Check if it's installed
       const isInstalled = installedModels?.some(m => m.name === modelId)
       if (!isInstalled) {
-        alert('Please download this model first in the Whisper Model section below')
+        toast.info('Please download this model first in the Whisper Model section below')
         return
       }
     }

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ChevronDown, Mic, Square, Loader2, CheckCircle, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRecording, useRecordingDevices } from '@/hooks/recording'
@@ -9,6 +10,7 @@ import { AudioPlayer } from '@/components/AudioPlayer'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { toast } from '@/lib/toast'
 
 export function Record() {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ export function Record() {
     filePath: string;
     durationSeconds: number;
   } | null>(null);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -83,15 +86,20 @@ export function Record() {
       );
 
       // Navigate to session details immediately after saving
+      toast.success('Session saved successfully!');
       navigate(`/session/${recording.sessionId}`);
     } catch (error) {
       console.error('Failed to transcribe/save session:', error);
-      alert('Failed to process session. Please try again.');
+      toast.error('Failed to process session. Please try again.');
       setProcessingStage('review');
     }
   };
 
-  const handleDiscardSession = () => {
+  const handleDiscardClick = () => {
+    setDiscardConfirmOpen(true);
+  };
+
+  const confirmDiscard = () => {
     // TODO: Delete the audio file from disk
     setTranscript('');
     setRecordingData(null);
@@ -206,7 +214,7 @@ export function Record() {
                         size="icon"
                         variant={processingStage === 'review' || recording.isRecording ? 'destructive' : 'default'}
                         className="w-24 h-24 rounded-full shadow-lg"
-                        onClick={processingStage === 'review' ? handleDiscardSession : handleRecordToggle}
+                        onClick={processingStage === 'review' ? handleDiscardClick : handleRecordToggle}
                         disabled={!canInteract || recording.isStarting}
                       >
                         {recording.isStarting ? (
@@ -258,6 +266,17 @@ export function Record() {
         )}
 
       </div>
+
+      <ConfirmDialog
+        open={discardConfirmOpen}
+        onOpenChange={setDiscardConfirmOpen}
+        title="Discard Recording"
+        description="Are you sure you want to discard this recording? This action cannot be undone."
+        confirmText="Discard"
+        cancelText="Keep"
+        variant="danger"
+        onConfirm={confirmDiscard}
+      />
     </div>
   )
 }

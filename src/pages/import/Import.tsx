@@ -17,6 +17,7 @@ import { useCreateTextLibraryItem } from '@/hooks/text-library';
 import type { SourceType, DifficultyLevel } from '@/services/text-library';
 import { open } from '@tauri-apps/plugin-dialog';
 import { readTextFile } from '@tauri-apps/plugin-fs';
+import { toast } from '@/lib/toast';
 
 export function Import() {
   const navigate = useNavigate();
@@ -46,10 +47,11 @@ export function Import() {
       if (selected && typeof selected === 'string') {
         const content = await readTextFile(selected);
         setFormData({ ...formData, content });
+        toast.success('File loaded successfully');
       }
     } catch (error) {
       console.error('Failed to read file:', error);
-      alert('Failed to read file. Please try again.');
+      toast.error('Failed to read file. Please try again.');
     }
   };
 
@@ -57,7 +59,7 @@ export function Import() {
     e.preventDefault();
 
     if (!formData.title.trim() || !formData.content.trim()) {
-      alert('Please provide both a title and content');
+      toast.error('Please provide both a title and content');
       return;
     }
 
@@ -71,11 +73,12 @@ export function Import() {
         difficultyLevel: formData.difficultyLevel || undefined,
       });
 
+      toast.success('Text added to library!');
       navigate('/library');
     } catch (error) {
       console.error('Failed to create text:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to create text: ${errorMessage}\n\nPlease make sure the Tauri app is running and try again.`);
+      toast.error(`Failed to create text: ${errorMessage}`);
     }
   };
 

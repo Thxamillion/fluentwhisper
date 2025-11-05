@@ -9,6 +9,7 @@ import { useUserVocab } from '@/hooks/vocabulary';
 import { HighlightedText } from '@/components/read-aloud/HighlightedText';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { toast } from '@/lib/toast';
 
 export function ReadAloud() {
   const { textLibraryId } = useParams<{ textLibraryId: string }>();
@@ -175,7 +176,7 @@ export function ReadAloud() {
       );
     } catch (error) {
       console.error('Failed to start recording:', error);
-      alert(`Failed to start recording: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check the console for details.`);
+      toast.error(`Failed to start recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -190,7 +191,7 @@ export function ReadAloud() {
       }
     } catch (error) {
       console.error('Failed to stop recording:', error);
-      alert(`Failed to stop recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to stop recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -208,7 +209,7 @@ export function ReadAloud() {
       }
     } catch (error) {
       console.error('Failed to transcribe:', error);
-      alert(`Failed to transcribe: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to transcribe: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -229,7 +230,7 @@ export function ReadAloud() {
       navigate(`/session/${sessionId}`);
     } catch (error) {
       console.error('Failed to save session:', error);
-      alert(`Failed to save session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to save session: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

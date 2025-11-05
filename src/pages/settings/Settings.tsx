@@ -1,5 +1,6 @@
 import { WhisperModelSection } from '../../components/settings/WhisperModelSection';
 import { UnifiedModelDropdown } from '../../components/settings/UnifiedModelDropdown';
+import { LanguagePackSection } from '../../components/settings/LanguagePackSection';
 import { Card } from '@/components/ui/card';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useState, useEffect } from 'react';
@@ -57,6 +58,8 @@ export function Settings() {
         {/* Whisper Model Download Section */}
         <WhisperModelSection />
 
+        {/* Language Pack Status */}
+        <LanguagePackSection />
 
         {/* Language Settings */}
         <Card className="p-6">

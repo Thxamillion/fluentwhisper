@@ -2,6 +2,7 @@
  * Whisper Model Download Section for Settings
  */
 
+import { useState } from 'react';
 import { Download, Check, Trash2, Loader2, Cpu, AlertTriangle } from 'lucide-react';
 import {
   useAvailableModels,
@@ -11,6 +12,8 @@ import {
 } from '../../hooks/models';
 import { useSubscription } from '@/hooks/subscription';
 import { useSystemSpecs } from '@/hooks/system';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from '@/lib/toast';
 
 export function WhisperModelSection() {
   const { data: availableModels, isLoading: loadingAvailable } = useAvailableModels();
@@ -20,19 +23,35 @@ export function WhisperModelSection() {
   const downloadModel = useDownloadModel();
   const deleteModel = useDeleteModel();
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [modelToDelete, setModelToDelete] = useState<string | null>(null);
+
   const handleDownload = (modelName: string, premiumRequired: boolean) => {
     // Check if premium model and user is not premium
     if (premiumRequired && !subscription?.isPremium) {
-      alert('This model requires a Premium subscription. Please upgrade to download large models.');
+      toast.warning('This model requires a Premium subscription. Please upgrade to download large models.');
       return;
     }
 
     downloadModel.mutate(modelName);
   };
 
-  const handleDelete = (modelName: string) => {
-    if (window.confirm(`Are you sure you want to delete the ${modelName} model?`)) {
-      deleteModel.mutate(modelName);
+  const handleDeleteClick = (modelName: string) => {
+    setModelToDelete(modelName);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!modelToDelete) return;
+
+    try {
+      await deleteModel.mutateAsync(modelToDelete);
+      // Success toast is already handled in useDeleteModel hook
+    } catch (error) {
+      // Error toast is already handled in useDeleteModel hook
+      console.error('Failed to delete model:', error);
+    } finally {
+      setModelToDelete(null);
     }
   };
 
@@ -156,7 +175,7 @@ export function WhisperModelSection() {
                 <div className="flex items-center gap-2 ml-4">
                   {isInstalled ? (
                     <button
-                      onClick={() => handleDelete(model.name)}
+                      onClick={() => handleDeleteClick(model.name)}
                       disabled={deleteModel.isPending}
                       className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
@@ -217,6 +236,18 @@ export function WhisperModelSection() {
           stored locally for offline use.
         </p>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Model"
+        description={`Are you sure you want to delete the ${modelToDelete} model? You can re-download it later if needed.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        loading={deleteModel.isPending}
+      />
     </div>
   );
 }

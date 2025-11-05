@@ -5,6 +5,8 @@ import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages, BookOpen,
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from '@/lib/toast';
 
 export function History() {
   const navigate = useNavigate();
@@ -12,6 +14,8 @@ export function History() {
   const [selectedSessionType, setSelectedSessionType] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const { data: sessions, isLoading } = useAllSessions();
   const deleteSession = useDeleteSession();
 
@@ -34,27 +38,28 @@ export function History() {
     });
   };
 
-  const handleDelete = async (e: React.MouseEvent, sessionId: string) => {
+  const handleDelete = (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation();
-    console.log('Delete button clicked for session:', sessionId);
+    setSessionToDelete(sessionId);
+    setDeleteConfirmOpen(true);
+  };
 
-    // TEMPORARY: Bypassing confirmation because window.confirm() doesn't work in Tauri
-    // TODO: Implement a proper React confirmation dialog component
-    console.log('Proceeding with delete (confirmation disabled for testing)');
+  const confirmDelete = async () => {
+    if (!sessionToDelete) return;
 
     try {
-      console.log('Calling deleteSession.mutateAsync');
-      await deleteSession.mutateAsync(sessionId);
-      console.log('Session deleted successfully');
+      await deleteSession.mutateAsync(sessionToDelete);
 
       // Reset to page 1 after delete to avoid pagination issues
       if (paginatedSessions.length === 1 && currentPage > 1) {
-        console.log('Last item on page deleted, going to previous page');
         setCurrentPage(currentPage - 1);
       }
+      toast.success('Session deleted successfully');
     } catch (error) {
       console.error('Failed to delete session:', error);
-      alert(`Failed to delete session: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again.`);
+      toast.error('Failed to delete session');
+    } finally {
+      setSessionToDelete(null);
     }
   };
 
@@ -319,6 +324,18 @@ export function History() {
           </p>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Session"
+        description="Are you sure you want to delete this recording session? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        loading={deleteSession.isPending}
+      />
     </div>
   );
 }

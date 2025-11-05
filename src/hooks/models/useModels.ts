@@ -8,6 +8,7 @@ import { listen } from '@tauri-apps/api/event';
 import * as modelService from '../../services/models';
 import type { DownloadProgress } from '../../services/models';
 import { useDownloadStore } from '@/stores/downloadStore';
+import { toast } from '@/lib/toast';
 
 /**
  * Get list of available Whisper models
@@ -153,11 +154,11 @@ export function useDeleteModel() {
       // Invalidate queries to refresh installed status
       queryClient.invalidateQueries({ queryKey: ['models'] });
       // Show success message
-      alert('Model deleted successfully!');
+      toast.success('Model deleted successfully!');
     },
     onError: (error) => {
       console.error('[useDeleteModel] onError:', error);
-      alert(`Failed to delete model: ${error.message}`);
+      toast.error(`Failed to delete model: ${error.message}`);
     },
   });
 }

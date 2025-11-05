@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useDownloadStore } from '@/stores/downloadStore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,15 +20,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { toast } from '@/lib/toast';
 
 export function Vocabulary() {
   const { settings } = useSettingsStore();
+  const { activeDownload } = useDownloadStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMastered, setFilterMastered] = useState<'all' | 'mastered' | 'learning'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
+  const [translationsUnavailable, setTranslationsUnavailable] = useState(false);
 
   // Dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -125,9 +129,10 @@ export function Vocabulary() {
       // Close dialog
       setDeleteDialogOpen(false);
       setSelectedWord(null);
+      toast.success('Word deleted from vocabulary');
     } catch (error) {
       console.error('Failed to delete word:', error);
-      alert(`Failed to delete word: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to delete word: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsDeleting(false);
     }
@@ -161,9 +166,10 @@ export function Vocabulary() {
       // Exit edit mode
       setEditingWordId(null);
       setEditValue('');
+      toast.success('Translation updated');
     } catch (error) {
       console.error('Failed to save translation:', error);
-      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }
@@ -174,9 +180,26 @@ export function Vocabulary() {
     setEditValue('');
   };
 
+  // Reset translation unavailable flag when languages change
+  useEffect(() => {
+    setTranslationsUnavailable(false);
+  }, [settings.targetLanguage, settings.primaryLanguage]);
+
+  // Watch for language pack download completion and retry translations
+  useEffect(() => {
+    if (activeDownload?.type === 'language-pack' && activeDownload.progress.percentage >= 100) {
+      // Language pack download completed, retry translations
+      console.log('[Vocabulary] Language pack download complete, retrying translations');
+      setTranslationsUnavailable(false);
+    }
+  }, [activeDownload]);
+
   // Fetch translations for visible words
   useEffect(() => {
     if (!filteredVocab || filteredVocab.length === 0) return;
+
+    // Don't retry if translations are unavailable
+    if (translationsUnavailable) return;
 
     const fetchTranslations = async () => {
       setLoadingTranslations(true);
@@ -188,19 +211,11 @@ export function Vocabulary() {
       const lemmas = pageWords.map((w) => w.lemma);
 
       try {
-        console.log('[Vocabulary] Fetching translations:', {
-          lemmas,
-          fromLang: settings.targetLanguage,
-          toLang: settings.primaryLanguage,
-        });
-
         const results = await invoke<Array<[string, string | null]>>('translate_batch', {
           lemmas,
           fromLang: settings.targetLanguage, // From target language (learning)
           toLang: settings.primaryLanguage,  // To primary language (native)
         });
-
-        console.log('[Vocabulary] Translation results:', results);
 
         const translationMap: Record<string, string> = {};
         results.forEach(([lemma, translation]) => {
@@ -210,15 +225,24 @@ export function Vocabulary() {
         });
 
         setTranslations((prev) => ({ ...prev, ...translationMap }));
+        setTranslationsUnavailable(false); // Reset if successful
       } catch (error) {
-        console.error('Failed to fetch translations:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+
+        // Check if it's a "database not found" error
+        if (errorMsg.includes('Translation database not found') || errorMsg.includes('Please download the language pack')) {
+          console.log('[Vocabulary] Translation pack not available yet, will retry when languages change');
+          setTranslationsUnavailable(true);
+        } else {
+          console.error('Failed to fetch translations:', error);
+        }
       } finally {
         setLoadingTranslations(false);
       }
     };
 
     fetchTranslations();
-  }, [currentPage, itemsPerPage, filteredVocab, settings.targetLanguage, settings.primaryLanguage]);
+  }, [currentPage, itemsPerPage, filteredVocab, settings.targetLanguage, settings.primaryLanguage, translationsUnavailable]);
 
   return (
     <div className="p-8">
@@ -294,6 +318,10 @@ export function Vocabulary() {
                     <td className="px-4 py-3 text-gray-700">
                       {loadingTranslations ? (
                         <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                      ) : translationsUnavailable ? (
+                        <span className="text-xs text-gray-400 italic">
+                          {activeDownload?.type === 'language-pack' ? 'Downloading...' : 'Language pack needed'}
+                        </span>
                       ) : editingWordId === word.id ? (
                         <div className="flex items-center gap-2">
                           <input

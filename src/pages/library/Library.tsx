@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Search, Plus, FileText, BookOpen, Clock, Trash2, Play, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTextLibrary, useDeleteTextLibraryItem } from '@/hooks/text-library';
 import type { TextLibraryItem } from '@/services/text-library';
+import { toast } from '@/lib/toast';
 
 // Helper function to format duration
 function formatDuration(seconds: number): string {
@@ -27,6 +29,8 @@ export function Library() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const { data: textItems = [], isLoading } = useTextLibrary();
   const deleteItem = useDeleteTextLibraryItem();
@@ -43,10 +47,23 @@ export function Library() {
   // Get unique languages from items
   const languages = Array.from(new Set(textItems.map((item) => item.language)));
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
+  const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this text?')) {
-      await deleteItem.mutateAsync(id);
+    setItemToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      await deleteItem.mutateAsync(itemToDelete);
+      toast.success('Text deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete text item:', error);
+      toast.error('Failed to delete text');
+    } finally {
+      setItemToDelete(null);
     }
   };
 
@@ -197,6 +214,18 @@ export function Library() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Text"
+        description="Are you sure you want to delete this text? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        loading={deleteItem.isPending}
+      />
     </div>
   );
 }
