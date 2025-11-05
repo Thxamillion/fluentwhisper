@@ -24,7 +24,9 @@ describe('Recording Service - Primary Language', () => {
       const result = await createSession('es', 'en', 'free_speak');
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe('session-123');
+      if (result.success) {
+        expect(result.data).toBe('session-123');
+      }
       expect(mockInvoke).toHaveBeenCalledWith('create_recording_session', {
         language: 'es',
         primaryLanguage: 'en',
@@ -90,7 +92,9 @@ describe('Recording Service - Primary Language', () => {
         const result = await createSession(testCase.target, testCase.primary);
 
         expect(result.success).toBe(true);
-        expect(result.data).toBe(testCase.sessionId);
+        if (result.success) {
+          expect(result.data).toBe(testCase.sessionId);
+        }
         expect(mockInvoke).toHaveBeenCalledWith('create_recording_session', {
           language: testCase.target,
           primaryLanguage: testCase.primary,

@@ -177,7 +177,9 @@ export function useRecording() {
     onSuccess: () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
+      queryClient.invalidateQueries({ queryKey: ['userVocab'] }); // Fixed: was 'vocabulary', should be 'userVocab'
+      queryClient.invalidateQueries({ queryKey: ['vocabStats'] }); // Also invalidate vocab stats
+      queryClient.invalidateQueries({ queryKey: ['recentVocab'] }); // And recent vocab for dashboard
       queryClient.invalidateQueries({ queryKey: ['stats'] });
 
       // Reset state
