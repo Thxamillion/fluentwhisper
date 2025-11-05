@@ -9,7 +9,11 @@
 export function formatRelativeTime(timestamp: number): string {
   const date = new Date(timestamp * 1000)
   const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
+
+  // Compare calendar days by normalizing to midnight
+  const dateAtMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const nowAtMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const diffMs = nowAtMidnight.getTime() - dateAtMidnight.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
   const timeStr = date.toLocaleTimeString('en-US', {

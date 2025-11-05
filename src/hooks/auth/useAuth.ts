@@ -24,14 +24,6 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signInMutation = useMutation({
-    mutationFn: () => DesktopAuthService.signIn(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth'] })
-      queryClient.invalidateQueries({ queryKey: ['subscription'] })
-    }
-  })
-
   const signOutMutation = useMutation({
     mutationFn: () => DesktopAuthService.signOut(),
     onSuccess: () => {
@@ -43,9 +35,7 @@ export function useAuth() {
   return {
     user,
     loading,
-    signIn: signInMutation.mutate,
     signOut: signOutMutation.mutate,
-    isSigningIn: signInMutation.isPending,
     isSigningOut: signOutMutation.isPending
   }
 }

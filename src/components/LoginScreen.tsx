@@ -1,9 +1,21 @@
-import { useAuth } from '@/hooks/auth'
+import { useState } from 'react'
+import { DesktopAuthService } from '@/services/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function LoginScreen() {
-  const { signIn, isSigningIn } = useAuth()
+  const [isSigningIn, setIsSigningIn] = useState(false)
+
+  const handleSignIn = async () => {
+    setIsSigningIn(true)
+    try {
+      await DesktopAuthService.signInWithSocial()
+    } catch (error) {
+      console.error('Sign in failed:', error)
+    } finally {
+      setIsSigningIn(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -16,7 +28,7 @@ export function LoginScreen() {
         </CardHeader>
         <CardContent>
           <Button
-            onClick={() => signIn()}
+            onClick={handleSignIn}
             disabled={isSigningIn}
             className="w-full"
             size="lg"
