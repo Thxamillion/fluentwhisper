@@ -184,10 +184,7 @@ export function Progress() {
           <div className="space-y-6 min-w-0">
             {/* WPM Trends - Full Width */}
             <Card className="p-6 bg-white">
-              <div className="flex items-center gap-2 mb-6">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Speaking Speed Over Time</h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Speaking Speed Over Time</h3>
 
               {wpmTrends && wpmTrends.length > 0 ? (
                 <div className="space-y-4">
@@ -200,7 +197,7 @@ export function Progress() {
                     }}
                     className="h-64"
                   >
-                    <LineChart data={wpmTrends}>
+                    <LineChart data={wpmTrends} margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis
                         dataKey="date"
@@ -211,7 +208,8 @@ export function Progress() {
                       <YAxis
                         className="text-xs"
                         tick={{ fontSize: 11 }}
-                        label={{ value: 'WPM', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }}
+                        width={45}
+                        label={{ value: 'WPM', angle: -90, position: 'insideLeft', offset: 0, style: { fontSize: 11, textAnchor: 'middle' } }}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Line
@@ -252,10 +250,7 @@ export function Progress() {
 
             {/* Vocab Growth - Full Width */}
             <Card className="p-6 bg-white">
-              <div className="flex items-center gap-2 mb-6">
-                <BookOpen className="w-5 h-5 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Vocabulary Growth</h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Vocabulary Growth</h3>
 
               {vocabGrowth && vocabGrowth.length > 0 ? (
                 <div className="space-y-4">
@@ -268,7 +263,7 @@ export function Progress() {
                     }}
                     className="h-64"
                   >
-                    <AreaChart data={vocabGrowth}>
+                    <AreaChart data={vocabGrowth} margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis
                         dataKey="date"
@@ -279,7 +274,8 @@ export function Progress() {
                       <YAxis
                         className="text-xs"
                         tick={{ fontSize: 11 }}
-                        label={{ value: 'Total Words', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }}
+                        width={55}
+                        label={{ value: 'Total Words', angle: -90, position: 'insideLeft', offset: 0, style: { fontSize: 11, textAnchor: 'middle' } }}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Area
@@ -320,10 +316,7 @@ export function Progress() {
 
             {/* Top Practiced Words */}
             <Card className="p-6 bg-white">
-              <div className="flex items-center gap-2 mb-6">
-                <TrendingUp className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Most Practiced Words</h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Most Practiced Words</h3>
 
               {wordsLoading ? (
                 <div className="flex items-center justify-center py-8">
