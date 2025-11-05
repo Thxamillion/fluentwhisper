@@ -115,12 +115,19 @@ pub async fn download_language_pair(
     // Download translations in parallel
     let mut translation_downloads = Vec::new();
     for (from_lang, to_lang) in &required.translations {
-        // Find translation pack in manifest
-        if let Some(pack) = manifest
+        // Find translation pack in manifest (try both directions)
+        let pack = manifest
             .translations
             .iter()
-            .find(|p| p.from_lang == *from_lang && p.to_lang == *to_lang)
-        {
+            .find(|p| {
+                // Try forward direction
+                (p.from_lang == *from_lang && p.to_lang == *to_lang) ||
+                // Try reverse direction
+                (p.from_lang == *to_lang && p.to_lang == *from_lang)
+            });
+
+        if let Some(pack) = pack {
+            println!("[download_language_pair] Found translation pack: {}-{} (URL: {})", from_lang, to_lang, pack.url);
             let app_clone = app_handle.clone();
             let url = pack.url.clone();
             let from = from_lang.clone();
@@ -129,6 +136,8 @@ pub async fn download_language_pair(
             translation_downloads.push(tokio::spawn(async move {
                 language_packs::download_translation(&from, &to, &url, app_clone).await
             }));
+        } else {
+            println!("[download_language_pair] WARNING: No translation pack found for {}-{}", from_lang, to_lang);
         }
     }
 
