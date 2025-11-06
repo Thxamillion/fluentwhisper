@@ -64,20 +64,25 @@ export function Record() {
   };
 
   const handleTranscribeAndSave = async () => {
-    if (!recordingData || !recording.sessionId) return;
+    if (!recordingData) return;
 
-    // First transcribe
-    setProcessingStage('transcribing');
     try {
+      // First create the session in the database
+      setProcessingStage('saving');
+      const newSessionId = await recording.createSession();
+      console.log('Created session:', newSessionId);
+
+      // Then transcribe
+      setProcessingStage('transcribing');
       const transcriptResult = await recording.transcribe(recordingData.filePath, selectedLanguage);
       setTranscript(transcriptResult.text);
 
       console.log(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
 
-      // Then save
+      // Finally complete the session
       setProcessingStage('saving');
       await recording.completeSession(
-        recording.sessionId,
+        newSessionId,
         recordingData.filePath,
         transcriptResult.text,
         transcriptResult.segments,
@@ -87,7 +92,7 @@ export function Record() {
 
       // Navigate to session details immediately after saving
       toast.success('Session saved successfully!');
-      navigate(`/session/${recording.sessionId}`);
+      navigate(`/session/${newSessionId}`);
     } catch (error) {
       console.error('Failed to transcribe/save session:', error);
       toast.error('Failed to process session. Please try again.');
@@ -99,12 +104,27 @@ export function Record() {
     setDiscardConfirmOpen(true);
   };
 
-  const confirmDiscard = () => {
-    // TODO: Delete the audio file from disk
+  const confirmDiscard = async () => {
+    // Delete the audio file from disk
+    if (recordingData?.filePath) {
+      try {
+        const { recordingService } = await import('@/services/recording');
+        await recordingService.deleteAudioFile(recordingData.filePath);
+        console.log('Deleted audio file:', recordingData.filePath);
+      } catch (error) {
+        console.error('Failed to delete audio file:', error);
+        // Continue with reset even if deletion fails
+      }
+    }
+
     setTranscript('');
     setRecordingData(null);
     setProcessingStage('idle');
     setSelectedPrompt(null);
+    setDiscardConfirmOpen(false);
+
+    // Reset recording state (timer, session, etc.)
+    recording.reset();
   };
 
   const isProcessing = processingStage === 'transcribing' || processingStage === 'saving' || recording.isStopping;

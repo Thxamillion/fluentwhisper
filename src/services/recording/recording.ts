@@ -212,3 +212,19 @@ export async function completeSession(
     };
   }
 }
+
+/**
+ * Delete an audio file (used when discarding recordings)
+ */
+export async function deleteAudioFile(audioPath: string): Promise<ServiceResult<void>> {
+  try {
+    await invoke('delete_audio_file', { path: audioPath });
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error('Failed to delete audio file:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

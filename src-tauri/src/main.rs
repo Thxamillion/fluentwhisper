@@ -78,6 +78,7 @@ fn main() {
             recording::create_recording_session,
             recording::complete_recording_session,
             recording::read_audio_file,
+            recording::delete_audio_file,
             models::get_whisper_models,
             models::check_model_installed,
             models::check_default_model_installed,

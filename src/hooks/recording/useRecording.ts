@@ -34,64 +34,62 @@ export function useRecording() {
   const [sessionType, setSessionType] = useState<'free_speak' | 'read_aloud'>('free_speak');
   const [textLibraryId, setTextLibraryId] = useState<string | null>(null);
   const [sourceText, setSourceText] = useState<string | null>(null);
+  const [language, setLanguage] = useState<string>('en');
+  const [primaryLanguage, setPrimaryLanguage] = useState<string>('en');
   const startTimeRef = useRef<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const tempSessionIdRef = useRef<string | null>(null); // Temporary ID for audio file naming
 
   // Start recording mutation
   const startMutation = useMutation({
     mutationFn: async ({
       deviceName,
-      language,
-      primaryLanguage,
-      sessionType,
-      textLibraryId,
-      sourceText,
     }: {
       deviceName?: string;
-      language: string;
-      primaryLanguage: string;
-      sessionType?: 'free_speak' | 'read_aloud';
-      textLibraryId?: string;
-      sourceText?: string;
     }) => {
-      // First create the session in the database with all metadata
-      const sessionResult = await recordingService.createSession(
-        language,
-        primaryLanguage,
-        sessionType,
-        textLibraryId,
-        sourceText
-      );
-      if (!sessionResult.success) {
-        throw new Error(sessionResult.error);
-      }
-      const newSessionId = sessionResult.data;
+      // Generate a temporary ID for the audio file (will be used for naming)
+      const tempId = crypto.randomUUID();
 
-      // Then start recording
-      const result = await recordingService.startRecording(newSessionId, deviceName);
+      // Start recording with temp ID (no DB session created yet)
+      const result = await recordingService.startRecording(tempId, deviceName);
       if (!result.success) {
         throw new Error(result.error);
       }
-      return newSessionId;
+      return tempId;
     },
-    onSuccess: (newSessionId) => {
-      setSessionId(newSessionId);
+    onMutate: async () => {
+      // Optimistically set isRecording immediately for instant UI feedback
       setIsRecording(true);
       startTimeRef.current = Date.now();
       setElapsedTime(0);
 
-      // Start timer
+      // Start timer immediately
       intervalRef.current = setInterval(() => {
         if (startTimeRef.current) {
           setElapsedTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
         }
       }, 1000);
     },
+    onSuccess: async (tempId) => {
+      tempSessionIdRef.current = tempId;
+      // isRecording already set in onMutate
+    },
     onError: (error) => {
       console.error('Failed to start recording:', error);
+
+      // Clean up optimistic state
       setIsRecording(false);
-      setSessionId(null);
+      tempSessionIdRef.current = null;
+
+      // Stop timer
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      startTimeRef.current = null;
+      setElapsedTime(0);
     },
   });
 
@@ -110,11 +108,44 @@ export function useRecording() {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+
       setIsRecording(false);
       startTimeRef.current = null;
     },
     onError: (error) => {
       console.error('Failed to stop recording:', error);
+    },
+  });
+
+  // Create session mutation (called when user decides to save)
+  const createSessionMutation = useMutation({
+    mutationFn: async ({
+      language,
+      primaryLanguage,
+      sessionType,
+      textLibraryId,
+      sourceText,
+    }: {
+      language: string;
+      primaryLanguage: string;
+      sessionType?: 'free_speak' | 'read_aloud';
+      textLibraryId?: string;
+      sourceText?: string;
+    }) => {
+      const sessionResult = await recordingService.createSession(
+        language,
+        primaryLanguage,
+        sessionType,
+        textLibraryId,
+        sourceText
+      );
+      if (!sessionResult.success) {
+        throw new Error(sessionResult.error);
+      }
+      return sessionResult.data;
+    },
+    onSuccess: (newSessionId) => {
+      setSessionId(newSessionId);
     },
   });
 
@@ -191,27 +222,25 @@ export function useRecording() {
     },
   });
 
-  // Start recording function
+  // Start recording function - stores metadata for later session creation
   const startRecording = useCallback(
     (
-      language: string,
+      lang: string,
       deviceName?: string,
-      primaryLanguage?: string,
+      primaryLang?: string,
       type: 'free_speak' | 'read_aloud' = 'free_speak',
       libraryId?: string,
       text?: string
     ) => {
+      // Store metadata for session creation when user saves
+      setLanguage(lang);
+      setPrimaryLanguage(primaryLang || 'en');
       setSessionType(type);
       setTextLibraryId(libraryId || null);
       setSourceText(text || null);
-      startMutation.mutate({
-        deviceName,
-        language,
-        primaryLanguage: primaryLanguage || 'en',
-        sessionType: type,
-        textLibraryId: libraryId,
-        sourceText: text,
-      });
+
+      // Start recording without creating DB session
+      startMutation.mutate({ deviceName });
     },
     [startMutation]
   );
@@ -221,10 +250,21 @@ export function useRecording() {
     return stopMutation.mutateAsync();
   }, [stopMutation]);
 
+  // Create session function (called when user clicks "Transcribe & Save")
+  const createSession = useCallback(() => {
+    return createSessionMutation.mutateAsync({
+      language,
+      primaryLanguage,
+      sessionType,
+      textLibraryId: textLibraryId || undefined,
+      sourceText: sourceText || undefined,
+    });
+  }, [createSessionMutation, language, primaryLanguage, sessionType, textLibraryId, sourceText]);
+
   // Transcribe function
   const transcribe = useCallback(
-    (audioPath: string, language?: string) => {
-      return transcribeMutation.mutateAsync({ audioPath, language });
+    (audioPath: string, lang?: string) => {
+      return transcribeMutation.mutateAsync({ audioPath, language: lang });
     },
     [transcribeMutation]
   );
@@ -254,24 +294,50 @@ export function useRecording() {
     [completeSessionMutation, sessionType, textLibraryId, sourceText]
   );
 
+  // Reset function for discarding recordings
+  const reset = useCallback(() => {
+    setSessionId(null);
+    setSessionType('free_speak');
+    setTextLibraryId(null);
+    setSourceText(null);
+    setLanguage('en');
+    setPrimaryLanguage('en');
+    setElapsedTime(0);
+    startTimeRef.current = null;
+    tempSessionIdRef.current = null;
+
+    // Stop timer if running
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
   return {
     isRecording,
     sessionId,
+    tempSessionId: tempSessionIdRef.current,
     sessionType,
     textLibraryId,
     sourceText,
+    language,
+    primaryLanguage,
     elapsedTime,
     startRecording,
     stopRecording,
+    createSession,
     transcribe,
     completeSession,
+    reset,
     isStarting: startMutation.isPending,
     isStopping: stopMutation.isPending,
+    isCreatingSession: createSessionMutation.isPending,
     isTranscribing: transcribeMutation.isPending,
     isCompleting: completeSessionMutation.isPending,
     error:
       startMutation.error ||
       stopMutation.error ||
+      createSessionMutation.error ||
       transcribeMutation.error ||
       completeSessionMutation.error,
   };

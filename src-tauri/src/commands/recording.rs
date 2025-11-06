@@ -200,3 +200,10 @@ pub async fn read_audio_file(path: String) -> Result<Vec<u8>, String> {
     std::fs::read(&path)
         .map_err(|e| format!("Failed to read audio file: {}", e))
 }
+
+/// Delete an audio file (used when discarding recordings)
+#[tauri::command]
+pub async fn delete_audio_file(path: String) -> Result<(), String> {
+    std::fs::remove_file(&path)
+        .map_err(|e| format!("Failed to delete audio file: {}", e))
+}
