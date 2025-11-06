@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logger } from '@/services/logger'
 
 export function LoginCallback() {
   const navigate = useNavigate()
@@ -9,7 +10,7 @@ export function LoginCallback() {
     // Supabase client automatically detects and processes these
     // AuthStateListener will save credentials automatically
 
-    console.log('[LoginCallback] OAuth callback received, waiting for auth state change...')
+    logger.debug('OAuth callback received, waiting for auth state change...', 'LoginCallback')
 
     // Wait a moment for Supabase to process the callback
     const timer = setTimeout(() => {

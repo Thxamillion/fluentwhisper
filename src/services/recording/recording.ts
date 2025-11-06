@@ -7,6 +7,7 @@ import type { DeviceInfo, RecordingResult, TranscriptionResult, TranscriptSegmen
 import { CloudTranscriptionService } from '../transcription/cloud-transcription.service';
 import { isCloudModel } from '@/stores/settingsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { logger } from '@/services/logger'
 
 export type ServiceResult<T> =
   | { success: true; data: T }
@@ -39,7 +40,7 @@ export async function createSession(
   sourceText?: string
 ): Promise<ServiceResult<string>> {
   try {
-    console.log('[createSession] Calling create_recording_session with:', {
+    logger.debug('Calling create_recording_session', 'createSession', {
       language,
       primaryLanguage,
       sessionType: sessionType || null,
@@ -55,12 +56,12 @@ export async function createSession(
       sourceText: sourceText || null,
     });
 
-    console.log('[createSession] Success, session ID:', sessionId);
+    logger.debug('[createSession] Success, session ID:', sessionId);
     return { success: true, data: sessionId };
   } catch (error) {
-    console.error('[createSession] Failed:', error);
-    console.error('[createSession] Error type:', typeof error);
-    console.error('[createSession] Error keys:', error ? Object.keys(error) : 'null');
+    logger.error('Failed:', 'createSession', error);
+    logger.error('Error type:', 'createSession', typeof error);
+    logger.error('Error keys:', 'createSession', error ? Object.keys(error) : 'null');
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
@@ -128,7 +129,7 @@ export async function transcribeAudio(
     // Route to cloud or local transcription based on model
     if (isCloudModel(selectedModel)) {
       // Cloud transcription
-      console.log('Using cloud transcription with model:', selectedModel);
+      logger.debug('Using cloud transcription with model:', selectedModel);
 
       // Read audio file as blob (using Rust command)
       const audioData = await invoke<number[]>('read_audio_file', { path: audioPath });
@@ -140,13 +141,13 @@ export async function transcribeAudio(
         language: language || undefined,
       });
 
-      console.log(`Cloud transcription completed: ${result.durationSeconds}s, cost: $${result.costUsd.toFixed(4)}`);
+      logger.debug(`Cloud transcription completed: ${result.durationSeconds}s, cost: $${result.costUsd.toFixed(4)}`);
 
       // Cloud transcription doesn't provide segments yet, return empty array
       return { success: true, data: { text: result.text, segments: [] } };
     } else {
       // Local transcription (existing code)
-      console.log('Using local transcription with model:', selectedModel);
+      logger.debug('Using local transcription with model:', selectedModel);
 
       const response = await invoke<{ text: string; segments: TranscriptSegment[] }>('transcribe', {
         audioPath,

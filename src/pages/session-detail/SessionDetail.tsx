@@ -9,6 +9,7 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from '@/lib/toast';
+import { logger } from '@/services/logger'
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -181,8 +182,8 @@ export function SessionDetail() {
 
   // Debug logging
   if (session.audioPath) {
-    console.log('Original audio path:', session.audioPath);
-    console.log('Converted audio src:', audioSrc);
+    logger.debug('Original audio path:', session.audioPath);
+    logger.debug('Converted audio src', undefined, audioSrc);
   }
 
   return (

@@ -8,6 +8,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useQueryClient } from '@tanstack/react-query';
 import type { RequiredPacks } from '@/types/language-packs';
+import { logger } from '@/services/logger'
 
 interface DownloadProgressEvent {
   file_type: string;
@@ -62,7 +63,7 @@ export function useAutoDownload({
     // Check what packs are needed and download if necessary
     const checkAndDownload = async () => {
       try {
-        console.log('[useAutoDownload] Starting check...', { primaryLanguage, targetLanguage });
+        logger.debug('[useAutoDownload] Starting check...', undefined, { primaryLanguage, targetLanguage });
         setError(null);
 
         // Get required packs
@@ -71,17 +72,17 @@ export function useAutoDownload({
           targetLang: targetLanguage,
         });
 
-        console.log('[useAutoDownload] Required packs:', required);
+        logger.debug('Required packs', 'useAutoDownload', required);
         setRequiredPacks(required);
 
         // If nothing is needed, we're done
         if (required.lemmas.length === 0 && required.translations.length === 0) {
-          console.log('[useAutoDownload] No packs needed, skipping download');
+          logger.debug('No packs needed, skipping download', 'useAutoDownload');
           return;
         }
 
         // Start downloading
-        console.log('[useAutoDownload] Starting download...');
+        logger.debug('Starting download...', 'useAutoDownload');
         setIsDownloading(true);
         setProgress(0);
 
@@ -90,7 +91,7 @@ export function useAutoDownload({
           ? manifestUrl
           : window.location.origin + manifestUrl;
 
-        console.log('[useAutoDownload] Manifest URL:', absoluteManifestUrl);
+        logger.debug('[useAutoDownload] Manifest URL:', absoluteManifestUrl);
 
         await invoke('download_language_pair', {
           primaryLang: primaryLanguage,
@@ -99,16 +100,16 @@ export function useAutoDownload({
         });
 
         // Download complete
-        console.log('[useAutoDownload] Download complete!');
+        logger.debug('Download complete!', 'useAutoDownload');
         setIsDownloading(false);
         setProgress(100);
         setDownloadDetails(null);
 
         // Invalidate language pack status query to refetch and update UI
         queryClient.invalidateQueries({ queryKey: ['languagePackStatus'] });
-        console.log('[useAutoDownload] Invalidated language pack status queries');
+        logger.debug('Invalidated language pack status queries', 'useAutoDownload');
       } catch (err) {
-        console.error('[useAutoDownload] Language pack download failed:', err);
+        logger.error('Language pack download failed:', 'useAutoDownload', err);
         setError(err instanceof Error ? err.message : String(err));
         setIsDownloading(false);
       }

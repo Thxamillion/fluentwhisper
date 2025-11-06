@@ -21,6 +21,9 @@ export interface AppSettings {
 
   // Privacy settings
   retentionDays: number | null  // null = never delete, number = days to keep
+
+  // Developer settings
+  debugMode: boolean  // Enable debug logging
 }
 
 // Helper to determine if model is cloud-based
@@ -51,6 +54,9 @@ const defaultSettings: AppSettings = {
 
   // Privacy defaults - never delete by default
   retentionDays: null,
+
+  // Developer defaults - debug enabled in dev mode
+  debugMode: import.meta.env.DEV,
 }
 
 export const useSettingsStore = create<SettingsState>()(

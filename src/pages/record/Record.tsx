@@ -11,6 +11,7 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { toast } from '@/lib/toast'
+import { logger } from '@/services/logger'
 
 export function Record() {
   const navigate = useNavigate();
@@ -70,14 +71,14 @@ export function Record() {
       // First create the session in the database
       setProcessingStage('saving');
       const newSessionId = await recording.createSession();
-      console.log('Created session:', newSessionId);
+      logger.debug('Created session:', newSessionId);
 
       // Then transcribe
       setProcessingStage('transcribing');
       const transcriptResult = await recording.transcribe(recordingData.filePath, selectedLanguage);
       setTranscript(transcriptResult.text);
 
-      console.log(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
+      logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
 
       // Finally complete the session
       setProcessingStage('saving');
@@ -110,7 +111,7 @@ export function Record() {
       try {
         const { recordingService } = await import('@/services/recording');
         await recordingService.deleteAudioFile(recordingData.filePath);
-        console.log('Deleted audio file:', recordingData.filePath);
+        logger.debug('Deleted audio file:', recordingData.filePath);
       } catch (error) {
         console.error('Failed to delete audio file:', error);
         // Continue with reset even if deletion fails
@@ -132,9 +133,9 @@ export function Record() {
   const canInteract = processingStage === 'review' || canRecord;
 
   // Debug logging
-  console.log('processingStage:', processingStage);
-  console.log('isProcessing:', isProcessing);
-  console.log('canInteract:', canInteract);
+  logger.debug('processingStage:', undefined, processingStage);
+  logger.debug('isProcessing:', undefined, isProcessing);
+  logger.debug('canInteract:', undefined, canInteract);
 
   const prompts = [
     'Describe your day in detail',

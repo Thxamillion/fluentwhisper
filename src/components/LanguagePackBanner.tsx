@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguagePackStatus } from '@/hooks/language-packs';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useDownloadStore } from '@/stores/downloadStore';
+import { logger } from '@/services/logger'
 
 export function LanguagePackBanner() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export function LanguagePackBanner() {
     targetLanguage: settings.targetLanguage,
   });
 
-  console.log('[LanguagePackBanner] Render check:', {
+  logger.debug('Render check', 'LanguagePackBanner', {
     isLoading,
     packStatus,
     isMissing: packStatus?.isMissing,
@@ -32,10 +33,10 @@ export function LanguagePackBanner() {
     return null;
   }
 
-  console.log('[LanguagePackBanner] Banner is visible!');
+  logger.debug('Banner is visible!', 'LanguagePackBanner');
 
   const handleGoToSettings = () => {
-    console.log('[LanguagePackBanner] Button clicked - navigating to settings');
+    logger.debug('Button clicked - navigating to settings', 'LanguagePackBanner');
     navigate('/settings');
   };
 

@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from '@/lib/toast';
+import { logger } from '@/services/logger'
 
 export function Vocabulary() {
   const { settings } = useSettingsStore();
@@ -189,7 +190,7 @@ export function Vocabulary() {
   useEffect(() => {
     if (activeDownload?.type === 'language-pack' && activeDownload.progress.percentage >= 100) {
       // Language pack download completed, retry translations
-      console.log('[Vocabulary] Language pack download complete, retrying translations');
+      logger.debug('Language pack download complete, retrying translations', 'Vocabulary');
       setTranslationsUnavailable(false);
     }
   }, [activeDownload]);
@@ -231,7 +232,7 @@ export function Vocabulary() {
 
         // Check if it's a "database not found" error
         if (errorMsg.includes('Translation database not found') || errorMsg.includes('Please download the language pack')) {
-          console.log('[Vocabulary] Translation pack not available yet, will retry when languages change');
+          logger.debug('Translation pack not available yet, will retry when languages change', 'Vocabulary');
           setTranslationsUnavailable(true);
         } else {
           console.error('Failed to fetch translations:', error);

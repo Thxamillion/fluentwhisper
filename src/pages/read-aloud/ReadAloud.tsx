@@ -10,6 +10,7 @@ import { HighlightedText } from '@/components/read-aloud/HighlightedText';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { toast } from '@/lib/toast';
+import { logger } from '@/services/logger'
 
 export function ReadAloud() {
   const { textLibraryId } = useParams<{ textLibraryId: string }>();
@@ -205,7 +206,7 @@ export function ReadAloud() {
         setTranscriptSegments(transcriptResult.segments);
         setShowTranscript(true);
 
-        console.log(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
+        logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
       }
     } catch (error) {
       console.error('Failed to transcribe:', error);

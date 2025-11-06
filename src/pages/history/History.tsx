@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/lib/toast';
+import { logger } from '@/services/logger'
 
 export function History() {
   const navigate = useNavigate();
@@ -90,10 +91,10 @@ export function History() {
   // Adjust current page if it's out of bounds after deletion
   useEffect(() => {
     if (filteredSessions.length > 0 && currentPage > totalPages) {
-      console.log('Current page out of bounds, adjusting to:', totalPages);
+      logger.debug('Current page out of bounds, adjusting to', undefined, totalPages);
       setCurrentPage(totalPages);
     } else if (filteredSessions.length === 0 && currentPage !== 1) {
-      console.log('No sessions, resetting to page 1');
+      logger.debug('No sessions, resetting to page 1');
       setCurrentPage(1);
     }
   }, [filteredSessions.length, currentPage, totalPages]);

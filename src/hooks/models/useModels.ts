@@ -9,6 +9,7 @@ import * as modelService from '../../services/models';
 import type { DownloadProgress } from '../../services/models';
 import { useDownloadStore } from '@/stores/downloadStore';
 import { toast } from '@/lib/toast';
+import { logger } from '@/services/logger'
 
 /**
  * Get list of available Whisper models
@@ -140,24 +141,24 @@ export function useDeleteModel() {
 
   return useMutation({
     mutationFn: async (modelName: string) => {
-      console.log('[useDeleteModel] Attempting to delete model:', modelName);
+      logger.debug('[useDeleteModel] Attempting to delete model:', modelName);
       const result = await modelService.deleteModel(modelName);
-      console.log('[useDeleteModel] Result:', result);
+      logger.debug('Result', 'useDeleteModel', result);
       if (!result.success) {
-        console.error('[useDeleteModel] Delete failed:', result.error);
+        logger.error('Delete failed:', 'useDeleteModel', result.error);
         throw new Error(result.error);
       }
-      console.log('[useDeleteModel] Delete successful');
+      logger.debug('Delete successful', 'useDeleteModel');
     },
     onSuccess: () => {
-      console.log('[useDeleteModel] onSuccess - invalidating queries');
+      logger.debug('onSuccess - invalidating queries', 'useDeleteModel');
       // Invalidate queries to refresh installed status
       queryClient.invalidateQueries({ queryKey: ['models'] });
       // Show success message
       toast.success('Model deleted successfully!');
     },
     onError: (error) => {
-      console.error('[useDeleteModel] onError:', error);
+      logger.error('onError:', 'useDeleteModel', error);
       toast.error(`Failed to delete model: ${error.message}`);
     },
   });

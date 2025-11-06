@@ -4,6 +4,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
+import { logger } from '@/services/logger'
 
 interface CleanupStats {
   deletedCount: number;
@@ -19,10 +20,10 @@ export function useCleanup() {
       return await invoke('run_cleanup', { retentionDays });
     },
     onSuccess: (stats) => {
-      console.log(`[useCleanup] Cleanup complete: deleted ${stats.deletedCount} sessions, ${stats.failedCount} failures`);
+      logger.debug(`Cleanup complete: deleted ${stats.deletedCount} sessions, ${stats.failedCount} failures`, 'useCleanup');
     },
     onError: (error) => {
-      console.error('[useCleanup] Cleanup failed:', error);
+      logger.error('Cleanup failed:', 'useCleanup', error);
     }
   });
 }

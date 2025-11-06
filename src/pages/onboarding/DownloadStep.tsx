@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Download } from 'lucide-react'
 import { useDownloadModel } from '@/hooks/models'
 import { useEffect } from 'react'
+import { logger } from '@/services/logger'
 
 interface DownloadStepProps {
   modelName: string
@@ -30,7 +31,7 @@ export function DownloadStep(props: DownloadStepProps) {
   // If download errors (e.g., already exists), also advance
   useEffect(() => {
     if (downloadModel.isError) {
-      console.log('[DownloadStep] Download error, possibly already exists, advancing...');
+      logger.debug('Download error, possibly already exists, advancing...', 'DownloadStep');
       props.onComplete()
     }
   }, [downloadModel.isError, props.onComplete])

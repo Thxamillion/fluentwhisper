@@ -26,6 +26,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { invoke } from '@tauri-apps/api/core'
+import { logger } from '@/services/logger'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -64,14 +65,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 // Global auth state listener - saves credentials when user signs in
 function AuthStateListener() {
   useEffect(() => {
-    console.log('[Auth] Setting up global auth state listener')
+    logger.debug('Setting up global auth state listener', 'Auth')
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Auth] State changed:', event, session?.user?.email)
+      logger.debug(`State changed: ${event}`, 'Auth', session?.user?.email)
 
       if (event === 'SIGNED_IN' && session) {
-        console.log('[Auth] User signed in, saving credentials to secure storage')
+        logger.info('User signed in, saving credentials', 'Auth')
 
         try {
           await invoke('save_auth_credentials', {
@@ -80,16 +81,16 @@ function AuthStateListener() {
             userId: session.user.id,
             email: session.user.email || ''
           })
-          console.log('[Auth] Credentials saved successfully')
+          logger.debug('Credentials saved successfully', 'Auth')
         } catch (error) {
-          console.error('[Auth] Failed to save credentials:', error)
+          logger.error('Failed to save credentials', 'Auth', error)
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('[Auth] User signed out, clearing credentials')
+        logger.info('User signed out, clearing credentials', 'Auth')
         try {
           await invoke('delete_auth_credentials')
         } catch (error) {
-          console.error('[Auth] Failed to delete credentials:', error)
+          logger.error('Failed to delete credentials', 'Auth', error)
         }
       }
     })
@@ -110,23 +111,34 @@ function CleanupListener() {
     const runCleanup = async () => {
       // Only run if retention period is set (null = never delete)
       if (settings.retentionDays) {
-        console.log(`[Cleanup] Running automatic cleanup with ${settings.retentionDays} day retention`)
+        logger.info(`Running automatic cleanup with ${settings.retentionDays} day retention`, 'Cleanup')
         try {
           const stats = await invoke<{ deletedCount: number; failedCount: number }>('run_cleanup', {
             retentionDays: settings.retentionDays
           })
-          console.log(`[Cleanup] Complete: deleted ${stats.deletedCount} sessions, ${stats.failedCount} failures`)
+          logger.info(`Complete: deleted ${stats.deletedCount} sessions, ${stats.failedCount} failures`, 'Cleanup')
         } catch (error) {
-          console.error('[Cleanup] Failed:', error)
+          logger.error('Failed to run cleanup', 'Cleanup', error)
         }
       } else {
-        console.log('[Cleanup] Retention set to "Never delete", skipping cleanup')
+        logger.debug('Retention set to "Never delete", skipping cleanup', 'Cleanup')
       }
     }
 
     // Run cleanup on mount (app startup)
     runCleanup()
   }, []) // Empty deps - only run once on mount
+
+  return null
+}
+
+// Debug mode listener - syncs debug mode setting with logger
+function DebugModeListener() {
+  const { settings } = useSettingsStore()
+
+  useEffect(() => {
+    logger.setDebugMode(settings.debugMode)
+  }, [settings.debugMode])
 
   return null
 }
@@ -142,6 +154,7 @@ function App() {
         {/* Global listeners - always active */}
         <AuthStateListener />
         <CleanupListener />
+        <DebugModeListener />
         <ModelSelectionGuard />
 
         {/* Global download toast - persists across pages */}

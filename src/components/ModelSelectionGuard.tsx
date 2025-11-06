@@ -7,6 +7,7 @@
 import { useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useInstalledModels } from '@/hooks/models';
+import { logger } from '@/services/logger'
 
 export function ModelSelectionGuard() {
   const { settings, updateSetting } = useSettingsStore();
@@ -25,18 +26,16 @@ export function ModelSelectionGuard() {
     );
 
     if (!isSelectedModelInstalled) {
-      console.log(
-        `[ModelGuard] Selected model "${settings.selectedModel}" not found. Auto-resetting...`
-      );
+      logger.info(`Selected model "${settings.selectedModel}" not found. Auto-resetting...`, 'ModelGuard');
 
       // Selected model was deleted! Reset to first installed model
       if (installedModels.length > 0) {
         const firstModel = installedModels[0].name;
-        console.log(`[ModelGuard] Switching to: ${firstModel}`);
+        logger.debug(`Switching to: ${firstModel}`, 'ModelGuard');
         updateSetting('selectedModel', firstModel);
       } else {
         // No models installed at all
-        console.log('[ModelGuard] No models installed, clearing selection');
+        logger.debug('No models installed, clearing selection', 'ModelGuard');
         updateSetting('selectedModel', '');
       }
     }

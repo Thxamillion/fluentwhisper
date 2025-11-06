@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { supabase } from '@/lib/supabase'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { logger } from '@/services/logger'
 
 const WEB_LOGIN_URL = 'https://fluentdiary.com/login'
 
@@ -10,7 +11,7 @@ export class DesktopAuthService {
    */
   static async signInWithEmail(email: string, password: string): Promise<void> {
     try {
-      console.log('[DesktopAuth] Signing in with email/password')
+      logger.debug('Signing in with email/password', 'DesktopAuth')
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -25,7 +26,7 @@ export class DesktopAuthService {
         throw new Error('No session returned after sign in')
       }
 
-      console.log('[DesktopAuth] Email sign in successful, saving credentials')
+      logger.debug('Email sign in successful, saving credentials', 'DesktopAuth')
 
       // Save credentials in Rust secure storage
       await invoke('save_auth_credentials', {
@@ -35,9 +36,9 @@ export class DesktopAuthService {
         email: data.session.user.email || ''
       })
 
-      console.log('[DesktopAuth] Authentication complete!')
+      logger.debug('Authentication complete!', 'DesktopAuth')
     } catch (error) {
-      console.error('[DesktopAuth] Email auth failed:', error)
+      logger.error('Email auth failed:', 'DesktopAuth', error)
       throw error
     }
   }
@@ -47,7 +48,7 @@ export class DesktopAuthService {
    */
   static async signUpWithEmail(email: string, password: string): Promise<void> {
     try {
-      console.log('[DesktopAuth] Signing up with email/password')
+      logger.debug('Signing up with email/password', 'DesktopAuth')
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -62,7 +63,7 @@ export class DesktopAuthService {
         throw new Error('Sign up succeeded but no session returned (check email for verification)')
       }
 
-      console.log('[DesktopAuth] Email sign up successful, saving credentials')
+      logger.debug('Email sign up successful, saving credentials', 'DesktopAuth')
 
       // Save credentials in Rust secure storage
       await invoke('save_auth_credentials', {
@@ -72,9 +73,9 @@ export class DesktopAuthService {
         email: data.session.user.email || ''
       })
 
-      console.log('[DesktopAuth] Authentication complete!')
+      logger.debug('Authentication complete!', 'DesktopAuth')
     } catch (error) {
-      console.error('[DesktopAuth] Email sign up failed:', error)
+      logger.error('Email sign up failed:', 'DesktopAuth', error)
       throw error
     }
   }
@@ -86,7 +87,7 @@ export class DesktopAuthService {
    */
   static async signInWithSocial(): Promise<void> {
     try {
-      console.log('[DesktopAuth] Opening in-app login window')
+      logger.debug('Opening in-app login window', 'DesktopAuth')
 
       // Create a new webview window for login
       const authWindow = new WebviewWindow('auth-window', {
@@ -98,28 +99,28 @@ export class DesktopAuthService {
         center: true,
       })
 
-      console.log('[DesktopAuth] Auth window created:', authWindow)
+      logger.debug('[DesktopAuth] Auth window created:', undefined, authWindow)
 
       // Wait for window to be ready
       await authWindow.once('tauri://created', () => {
-        console.log('[DesktopAuth] Auth window successfully created and ready')
+        logger.debug('Auth window successfully created and ready', 'DesktopAuth')
       })
 
       await authWindow.once('tauri://error', (e) => {
-        console.error('[DesktopAuth] Auth window creation failed:', e)
+        logger.error('Auth window creation failed:', 'DesktopAuth', e)
       })
 
-      console.log('[DesktopAuth] Waiting for user to sign in...')
+      logger.debug('Waiting for user to sign in...', 'DesktopAuth')
 
       // Listen for when the window closes (user finished signing in or cancelled)
       authWindow.once('tauri://close-requested', () => {
-        console.log('[DesktopAuth] Auth window closed')
+        logger.debug('Auth window closed', 'DesktopAuth')
       })
 
       // The global AuthStateListener in App.tsx will detect auth changes automatically
       // When user signs in on the webview, Supabase auth state changes fire in the main app too
     } catch (error) {
-      console.error('[DesktopAuth] Failed to open auth window:', error)
+      logger.error('Failed to open auth window:', 'DesktopAuth', error)
       throw error
     }
   }

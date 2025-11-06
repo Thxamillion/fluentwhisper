@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { TranslationTooltip } from './TranslationTooltip';
 import { getLemma, getTranslation } from '@/services/langpack';
 import type { VocabWord } from '@/services/vocabulary';
+import { logger } from '@/services/logger'
 
 interface HighlightedTextProps {
   text: string;
@@ -118,7 +119,7 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
         return;
       }
 
-      console.log('Setting tooltip position:', { x, y, word, lemma, translation });
+      logger.debug('Setting tooltip position', undefined, { x, y, word, lemma, translation });
 
       // Use a small delay to ensure state is clean
       setTimeout(() => {

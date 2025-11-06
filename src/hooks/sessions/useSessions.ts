@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sessionsService } from '@/services/sessions';
+import { logger } from '@/services/logger'
 
 /**
  * Hook to get all sessions
@@ -29,11 +30,11 @@ export function useSession(sessionId: string) {
   return useQuery({
     queryKey: ['sessions', 'detail', sessionId],
     queryFn: async () => {
-      console.log('[useSession] Fetching session:', sessionId);
+      logger.debug('[useSession] Fetching session:', sessionId);
       const result = await sessionsService.getSession(sessionId);
-      console.log('[useSession] Result:', result);
+      logger.debug('Result', 'useSession', result);
       if (!result.success) {
-        console.error('[useSession] Error:', result.error);
+        logger.error('Error:', 'useSession', result.error);
         throw new Error(result.error);
       }
       return result.data;
@@ -87,17 +88,17 @@ export function useDeleteSession() {
 
   return useMutation({
     mutationFn: async (sessionId: string) => {
-      console.log('[useDeleteSession] Mutation function called with:', sessionId);
+      logger.debug('[useDeleteSession] Mutation function called with:', sessionId);
       const result = await sessionsService.deleteSession(sessionId);
-      console.log('[useDeleteSession] Result:', result);
+      logger.debug('Result', 'useDeleteSession', result);
       if (!result.success) {
-        console.error('[useDeleteSession] Delete failed:', result.error);
+        logger.error('Delete failed:', 'useDeleteSession', result.error);
         throw new Error(result.error);
       }
       return result;
     },
     onSuccess: () => {
-      console.log('[useDeleteSession] onSuccess callback - invalidating queries');
+      logger.debug('onSuccess callback - invalidating queries', 'useDeleteSession');
       // Invalidate all session queries to refetch
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       // Also invalidate stats since deleting a session affects stats
