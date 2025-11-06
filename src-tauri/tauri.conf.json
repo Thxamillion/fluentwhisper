@@ -37,7 +37,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": [],
+    "icon": [
+      "icons/icon.icns"
+    ],
     "copyright": "",
     "category": "Education",
     "shortDescription": "Privacy-first speech practice app",

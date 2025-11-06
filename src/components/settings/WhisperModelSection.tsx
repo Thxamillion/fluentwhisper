@@ -57,10 +57,10 @@ export function WhisperModelSection() {
 
   if (loadingAvailable || loadingInstalled || loadingSpecs) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
         <h2 className="text-xl font-semibold mb-4">Whisper Model</h2>
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
@@ -88,7 +88,7 @@ export function WhisperModelSection() {
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border">
+    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
       <h2 className="text-xl font-semibold mb-4">Whisper Model</h2>
 
       {/* System Specs Info */}
@@ -140,7 +140,7 @@ export function WhisperModelSection() {
           return (
             <div
               key={model.name}
-              className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -177,7 +177,7 @@ export function WhisperModelSection() {
                     <button
                       onClick={() => handleDeleteClick(model.name)}
                       disabled={deleteModel.isPending}
-                      className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                      className="px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete

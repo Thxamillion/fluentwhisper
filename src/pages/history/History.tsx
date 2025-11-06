@@ -161,8 +161,8 @@ export function History() {
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="flex items-center gap-2">
-                      <Languages className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700">
+                      <Languages className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">
                         {session.language === 'es' ? 'Spanish' : session.language === 'en' ? 'English' : 'French'}
                       </span>
                     </div>
@@ -180,30 +180,30 @@ export function History() {
                       </span>
                     )}
 
-                    <div className="text-sm text-gray-500">{formatDate(session.startedAt)}</div>
+                    <div className="text-sm text-muted-foreground">{formatDate(session.startedAt)}</div>
                   </div>
 
                   {/* Stats */}
                   <div className="flex items-center gap-6 mb-4">
                     {session.duration && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4" />
                         <span>{formatTime(session.duration)}</span>
                       </div>
                     )}
                     {session.wordCount !== null && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MessageSquare className="w-4 h-4" />
                         <span>{session.wordCount} words</span>
                       </div>
                     )}
                     {session.uniqueWordCount !== null && (
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         <span className="font-medium">{session.uniqueWordCount}</span> unique
                       </div>
                     )}
                     {session.wpm !== null && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <TrendingUp className="w-4 h-4" />
                         <span>{Math.round(session.wpm)} WPM</span>
                       </div>
@@ -217,8 +217,8 @@ export function History() {
 
                   {/* Transcript Preview */}
                   {session.transcript && (
-                    <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                      <p className="text-sm text-gray-700 line-clamp-3">{session.transcript}</p>
+                    <div className="bg-muted rounded-lg p-4 mb-3">
+                      <p className="text-sm text-foreground line-clamp-3">{session.transcript}</p>
                     </div>
                   )}
                 </div>
@@ -242,7 +242,7 @@ export function History() {
             <div className="mt-6 flex items-center justify-between">
               {/* Items per page selector */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Show:</span>
+                <span className="text-sm text-muted-foreground">Show:</span>
                 <Select value={String(itemsPerPage)} onValueChange={(value) => handleItemsPerPageChange(Number(value))}>
                   <SelectTrigger className="w-[100px]">
                     <SelectValue />
@@ -254,11 +254,11 @@ export function History() {
                     <SelectItem value="100">100</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-gray-600">per page</span>
+                <span className="text-sm text-muted-foreground">per page</span>
               </div>
 
               {/* Page info */}
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 Showing {Math.min(startIndex + 1, filteredSessions.length)}-{Math.min(endIndex, filteredSessions.length)} of {filteredSessions.length} sessions
               </div>
 
@@ -315,9 +315,9 @@ export function History() {
         </>
       ) : (
         <Card className="p-12 text-center">
-          <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No sessions yet</h3>
-          <p className="text-gray-600 mb-6">
+          <MessageSquare className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No sessions yet</h3>
+          <p className="text-muted-foreground mb-6">
             {selectedLanguage === 'all'
               ? 'Start recording to create your first session!'
               : `No sessions found for ${selectedLanguage === 'es' ? 'Spanish' : selectedLanguage === 'en' ? 'English' : 'French'}. Try switching languages or start recording!`}

@@ -81,7 +81,7 @@ export function UnifiedModelDropdown() {
           <select
             value={settings.selectedModel}
             onChange={(e) => handleModelChange(e.target.value)}
-            className="w-full max-w-md p-3 border border-gray-300 rounded-lg bg-white"
+            className="w-full max-w-md p-3 border border-border rounded-lg bg-input text-foreground"
           >
             {!settings.selectedModel && (
               <option value="">Select a model...</option>
@@ -125,7 +125,7 @@ export function UnifiedModelDropdown() {
 
         {/* Model Info */}
         {settings.selectedModel && (
-          <div className="p-3 bg-gray-50 rounded-lg border">
+          <div className="p-3 bg-muted rounded-lg border border-border">
             {isCloudModel(settings.selectedModel) ? (
               <CloudModelInfo modelId={settings.selectedModel} />
             ) : (

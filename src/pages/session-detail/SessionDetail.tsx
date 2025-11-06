@@ -164,8 +164,8 @@ export function SessionDetail() {
     return (
       <div className="p-8">
         <div className="text-center py-20">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Session not found</h2>
-          <p className="text-gray-600 mb-6">This session may have been deleted or doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Session not found</h2>
+          <p className="text-muted-foreground mb-6">This session may have been deleted or doesn't exist.</p>
           <button
             onClick={() => navigate('/history')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -188,10 +188,10 @@ export function SessionDetail() {
   return (
     <div className="p-8">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-4">
+      <nav className="text-sm text-muted-foreground mb-4">
         <button
           onClick={() => navigate('/history')}
-          className="flex items-center gap-2 hover:text-gray-700"
+          className="flex items-center gap-2 hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Session History</span>
@@ -202,15 +202,15 @@ export function SessionDetail() {
       <div className="mb-8">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+            <h1 className="text-3xl font-bold text-foreground mb-1">
               Recording Session - {formatDate(session.startedAt)}
             </h1>
-            <p className="text-gray-600">{getLanguageName(session.language)}</p>
+            <p className="text-muted-foreground">{getLanguageName(session.language)}</p>
           </div>
           <button
             onClick={handleDeleteClick}
             disabled={deleteSession.isPending}
-            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
             title="Delete session"
           >
             <Trash2 className="w-5 h-5" />
@@ -226,7 +226,7 @@ export function SessionDetail() {
             marginLeft: isCollapsed ? '88px' : '280px' // Sidebar width + margin
           }}
         >
-          <div className="mr-4 border border-gray-200/50 rounded-xl bg-white/80 backdrop-blur-md p-4 shadow-lg">
+          <div className="mr-4 border border-border rounded-xl bg-card/80 backdrop-blur-md p-4 shadow-lg">
             <AudioPlayer src={audioSrc} />
           </div>
         </div>
@@ -238,13 +238,13 @@ export function SessionDetail() {
           {/* Read-aloud sessions: Side-by-side comparison */}
           {session.sessionType === 'read_aloud' && session.sourceText ? (
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Source vs Your Reading</h3>
+              <h3 className="text-xl font-bold text-foreground mb-4">Source vs Your Reading</h3>
               <div className="grid grid-cols-2 gap-4">
                 {/* Source Text */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Original Text</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Original Text</h4>
                   <Card className="p-6 h-[400px] overflow-y-auto">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                       {session.sourceText}
                     </p>
                   </Card>
@@ -252,15 +252,15 @@ export function SessionDetail() {
 
                 {/* Transcript */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Your Recording</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Your Recording</h4>
                   {session.transcript ? (
                     <Card className="p-6 h-[400px] overflow-y-auto">
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                         {session.transcript}
                       </p>
                     </Card>
                   ) : (
-                    <Card className="p-6 h-[400px] flex items-center justify-center text-gray-500">
+                    <Card className="p-6 h-[400px] flex items-center justify-center text-muted-foreground">
                       No transcript available
                     </Card>
                   )}
@@ -270,15 +270,15 @@ export function SessionDetail() {
           ) : (
             /* Free speak sessions: Single transcript view */
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Transcript</h3>
+              <h3 className="text-xl font-bold text-foreground mb-4">Transcript</h3>
               {session.transcript ? (
                 <Card className="p-6">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                     {session.transcript}
                   </p>
                 </Card>
               ) : (
-                <Card className="p-6 text-center text-gray-500">
+                <Card className="p-6 text-center text-muted-foreground">
                   No transcript available
                 </Card>
               )}
@@ -287,29 +287,29 @@ export function SessionDetail() {
 
           {/* Vocabulary Words */}
           <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <h3 className="text-xl font-bold text-foreground mb-4">
               Vocabulary ({words?.length || 0} words)
             </h3>
             {wordsLoading ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
             ) : words && words.length > 0 ? (
               <div>
                 <div className="grid grid-cols-3 gap-3">
                   {(displayedWords ?? []).map((word) => (
-                    <Card key={word.lemma} className="p-3 hover:bg-gray-50 transition-colors">
+                    <Card key={word.lemma} className="p-3 hover:bg-muted/50 transition-colors">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <span className="text-base font-medium text-gray-900 truncate">
+                        <span className="text-base font-medium text-foreground truncate">
                           {word.lemma}
                         </span>
                         {word.isNew && (
-                          <span className="flex-shrink-0 flex items-center gap-0.5 text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                          <span className="flex-shrink-0 flex items-center gap-0.5 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 px-1.5 py-0.5 rounded-full">
                             <Sparkles className="w-3 h-3" />
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         × {word.count}
                       </span>
                     </Card>
@@ -319,19 +319,19 @@ export function SessionDetail() {
                 {/* Infinite scroll trigger */}
                 {hasMore && (
                   <div ref={observerTarget} className="flex items-center justify-center py-6">
-                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                   </div>
                 )}
 
                 {/* End message */}
                 {!hasMore && words.length > WORDS_PER_LOAD && (
-                  <div className="text-center py-6 text-sm text-gray-500">
+                  <div className="text-center py-6 text-sm text-muted-foreground">
                     All {words.length} words loaded
                   </div>
                 )}
               </div>
             ) : (
-              <Card className="p-6 text-center text-gray-500">
+              <Card className="p-6 text-center text-muted-foreground">
                 No vocabulary data available
               </Card>
             )}
@@ -340,55 +340,55 @@ export function SessionDetail() {
 
         {/* Right Column: Stats */}
         <div className="col-span-1">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Session Stats</h3>
-          <Card className="divide-y">
+          <h3 className="text-xl font-bold text-foreground mb-4">Session Stats</h3>
+          <Card className="divide-y divide-border">
             {session.duration !== null && (
               <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="w-4 h-4" />
                   <span>Duration</span>
                 </div>
-                <span className="font-semibold text-gray-900">{formatTime(session.duration)}</span>
+                <span className="font-semibold text-foreground">{formatTime(session.duration)}</span>
               </div>
             )}
 
             {session.wordCount !== null && (
               <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <MessageSquare className="w-4 h-4" />
                   <span>Total Words</span>
                 </div>
-                <span className="font-semibold text-gray-900">{session.wordCount}</span>
+                <span className="font-semibold text-foreground">{session.wordCount}</span>
               </div>
             )}
 
             {session.uniqueWordCount !== null && (
               <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <BookOpen className="w-4 h-4" />
                   <span>Unique Words</span>
                 </div>
-                <span className="font-semibold text-gray-900">{session.uniqueWordCount}</span>
+                <span className="font-semibold text-foreground">{session.uniqueWordCount}</span>
               </div>
             )}
 
             {session.wpm !== null && (
               <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <TrendingUp className="w-4 h-4" />
                   <span>Words Per Minute</span>
                 </div>
-                <span className="font-semibold text-gray-900">{Math.round(session.wpm)}</span>
+                <span className="font-semibold text-foreground">{Math.round(session.wpm)}</span>
               </div>
             )}
 
             {session.newWordCount !== null && (
               <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Sparkles className="w-4 h-4" />
                   <span>New Words</span>
                 </div>
-                <span className="font-semibold text-green-600">{session.newWordCount}</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{session.newWordCount}</span>
               </div>
             )}
           </Card>

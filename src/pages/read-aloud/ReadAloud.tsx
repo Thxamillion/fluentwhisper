@@ -360,13 +360,8 @@ export function ReadAloud() {
                 <div className="overflow-hidden">
                   <div className="text-lg leading-relaxed">
                     <ErrorBoundary
-                      fallback={
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-yellow-800 text-sm">
-                            Error loading text. Please refresh the page.
-                          </p>
-                        </div>
-                      }
+                      fullScreen={false}
+                      fallbackMessage="Error loading text. Please refresh the page."
                     >
                       <HighlightedText
                         text={currentPageText}

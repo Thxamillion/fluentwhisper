@@ -19,6 +19,8 @@ import { LoginCallback } from '@/pages/login/LoginCallback'
 import { TranslationTest } from '@/pages/translation-test/TranslationTest'
 import { GlobalDownloadToast } from '@/components/GlobalDownloadToast'
 import { ModelSelectionGuard } from '@/components/ModelSelectionGuard'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import { useSettings } from '@/hooks/settings'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
@@ -131,9 +133,10 @@ function CleanupListener() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      {/* Toast notifications - global */}
-      <Toaster position="top-right" richColors closeButton />
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        {/* Toast notifications - global */}
+        <Toaster position="top-right" richColors closeButton />
 
       <Router>
         {/* Global listeners - always active */}
@@ -146,30 +149,91 @@ function App() {
 
         <Routes>
           {/* Auth pages - standalone, no layout */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/login/callback" element={<LoginCallback />} />
+          <Route path="/login" element={
+            <ErrorBoundary fallbackMessage="Failed to load login page. Please refresh and try again.">
+              <Login />
+            </ErrorBoundary>
+          } />
+          <Route path="/login/callback" element={
+            <ErrorBoundary fallbackMessage="Failed to complete login. Please try logging in again.">
+              <LoginCallback />
+            </ErrorBoundary>
+          } />
 
           {/* Onboarding - standalone, no layout */}
-          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/onboarding" element={
+            <ErrorBoundary fallbackMessage="Failed to load onboarding. Please refresh and try again.">
+              <Onboarding />
+            </ErrorBoundary>
+          } />
 
           {/* Main app with layout */}
           <Route path="/" element={<OnboardingGate><Layout /></OnboardingGate>}>
-            <Route index element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="record" element={<ProtectedRoute><Record /></ProtectedRoute>} />
-            <Route path="library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
-            <Route path="read-aloud/:textLibraryId" element={<ProtectedRoute><ReadAloud /></ProtectedRoute>} />
-            <Route path="history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="session/:sessionId" element={<ProtectedRoute><SessionDetail /></ProtectedRoute>} />
-            <Route path="vocabulary" element={<ProtectedRoute><Vocabulary /></ProtectedRoute>} />
-            <Route path="progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
-            <Route path="test" element={<Test />} />
-            <Route path="translation-test" element={<TranslationTest />} />
+            <Route index element={
+              <ErrorBoundary fallbackMessage="Failed to load dashboard. Your data is safe.">
+                <ProtectedRoute><Dashboard /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="record" element={
+              <ErrorBoundary fallbackMessage="Failed to load recording page. Please check your microphone settings.">
+                <ProtectedRoute><Record /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="library" element={
+              <ErrorBoundary fallbackMessage="Failed to load text library. Your saved texts are safe.">
+                <ProtectedRoute><Library /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="read-aloud/:textLibraryId" element={
+              <ErrorBoundary fallbackMessage="Failed to load read-aloud session. The text may be unavailable.">
+                <ProtectedRoute><ReadAloud /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="history" element={
+              <ErrorBoundary fallbackMessage="Failed to load session history. Your sessions are safe.">
+                <ProtectedRoute><History /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="session/:sessionId" element={
+              <ErrorBoundary fallbackMessage="Failed to load session details. The session may not exist.">
+                <ProtectedRoute><SessionDetail /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="vocabulary" element={
+              <ErrorBoundary fallbackMessage="Failed to load vocabulary. Your learned words are safe.">
+                <ProtectedRoute><Vocabulary /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="progress" element={
+              <ErrorBoundary fallbackMessage="Failed to load progress analytics. Your stats are safe.">
+                <ProtectedRoute><Progress /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="settings" element={
+              <ErrorBoundary fallbackMessage="Failed to load settings. Your configuration is safe.">
+                <Settings />
+              </ErrorBoundary>
+            } />
+            <Route path="import" element={
+              <ErrorBoundary fallbackMessage="Failed to load import page. Please try again.">
+                <ProtectedRoute><Import /></ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="test" element={
+              <ErrorBoundary fallbackMessage="Failed to load test page.">
+                <Test />
+              </ErrorBoundary>
+            } />
+            <Route path="translation-test" element={
+              <ErrorBoundary fallbackMessage="Failed to load translation test.">
+                <TranslationTest />
+              </ErrorBoundary>
+            } />
           </Route>
         </Routes>
       </Router>
     </QueryClientProvider>
+    </ThemeProvider>
   )
 }
 

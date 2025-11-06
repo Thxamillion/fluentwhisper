@@ -28,25 +28,36 @@
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 20% 98%;
-    --card: 224 71% 4%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 210 20% 98%;
-    --primary-foreground: 220 9% 46%;
-    --secondary: 215 28% 17%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 28% 17%;
-    --muted-foreground: 217 11% 65%;
-    --accent: 215 28% 17%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 216 12% 84%;
+    /* macOS-style dark mode with proper elevation */
+    --background: 0 0% 7%;              /* #121212 - darkest, main container */
+    --foreground: 0 0% 95%;             /* #f2f2f2 - primary text, high contrast */
+
+    --card: 0 0% 12%;                   /* #1e1e1e - elevated cards, above background */
+    --card-foreground: 0 0% 95%;        /* #f2f2f2 - card text */
+
+    --popover: 0 0% 14%;                /* #242424 - popovers elevated above cards */
+    --popover-foreground: 0 0% 95%;     /* #f2f2f2 - popover text */
+
+    --primary: 0 0% 95%;                /* #f2f2f2 - primary elements */
+    --primary-foreground: 0 0% 12%;     /* #1e1e1e - text on primary */
+
+    --secondary: 0 0% 15%;              /* #262626 - secondary elements */
+    --secondary-foreground: 0 0% 95%;   /* #f2f2f2 - text on secondary */
+
+    --muted: 0 0% 15%;                  /* #262626 - muted backgrounds (table headers, etc) */
+    --muted-foreground: 0 0% 60%;       /* #999999 - muted text (descriptions, labels) */
+
+    --accent: 0 0% 15%;                 /* #262626 - accent backgrounds */
+    --accent-foreground: 0 0% 95%;      /* #f2f2f2 - text on accent */
+
+    --destructive: 0 70% 50%;           /* #d92626 - red for destructive actions */
+    --destructive-foreground: 0 0% 98%; /* #fafafa - text on destructive */
+
+    --border: 0 0% 18%;                 /* #2d2d2d - subtle borders */
+    --input: 0 0% 15%;                  /* #262626 - input backgrounds */
+    --ring: 0 0% 70%;                   /* #b3b3b3 - focus rings */
+
+    --sidebar-bg: 0 0% 10%;             /* #1a1a1a - sidebar slightly darker than cards */
   }
 }
 

@@ -80,6 +80,13 @@ export function Test() {
     window.location.href = '/onboarding';
   };
 
+  // Error boundary test component
+  const [throwError, setThrowError] = useState(false);
+
+  if (throwError) {
+    throw new Error('Test error triggered by user - this should be caught by ErrorBoundary');
+  }
+
   return (
     <div className="container mx-auto p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
@@ -100,6 +107,20 @@ export function Test() {
       <div className="mb-6">
         <DevAuthPanel />
       </div>
+
+      {/* Error Boundary Test */}
+      <Card className="p-6 mb-6 border-red-200">
+        <h2 className="text-xl font-semibold mb-2 text-red-700">Test Error Boundary</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Click the button below to trigger a React error. This should be caught by the ErrorBoundary and display a fallback UI with a "Try Again" button.
+        </p>
+        <Button
+          onClick={() => setThrowError(true)}
+          variant="destructive"
+        >
+          Trigger Test Error
+        </Button>
+      </Card>
 
       {/* Reset Onboarding */}
       <Card className="p-6 mb-6">

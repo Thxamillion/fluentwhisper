@@ -290,24 +290,24 @@ export function Vocabulary() {
         </div>
       ) : filteredVocab.length > 0 ? (
         <>
-          <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Word</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Translation</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Forms Used</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Usage</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">First Seen</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900 w-16">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Word</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Translation</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Forms Used</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Usage</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">First Seen</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-foreground w-16">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border">
                 {paginatedVocab.map((word) => (
-                  <tr key={word.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={word.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">{word.lemma}</span>
+                        <span className="font-semibold text-foreground">{word.lemma}</span>
                         {word.mastered && (
                           <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
                             Mastered
@@ -315,7 +315,7 @@ export function Vocabulary() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-700">
+                    <td className="px-4 py-3 text-card-foreground">
                       {loadingTranslations ? (
                         <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
                       ) : translationsUnavailable ? (
@@ -354,7 +354,7 @@ export function Vocabulary() {
                           {word.forms_spoken.map((form, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded"
+                              className="px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded"
                             >
                               {form}
                             </span>
@@ -364,16 +364,16 @@ export function Vocabulary() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       <span className="font-medium">{word.usage_count}</span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{formatDate(word.first_seen_at)}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(word.first_seen_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                              <MoreVertical className="w-4 h-4 text-gray-600" />
+                            <button className="p-1 hover:bg-muted rounded transition-colors">
+                              <MoreVertical className="w-4 h-4 text-muted-foreground" />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -398,7 +398,7 @@ export function Vocabulary() {
           <div className="mt-6 flex items-center justify-between">
             {/* Items per page selector */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Show:</span>
+              <span className="text-sm text-muted-foreground">Show:</span>
               <Select value={String(itemsPerPage)} onValueChange={(value) => handleItemsPerPageChange(Number(value))}>
                 <SelectTrigger className="w-[100px]">
                   <SelectValue />
@@ -410,11 +410,11 @@ export function Vocabulary() {
                   <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-gray-600">per page</span>
+              <span className="text-sm text-muted-foreground">per page</span>
             </div>
 
             {/* Page info */}
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Showing {startIndex + 1}-{Math.min(endIndex, filteredVocab.length)} of {filteredVocab.length} words
             </div>
 
@@ -444,7 +444,7 @@ export function Vocabulary() {
                     <div key={page} className="flex items-center">
                       {/* Show ellipsis if there's a gap */}
                       {index > 0 && array[index - 1] !== page - 1 && (
-                        <span className="px-2 text-gray-400">...</span>
+                        <span className="px-2 text-muted-foreground">...</span>
                       )}
                       <Button
                         onClick={() => setCurrentPage(page)}
@@ -469,12 +469,12 @@ export function Vocabulary() {
           </div>
         </>
       ) : (
-        <div className="bg-white rounded-lg border p-12 text-center">
-          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-card rounded-lg border border-border p-12 text-center">
+          <BookOpen className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {searchQuery || filterMastered !== 'all' ? 'No words found' : 'No vocabulary yet'}
           </h3>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {searchQuery || filterMastered !== 'all'
               ? 'Try adjusting your search or filters'
               : `Start recording sessions in ${getLanguageName(settings.targetLanguage)} to build your vocabulary!`}

@@ -80,38 +80,38 @@ export function AudioPlayer({ src, className = '' }: AudioPlayerProps) {
       {/* Play/Pause Button */}
       <button
         onClick={togglePlayPause}
-        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex-shrink-0"
+        className="flex items-center justify-center w-8 h-8 rounded-full bg-muted hover:bg-muted/80 transition-colors flex-shrink-0"
         aria-label={isPlaying ? 'Pause' : 'Play'}
       >
         {isPlaying ? (
-          <Pause className="w-3.5 h-3.5 text-gray-700" fill="currentColor" />
+          <Pause className="w-3.5 h-3.5 text-foreground" fill="currentColor" />
         ) : (
-          <Play className="w-3.5 h-3.5 text-gray-700 ml-0.5" fill="currentColor" />
+          <Play className="w-3.5 h-3.5 text-foreground ml-0.5" fill="currentColor" />
         )}
       </button>
 
       {/* Progress Bar */}
       <div
-        className="relative flex-1 h-1.5 bg-gray-200 rounded-full cursor-pointer group"
+        className="relative flex-1 h-1.5 bg-muted rounded-full cursor-pointer group"
         onClick={handleProgressClick}
       >
         {/* Filled Progress */}
         <div
-          className="absolute top-0 left-0 h-full bg-blue-500 rounded-full transition-all"
+          className="absolute top-0 left-0 h-full bg-blue-500 dark:bg-blue-400 rounded-full transition-all"
           style={{ width: `${progress}%` }}
         />
 
         {/* Hover indicator */}
         <div className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity">
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue-600 rounded-full shadow-sm"
+            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue-600 dark:bg-blue-500 rounded-full shadow-sm"
             style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
           />
         </div>
       </div>
 
       {/* Time Display */}
-      <div className="flex items-center gap-1.5 text-xs text-gray-500 font-mono flex-shrink-0">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono flex-shrink-0">
         <span>{formatTime(currentTime)}</span>
         <span>/</span>
         <span>{formatTime(duration)}</span>
@@ -120,7 +120,7 @@ export function AudioPlayer({ src, className = '' }: AudioPlayerProps) {
       {/* Playback Speed Control */}
       <button
         onClick={cyclePlaybackRate}
-        className="flex items-center justify-center min-w-[2.5rem] h-6 px-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-xs font-medium text-gray-600 flex-shrink-0"
+        className="flex items-center justify-center min-w-[2.5rem] h-6 px-2 rounded-full bg-muted hover:bg-muted/80 transition-colors text-xs font-medium text-muted-foreground flex-shrink-0"
         aria-label={`Playback speed: ${playbackRate}x`}
       >
         {playbackRate}×

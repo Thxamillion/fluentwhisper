@@ -21,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useAuth } from '@/hooks/auth'
 import { useSubscription } from '@/hooks/subscription'
@@ -45,10 +46,13 @@ export function Sidebar() {
   const { openAuthModal } = useAuthModal()
 
   return (
-    <div className={cn(
-      "bg-white rounded-xl shadow-sm m-3 flex flex-col transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
+    <div
+      className={cn(
+        "rounded-xl shadow-sm m-3 flex flex-col transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+      style={{ backgroundColor: 'hsl(var(--sidebar-bg))' }}
+    >
       {/* Collapse Button */}
       <div className="p-4 flex justify-end">
         <Button
@@ -94,8 +98,18 @@ export function Sidebar() {
         </ul>
       </nav>
 
+      {/* Theme Toggle */}
+      <div className="px-4 pb-4">
+        <div className={cn(
+          "flex items-center",
+          isCollapsed ? "justify-center" : "justify-start"
+        )}>
+          <ThemeToggle />
+        </div>
+      </div>
+
       {/* User Profile Section */}
-      <div className="p-4 border-t border-gray-100">
+      <div className="p-4 pt-0 border-t border-gray-100 dark:border-gray-800">
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -110,17 +124,17 @@ export function Sidebar() {
               ) : (
                 <Button
                   variant="ghost"
-                  className="w-full justify-start px-2 py-1 h-auto hover:bg-gray-100"
+                  className="w-full justify-start px-2 py-1 h-auto hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <div className="flex items-center gap-2 w-full">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-gray-600" />
+                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                         {user.email}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {subscription?.isPremium ? 'Premium' : 'Free'}
                       </p>
                     </div>
@@ -141,7 +155,7 @@ export function Sidebar() {
             size="sm"
             onClick={openAuthModal}
             className={cn(
-              "w-full text-gray-600 hover:text-gray-900",
+              "w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
               isCollapsed ? "px-0" : "justify-start"
             )}
           >
