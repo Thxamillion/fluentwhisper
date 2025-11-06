@@ -60,6 +60,86 @@ serve(async (req) => {
       )
     }
 
+    // Check hourly request limit (anti-spam)
+    const REQUESTS_PER_HOUR = 20
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+
+    const { count: hourlyCount, error: hourlyError } = await supabase
+      .from('transcription_usage')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', oneHourAgo)
+
+    if (hourlyError) {
+      console.error('Error checking hourly limit:', hourlyError)
+    } else if (hourlyCount !== null && hourlyCount >= REQUESTS_PER_HOUR) {
+      return new Response(
+        JSON.stringify({
+          error: `Rate limit exceeded. Maximum ${REQUESTS_PER_HOUR} requests per hour.`,
+          code: 'RATE_LIMIT_EXCEEDED',
+          limit_type: 'hourly',
+          requests_made: hourlyCount,
+          limit: REQUESTS_PER_HOUR,
+          retry_after: 3600 // seconds
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Retry-After': '3600'
+          }
+        }
+      )
+    }
+
+    // Check daily minute limit (cost protection)
+    const MAX_DAILY_MINUTES = 180 // 3 hours
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+
+    const { data: dailyUsage, error: dailyError } = await supabase
+      .from('transcription_usage')
+      .select('duration_seconds')
+      .eq('user_id', user.id)
+      .eq('success', true)
+      .gte('created_at', startOfDay.toISOString())
+
+    if (dailyError) {
+      console.error('Error checking daily limit:', dailyError)
+    } else if (dailyUsage) {
+      const totalMinutesUsed = dailyUsage.reduce(
+        (sum, record) => sum + record.duration_seconds,
+        0
+      ) / 60
+
+      if (totalMinutesUsed >= MAX_DAILY_MINUTES) {
+        const nextDay = new Date(startOfDay)
+        nextDay.setDate(nextDay.getDate() + 1)
+
+        return new Response(
+          JSON.stringify({
+            error: `Daily transcription limit reached. Maximum ${MAX_DAILY_MINUTES} minutes per day.`,
+            code: 'RATE_LIMIT_EXCEEDED',
+            limit_type: 'daily',
+            minutes_used: Math.floor(totalMinutesUsed),
+            limit_minutes: MAX_DAILY_MINUTES,
+            resets_at: nextDay.toISOString()
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'X-RateLimit-Limit': MAX_DAILY_MINUTES.toString(),
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': nextDay.toISOString()
+            }
+          }
+        )
+      }
+    }
+
     // Parse form data
     const formData = await req.formData()
     const audio = formData.get('audio') as Blob
@@ -71,6 +151,26 @@ serve(async (req) => {
         JSON.stringify({ error: 'Missing audio file', code: 'MISSING_AUDIO' }),
         {
           status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          }
+        }
+      )
+    }
+
+    // Validate file size (25MB limit for OpenAI)
+    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
+    if (audio.size > MAX_AUDIO_SIZE) {
+      return new Response(
+        JSON.stringify({
+          error: 'Audio file too large. Maximum size is 25MB (~25 minutes).',
+          code: 'FILE_TOO_LARGE',
+          size_bytes: audio.size,
+          max_size_bytes: MAX_AUDIO_SIZE
+        }),
+        {
+          status: 413,
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',

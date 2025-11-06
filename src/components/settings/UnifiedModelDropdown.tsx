@@ -102,7 +102,7 @@ export function UnifiedModelDropdown() {
                       value={model.id}
                       disabled={isPremiumLocked}
                     >
-                      {model.premiumRequired && '🔒 '}{model.name} ({model.size}) {isPremiumLocked ? '(Premium only)' : '✓'}
+                      {model.premiumRequired && '🔒 '}{model.name} ({model.size}) {isPremiumLocked ? '(Requires Premium)' : '✓'}
                     </option>
                   )
                 })
@@ -116,7 +116,7 @@ export function UnifiedModelDropdown() {
                   value={model.id}
                   disabled={!subscription?.isPremium}
                 >
-                  ☁️ {model.name} {!subscription?.isPremium && '(Premium only)'}
+                  ☁️ {model.name} {!subscription?.isPremium && '(Requires Premium)'}
                 </option>
               ))}
             </optgroup>
@@ -162,7 +162,10 @@ function CloudModelInfo({ modelId }: { modelId: string }) {
       <p className="text-sm font-semibold mb-1">☁️ Cloud Model: {model.name}</p>
       <p className="text-xs text-gray-600">{model.description}</p>
       <p className="text-xs text-gray-500 mt-1">
-        Processing: Cloud-based • Requires: Internet connection • Unlimited usage included
+        Processing: Cloud-based • Requires: Internet connection • Limit: 180 min/day
+      </p>
+      <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+        ⚠️ Supports recordings up to 25 minutes. For longer sessions, use local models.
       </p>
     </div>
   )
