@@ -50,6 +50,30 @@ export function PrivacySettingsSection() {
           )}
         </div>
       </Card>
+
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Analytics</h3>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="analytics-toggle"
+              checked={settings.analyticsEnabled}
+              onChange={(e) => updateSetting('analyticsEnabled', e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <label htmlFor="analytics-toggle" className="text-sm font-medium cursor-pointer">
+                Share anonymous usage data
+              </label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Help improve FluentWhisper by sharing anonymous analytics. We collect feature usage, error reports, and performance metrics.
+                We <strong>never</strong> collect your voice recordings, transcriptions, vocabulary words, or personal information.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }
