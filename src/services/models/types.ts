@@ -9,7 +9,7 @@ export interface WhisperModel {
   url: string;
   sizeMb: number;
   description: string;
-  premiumRequired: boolean;
+  type: 'local'; // OSS version only supports local models
 }
 
 export interface DownloadProgress {

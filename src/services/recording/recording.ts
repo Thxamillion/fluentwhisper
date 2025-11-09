@@ -4,8 +4,6 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import type { DeviceInfo, RecordingResult, TranscriptionResult, TranscriptSegment } from './types';
-import { CloudTranscriptionService } from '../transcription/cloud-transcription.service';
-import { isCloudModel } from '@/stores/settingsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { logger } from '@/services/logger'
 
@@ -108,7 +106,7 @@ export async function stopRecording(): Promise<ServiceResult<RecordingResult>> {
 }
 
 /**
- * Transcribe a recorded audio file using either local or cloud model
+ * Transcribe a recorded audio file using local Whisper model
  */
 export async function transcribeAudio(
   audioPath: string,
@@ -126,37 +124,16 @@ export async function transcribeAudio(
       };
     }
 
-    // Route to cloud or local transcription based on model
-    if (isCloudModel(selectedModel)) {
-      // Cloud transcription
-      logger.debug('Using cloud transcription with model:', selectedModel);
+    // OSS version: always use local transcription
+    logger.debug('Using local transcription with model:', selectedModel);
 
-      // Read audio file as blob (using Rust command)
-      const audioData = await invoke<number[]>('read_audio_file', { path: audioPath });
-      const audioBlob = new Blob([new Uint8Array(audioData)], { type: 'audio/webm' });
+    const response = await invoke<{ text: string; segments: TranscriptSegment[] }>('transcribe', {
+      audioPath,
+      language: language || '',
+      modelPath: modelPath || null,
+    });
 
-      // Call cloud service
-      const result = await CloudTranscriptionService.transcribe(audioBlob, {
-        provider: 'openai', // Extract from selectedModel if needed
-        language: language || undefined,
-      });
-
-      logger.debug(`Cloud transcription completed: ${result.durationSeconds}s, cost: $${result.costUsd.toFixed(4)}`);
-
-      // Cloud transcription doesn't provide segments yet, return empty array
-      return { success: true, data: { text: result.text, segments: [] } };
-    } else {
-      // Local transcription (existing code)
-      logger.debug('Using local transcription with model:', selectedModel);
-
-      const response = await invoke<{ text: string; segments: TranscriptSegment[] }>('transcribe', {
-        audioPath,
-        language: language || '',
-        modelPath: modelPath || null,
-      });
-
-      return { success: true, data: response };
-    }
+    return { success: true, data: response };
   } catch (error) {
     console.error('Failed to transcribe audio:', error);
     return {

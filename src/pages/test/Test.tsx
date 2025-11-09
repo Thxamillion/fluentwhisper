@@ -5,7 +5,6 @@ import { tokenize } from '@/services/text';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { DevAuthPanel } from '@/components/DevAuthPanel';
 
 /**
  * Test page for development
@@ -101,11 +100,6 @@ export function Test() {
             </div>
           </Card>
         )}
-      </div>
-
-      {/* Dev Auth Panel */}
-      <div className="mb-6">
-        <DevAuthPanel />
       </div>
 
       {/* Error Boundary Test */}

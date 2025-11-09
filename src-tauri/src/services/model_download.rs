@@ -22,7 +22,8 @@ pub struct WhisperModel {
     pub url: String,
     pub size_mb: u64,
     pub description: String,
-    pub premium_required: bool,
+    #[serde(rename = "type")]
+    pub model_type: String, // OSS version only supports "local"
 }
 
 /// Download progress information
@@ -58,7 +59,7 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin".to_string(),
             size_mb: 75,
             description: "Fastest, lowest accuracy".to_string(),
-            premium_required: false,
+            model_type: "local".to_string(),
         },
         WhisperModel {
             name: "base".to_string(),
@@ -67,7 +68,7 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin".to_string(),
             size_mb: 142,
             description: "Good balance, recommended".to_string(),
-            premium_required: false,
+            model_type: "local".to_string(),
         },
         WhisperModel {
             name: "small".to_string(),
@@ -76,7 +77,7 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin".to_string(),
             size_mb: 466,
             description: "Better accuracy".to_string(),
-            premium_required: false,
+            model_type: "local".to_string(),
         },
         WhisperModel {
             name: "medium".to_string(),
@@ -85,7 +86,7 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin".to_string(),
             size_mb: 1500,
             description: "High accuracy".to_string(),
-            premium_required: false,
+            model_type: "local".to_string(),
         },
         WhisperModel {
             name: "large".to_string(),
@@ -93,8 +94,8 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             file_name: "ggml-large.bin".to_string(),
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large.bin".to_string(),
             size_mb: 2900,
-            description: "Highest accuracy".to_string(),
-            premium_required: true,
+            description: "Highest accuracy, slower".to_string(),
+            model_type: "local".to_string(),
         },
         WhisperModel {
             name: "large-v2".to_string(),
@@ -102,8 +103,8 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             file_name: "ggml-large-v2.bin".to_string(),
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v2.bin".to_string(),
             size_mb: 2900,
-            description: "Improved version".to_string(),
-            premium_required: true,
+            description: "Improved large model".to_string(),
+            model_type: "local".to_string(),
         },
         WhisperModel {
             name: "large-v3".to_string(),
@@ -111,8 +112,8 @@ pub fn get_available_models() -> Vec<WhisperModel> {
             file_name: "ggml-large-v3.bin".to_string(),
             url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin".to_string(),
             size_mb: 2900,
-            description: "Newest and best".to_string(),
-            premium_required: true,
+            description: "Best accuracy available".to_string(),
+            model_type: "local".to_string(),
         },
     ]
 }

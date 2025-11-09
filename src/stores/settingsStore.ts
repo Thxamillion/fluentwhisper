@@ -3,8 +3,7 @@ import { persist } from 'zustand/middleware'
 
 export interface AppSettings {
   // Transcription settings
-  // Model can be local ('tiny', 'base', 'small', 'medium', 'large')
-  // or cloud ('openai-whisper', 'assemblyai-v1', etc)
+  // Local Whisper models: 'tiny', 'base', 'small', 'medium', 'large', 'large-v2', 'large-v3'
   selectedModel: string
 
   // Audio settings
@@ -21,16 +20,15 @@ export interface AppSettings {
 
   // Privacy settings
   retentionDays: number | null  // null = never delete, number = days to keep
+  analyticsEnabled: boolean  // Share anonymous usage data
 
   // Developer settings
   debugMode: boolean  // Enable debug logging
 }
 
-// Helper to determine if model is cloud-based
-export function isCloudModel(modelName: string): boolean {
-  return modelName.startsWith('openai-') ||
-         modelName.startsWith('assemblyai-') ||
-         modelName.startsWith('google-')
+// Helper to determine if model is cloud-based (always false in OSS version)
+export function isCloudModel(_modelName: string): boolean {
+  return false // OSS version only supports local models
 }
 
 interface SettingsState {
@@ -54,6 +52,7 @@ const defaultSettings: AppSettings = {
 
   // Privacy defaults - never delete by default
   retentionDays: null,
+  analyticsEnabled: true, // Opt-in by default, user can disable in settings
 
   // Developer defaults - debug enabled in dev mode
   debugMode: import.meta.env.DEV,

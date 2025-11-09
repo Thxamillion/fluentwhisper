@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use fluent_diary::commands::{auth, cleanup, langpack, language_packs, models, recording, sessions, stats, system, text_library, vocabulary};
+use fluent_diary::commands::{cleanup, langpack, language_packs, models, recording, sessions, stats, system, text_library, vocabulary};
 use fluent_diary::services::recording::RecorderState;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -17,16 +17,6 @@ fn greet(name: &str) -> String {
 }
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    println!("[DeepLink][Rust] App starting with args: {:?}", args);
-    
-    // Check if we were launched with a deep link URL
-    for arg in &args {
-        if arg.starts_with("fluentwhisper://") {
-            println!("[TEST_SUCCESS] Deep link URL detected in launch args: {}", arg);
-        }
-    }
-
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
@@ -50,13 +40,6 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             greet,
             log_marker,
-            auth::save_auth_credentials,
-            auth::get_auth_credentials,
-            auth::delete_auth_credentials,
-            auth::is_authenticated,
-            auth::start_auth_flow,
-            auth::open_url,
-            auth::start_oauth_localhost,
             langpack::get_lemma,
             langpack::get_translation,
             langpack::lemmatize_batch,

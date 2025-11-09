@@ -12,20 +12,9 @@ import {
   FlaskConical,
   ChevronLeft,
   ChevronRight,
-  LogOut,
-  User
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { useAuth } from '@/hooks/auth'
-import { useSubscription } from '@/hooks/subscription'
-import { useAuthModal } from './Layout'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
@@ -41,9 +30,6 @@ const navigation = [
 export function Sidebar() {
   const location = useLocation()
   const { isCollapsed, setIsCollapsed } = useSidebar()
-  const { user, signOut } = useAuth()
-  const { data: subscription } = useSubscription()
-  const { openAuthModal } = useAuthModal()
 
   return (
     <div
@@ -78,20 +64,26 @@ export function Sidebar() {
             const IconComponent = item.icon
             return (
               <li key={item.name}>
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
+                <Link
+                  to={item.href}
                   className={cn(
-                    'w-full space-x-3',
-                    isCollapsed ? 'justify-center px-0' : 'justify-start',
-                    isActive && 'bg-secondary text-secondary-foreground'
+                    'group flex items-center rounded-md p-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
+                    isCollapsed ? 'justify-center' : ''
                   )}
-                  asChild
+                  title={isCollapsed ? item.name : undefined}
                 >
-                  <Link to={item.href} title={isCollapsed ? item.name : undefined}>
-                    <IconComponent className="w-4 h-4" />
-                    {!isCollapsed && <span>{item.name}</span>}
-                  </Link>
-                </Button>
+                  <IconComponent
+                    className={cn(
+                      'w-5 h-5 flex-shrink-0',
+                      isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400',
+                      !isCollapsed && 'mr-3'
+                    )}
+                  />
+                  {!isCollapsed && <span>{item.name}</span>}
+                </Link>
               </li>
             )
           })}
@@ -99,70 +91,13 @@ export function Sidebar() {
       </nav>
 
       {/* Theme Toggle */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-4">
         <div className={cn(
           "flex items-center",
           isCollapsed ? "justify-center" : "justify-start"
         )}>
           <ThemeToggle />
         </div>
-      </div>
-
-      {/* User Profile Section */}
-      <div className="p-4 pt-0 border-t border-gray-100 dark:border-gray-800">
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              {isCollapsed ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-full"
-                >
-                  <User className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-2 py-1 h-auto hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {user.email}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {subscription?.isPremium ? 'Premium' : 'Free'}
-                      </p>
-                    </div>
-                  </div>
-                </Button>
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => signOut()}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={openAuthModal}
-            className={cn(
-              "w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
-              isCollapsed ? "px-0" : "justify-start"
-            )}
-          >
-            <User className="w-4 h-4" />
-            {!isCollapsed && <span className="ml-2">Sign In</span>}
-          </Button>
-        )}
       </div>
     </div>
   )
