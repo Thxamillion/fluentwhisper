@@ -1,9 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { supabase } from '@/lib/supabase'
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { logger } from '@/services/logger'
-
-const WEB_LOGIN_URL = 'https://fluentdiary.com/login'
 
 export class DesktopAuthService {
   /**
@@ -81,46 +78,56 @@ export class DesktopAuthService {
   }
 
   /**
-   * Sign in with social providers (Google, Apple, etc.)
-   * Opens fluentdiary.com/login in an in-app webview window
-   * The webview shares Supabase context with main app, so auth state changes are detected automatically
+   * Process OAuth callback from deep link
+   * Called when app receives fluentwhisper://auth-callback?access_token=...&refresh_token=...
    */
-  static async signInWithSocial(): Promise<void> {
+  static async handleOAuthCallback(params: URLSearchParams): Promise<void> {
     try {
-      logger.debug('Opening in-app login window', 'DesktopAuth')
+      logger.debug('Processing OAuth callback', 'DesktopAuth')
 
-      // Create a new webview window for login
-      const authWindow = new WebviewWindow('auth-window', {
-        url: WEB_LOGIN_URL,
-        title: 'Sign In to Fluent Diary',
-        width: 500,
-        height: 700,
-        resizable: true,
-        center: true,
+      const accessToken = params.get('access_token')
+      const refreshToken = params.get('refresh_token')
+      const error = params.get('error')
+
+      if (error) {
+        logger.error('OAuth error in callback:', 'DesktopAuth', error)
+        throw new Error(error)
+      }
+
+      if (!accessToken || !refreshToken) {
+        logger.error('Missing tokens in OAuth callback', 'DesktopAuth')
+        throw new Error('No authentication tokens received')
+      }
+
+      logger.debug('Setting Supabase session with OAuth tokens', 'DesktopAuth')
+
+      // Set the session in Supabase
+      const { data, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
       })
 
-      logger.debug('[DesktopAuth] Auth window created:', undefined, authWindow)
+      if (sessionError) {
+        throw sessionError
+      }
 
-      // Wait for window to be ready
-      await authWindow.once('tauri://created', () => {
-        logger.debug('Auth window successfully created and ready', 'DesktopAuth')
+      if (!data.session) {
+        throw new Error('Failed to create session from tokens')
+      }
+
+      logger.debug('OAuth session created, saving credentials', 'DesktopAuth')
+
+      // Save credentials in Rust secure storage
+      await invoke('save_auth_credentials', {
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        userId: data.session.user.id,
+        email: data.session.user.email || ''
       })
 
-      await authWindow.once('tauri://error', (e) => {
-        logger.error('Auth window creation failed:', 'DesktopAuth', e)
-      })
-
-      logger.debug('Waiting for user to sign in...', 'DesktopAuth')
-
-      // Listen for when the window closes (user finished signing in or cancelled)
-      authWindow.once('tauri://close-requested', () => {
-        logger.debug('Auth window closed', 'DesktopAuth')
-      })
-
-      // The global AuthStateListener in App.tsx will detect auth changes automatically
-      // When user signs in on the webview, Supabase auth state changes fire in the main app too
+      logger.debug('OAuth authentication complete!', 'DesktopAuth')
     } catch (error) {
-      logger.error('Failed to open auth window:', 'DesktopAuth', error)
+      logger.error('OAuth callback failed:', 'DesktopAuth', error)
       throw error
     }
   }

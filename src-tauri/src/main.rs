@@ -56,6 +56,7 @@ fn main() {
             auth::is_authenticated,
             auth::start_auth_flow,
             auth::open_url,
+            auth::start_oauth_localhost,
             langpack::get_lemma,
             langpack::get_translation,
             langpack::lemmatize_batch,

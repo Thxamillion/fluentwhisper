@@ -14,7 +14,6 @@ import { Import } from '@/pages/import/Import'
 import { Test } from '@/pages/test/Test'
 import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
-import { Login } from '@/pages/login/Login'
 import { LoginCallback } from '@/pages/login/LoginCallback'
 import { TranslationTest } from '@/pages/translation-test/TranslationTest'
 import { GlobalDownloadToast } from '@/components/GlobalDownloadToast'
@@ -27,6 +26,9 @@ import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { invoke } from '@tauri-apps/api/core'
 import { logger } from '@/services/logger'
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link'
+import { DesktopAuthService } from '@/services/auth/desktop-auth.service'
+import { toast } from 'sonner'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -143,6 +145,51 @@ function DebugModeListener() {
   return null
 }
 
+// Deep link listener - handles OAuth callbacks from browser
+function DeepLinkListener() {
+  useEffect(() => {
+    logger.debug('Setting up deep link listener for OAuth callbacks', 'DeepLink')
+
+    // Listen for deep link events
+    const unlisten = onOpenUrl((urls) => {
+      logger.debug('Deep link received:', 'DeepLink', urls)
+
+      for (const url of urls) {
+        try {
+          const parsedUrl = new URL(url)
+
+          // Check if this is an OAuth callback
+          if (parsedUrl.protocol === 'fluentwhisper:' && parsedUrl.host === 'auth-callback') {
+            logger.info('Processing OAuth callback from deep link', 'DeepLink')
+
+            // Extract query parameters
+            const params = parsedUrl.searchParams
+
+            // Process the OAuth callback
+            DesktopAuthService.handleOAuthCallback(params)
+              .then(() => {
+                logger.info('OAuth sign-in successful!', 'DeepLink')
+                toast.success('Successfully signed in!')
+              })
+              .catch((error) => {
+                logger.error('OAuth callback processing failed', 'DeepLink', error)
+                toast.error('Failed to sign in: ' + (error.message || 'Unknown error'))
+              })
+          }
+        } catch (error) {
+          logger.error('Failed to parse deep link URL', 'DeepLink', error)
+        }
+      }
+    })
+
+    return () => {
+      unlisten.then(fn => fn())
+    }
+  }, [])
+
+  return null
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -155,6 +202,7 @@ function App() {
         <AuthStateListener />
         <CleanupListener />
         <DebugModeListener />
+        <DeepLinkListener />
         <ModelSelectionGuard />
 
         {/* Global download toast - persists across pages */}
@@ -162,11 +210,6 @@ function App() {
 
         <Routes>
           {/* Auth pages - standalone, no layout */}
-          <Route path="/login" element={
-            <ErrorBoundary fallbackMessage="Failed to load login page. Please refresh and try again.">
-              <Login />
-            </ErrorBoundary>
-          } />
           <Route path="/login/callback" element={
             <ErrorBoundary fallbackMessage="Failed to complete login. Please try logging in again.">
               <LoginCallback />

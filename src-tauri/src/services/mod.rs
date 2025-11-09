@@ -4,6 +4,7 @@ pub mod cleanup;
 pub mod language_packs;
 pub mod lemmatization;
 pub mod model_download;
+pub mod oauth_server;
 pub mod recording;
 pub mod sessions;
 pub mod stats;

@@ -1,5 +1,6 @@
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
+use crate::services::oauth_server;
 
 /// Service name for keyring storage
 const SERVICE_NAME: &str = "com.fluentdiary.app";
@@ -148,6 +149,25 @@ pub async fn start_auth_flow() -> Result<(), String> {
 #[tauri::command]
 pub async fn open_url(url: String) -> Result<(), String> {
     open::that(&url).map_err(|e| format!("Failed to open URL: {}", e))
+}
+
+/// Start OAuth flow with localhost callback on fixed port 54321
+/// Waits for callback and returns tokens
+#[tauri::command]
+pub async fn start_oauth_localhost() -> Result<(String, String), String> {
+    println!("[OAuth] Starting OAuth server on port 54321...");
+
+    // Start the local OAuth server and wait for callback
+    let callback_url = oauth_server::start_oauth_server_and_wait()?;
+
+    println!("[OAuth] Callback received, parsing tokens...");
+
+    // Parse tokens from callback URL
+    let (access_token, refresh_token) = oauth_server::parse_oauth_callback(&callback_url)?;
+
+    println!("[OAuth] Tokens successfully parsed");
+
+    Ok((access_token, refresh_token))
 }
 
 #[cfg(test)]
