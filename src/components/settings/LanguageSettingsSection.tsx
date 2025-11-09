@@ -15,11 +15,6 @@ export function LanguageSettingsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-1">Language</h2>
-        <p className="text-sm text-muted-foreground">Configure languages for transcription and vocabulary</p>
-      </div>
-
       {/* Language Pack Status */}
       <LanguagePackSection />
 

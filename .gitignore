@@ -83,3 +83,14 @@ scripts/*.jsonl
 # Backup files
 *.backup
 *.bak
+
+# Internal planning/personal docs (keep locally, don't commit)
+PRODUCTION_RELEASE_PLAN.md
+UPDATES_AND_DISTRIBUTION.md
+prd.md
+questions.md
+PROGRESS.md
+TODO.md
+BACKLOG.md
+todo/
+scripts/LANGUAGE_PACK_RELEASE.md

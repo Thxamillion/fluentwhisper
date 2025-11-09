@@ -14,11 +14,6 @@ export function GeneralSettingsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-1">General</h2>
-        <p className="text-sm text-muted-foreground">Customize your app appearance and preferences</p>
-      </div>
-
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Appearance</h3>
         <div className="space-y-4">

@@ -6,11 +6,6 @@ export function DeveloperSettingsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-1">Developer</h2>
-        <p className="text-sm text-muted-foreground">Advanced settings for troubleshooting and debugging</p>
-      </div>
-
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Debug Options</h3>
         <div className="space-y-4">
