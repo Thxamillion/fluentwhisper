@@ -1,15 +1,15 @@
-# FluentWhisper
+# FluentDiary
 
 **Practice speaking your target language. Track progress. Improve faster.**
 
-FluentWhisper is a free, open-source desktop app that helps language learners build speaking confidence through daily practice. Record yourself speaking, get instant transcripts and speaking metrics, and watch your vocabulary grow—all completely offline.
+FluentDiary is a free, open-source desktop app that helps language learners build speaking confidence through daily practice. Record yourself speaking, get instant transcripts and speaking metrics, and watch your vocabulary grow—all completely offline.
 
-![FluentWhisper Dashboard](docs/screenshots/dashboard.png)
+![FluentDiary Dashboard](docs/screenshots/dashboard.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri-FFC131?logo=tauri)](https://tauri.app)
 
-## ✨ Why FluentWhisper?
+## ✨ Why FluentDiary?
 
 - **🎤 Speak daily** - Build the speaking habit without pressure. Talk about your day, practice pronunciation, or record your thoughts in your target language.
 - **📊 Track real progress** - See concrete improvements in speaking speed (WPM), vocabulary growth, and session history over time.
@@ -22,15 +22,15 @@ FluentWhisper is a free, open-source desktop app that helps language learners bu
 ### Download
 
 **macOS:**
-- [Download for Apple Silicon (M1/M2/M3)](https://github.com/YOUR_USERNAME/fluentwhisper/releases/latest) - macOS 11+
-- [Download for Intel](https://github.com/YOUR_USERNAME/fluentwhisper/releases/latest) - macOS 11+
+- [Download for Apple Silicon (M1/M2/M3)](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest) - macOS 11+
+- [Download for Intel](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest) - macOS 11+
 
 **Windows:**
-- [Download for Windows](https://github.com/YOUR_USERNAME/fluentwhisper/releases/latest) - Windows 10+
+- [Download for Windows](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest) - Windows 10+
 
 **Linux:**
-- [Download AppImage](https://github.com/YOUR_USERNAME/fluentwhisper/releases/latest)
-- [Download .deb](https://github.com/YOUR_USERNAME/fluentwhisper/releases/latest)
+- [Download AppImage](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
+- [Download .deb](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
 
 > **Note:** macOS builds are currently unsigned. You may need to right-click → Open to bypass Gatekeeper. Notarization coming soon.
 
@@ -38,8 +38,8 @@ FluentWhisper is a free, open-source desktop app that helps language learners bu
 
 ```bash
 # Prerequisites: Node.js 18+, Rust 1.70+
-git clone https://github.com/YOUR_USERNAME/fluentwhisper.git
-cd fluentwhisper
+git clone https://github.com/Thxamillion/fluentdiary-desktop.git
+cd fluentdiary-desktop
 npm install
 npm run tauri build
 ```
@@ -99,9 +99,9 @@ Todo items:
 - [ ] **Export data** - Export sessions/vocabulary to CSV/JSON
 - [ ] **More languages** - Expanding language pack support
 
-Want to help build these? See [CONTRIBUTING.md](CONTRIBUTING.md) or check out [open issues](https://github.com/YOUR_USERNAME/fluentwhisper/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement).
+Want to help build these? See [CONTRIBUTING.md](CONTRIBUTING.md) or check out [open issues](https://github.com/Thxamillion/fluentdiary-desktop/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement).
 
-**Have a feature idea?** [Open an issue](https://github.com/YOUR_USERNAME/fluentwhisper/issues/new) and let's discuss!
+**Have a feature idea?** [Open an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new) and let's discuss!
 
 ## 📸 Screenshots
 
@@ -127,7 +127,7 @@ Practice pronunciation with your own imported texts.
 
 ## 🏗️ How It Works
 
-FluentWhisper is built with modern technologies focused on performance and privacy:
+FluentDiary is built with modern technologies focused on performance and privacy:
 
 ### Tech Stack
 - **[Tauri](https://tauri.app/)** - Lightweight desktop framework (Rust + Web)
@@ -146,7 +146,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines 
 - Code standards and architecture
 - Submitting pull requests
 
-**Good first issues:** Check out issues labeled [`good first issue`](https://github.com/YOUR_USERNAME/fluentwhisper/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+**Good first issues:** Check out issues labeled [`good first issue`](https://github.com/Thxamillion/fluentdiary-desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ## 📄 License
 

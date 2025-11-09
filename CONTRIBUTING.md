@@ -1,6 +1,6 @@
-# Contributing to FluentWhisper
+# Contributing to FluentDiary
 
-Thank you for your interest in contributing! FluentWhisper is a privacy-first language learning app, and we welcome contributions that align with this mission.
+Thank you for your interest in contributing! FluentDiary is a privacy-first language learning app, and we welcome contributions that align with this mission.
 
 ## Getting Started
 
@@ -13,8 +13,8 @@ Thank you for your interest in contributing! FluentWhisper is a privacy-first la
 
 1. **Fork and clone** the repository
    ```bash
-   git clone https://github.com/YOUR_USERNAME/fluentwhisper.git
-   cd fluentwhisper
+   git clone https://github.com/Thxamillion/fluentdiary-desktop.git
+   cd fluentdiary-desktop
    ```
 
 2. **Install dependencies**
@@ -162,13 +162,13 @@ async function processSession() {
 ## What to Contribute
 
 ### Good First Issues
-Look for issues labeled [`good first issue`](https://github.com/YOUR_USERNAME/fluentwhisper/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - these are beginner-friendly tasks.
+Look for issues labeled [`good first issue`](https://github.com/Thxamillion/fluentdiary-desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - these are beginner-friendly tasks.
 
 ### Feature Requests
 Check the [Upcoming Features](README.md#-upcoming-features) section in the README or browse open issues.
 
 ### Bug Reports
-Found a bug? [Open an issue](https://github.com/YOUR_USERNAME/fluentwhisper/issues/new) with:
+Found a bug? [Open an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new) with:
 - Steps to reproduce
 - Expected behavior
 - Actual behavior
@@ -176,10 +176,10 @@ Found a bug? [Open an issue](https://github.com/YOUR_USERNAME/fluentwhisper/issu
 
 ## Questions?
 
-- **General questions:** Open a [GitHub Discussion](https://github.com/YOUR_USERNAME/fluentwhisper/discussions)
-- **Bug reports:** [Create an issue](https://github.com/YOUR_USERNAME/fluentwhisper/issues/new)
-- **Feature ideas:** [Create an issue](https://github.com/YOUR_USERNAME/fluentwhisper/issues/new) with the "enhancement" label
+- **General questions:** Open a [GitHub Discussion](https://github.com/Thxamillion/fluentdiary-desktop/discussions)
+- **Bug reports:** [Create an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new)
+- **Feature ideas:** [Create an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new) with the "enhancement" label
 
 ---
 
-**Thank you for contributing to FluentWhisper!** 🎉
+**Thank you for contributing to FluentDiary!** 🎉
