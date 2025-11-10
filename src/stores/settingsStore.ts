@@ -52,7 +52,7 @@ const defaultSettings: AppSettings = {
 
   // Privacy defaults - never delete by default
   retentionDays: null,
-  analyticsEnabled: true, // Opt-in by default, user can disable in settings
+  analyticsEnabled: true, // Enabled by default (opt-out), user can disable in settings
 
   // Developer defaults - debug enabled in dev mode
   debugMode: import.meta.env.DEV,
