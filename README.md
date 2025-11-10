@@ -51,8 +51,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup.
 1. **Download and install** the app for your platform
 2. **Choose your Whisper model**
    - First launch will prompt you to download a model
-   - **Base (142 MB)** - Recommended for most users
-   - **Small (466 MB)** - Better accuracy, slower processing
+   - **Base (142 MB)** - Recommended for older machines, less accuracy
+   - **Small (466 MB)** - Recommended for most users, more accuracy
    - **Large models** - Best accuracy, requires more RAM
 3. **Set your languages**
    - Select your native language (for translations)
