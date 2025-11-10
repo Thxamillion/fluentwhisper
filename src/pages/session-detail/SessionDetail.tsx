@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSession, useSessionWords, useDeleteSession } from '@/hooks/sessions';
+import { useTextLibraryItem } from '@/hooks/text-library';
 import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles, ArrowUp } from 'lucide-react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Card } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from '@/lib/toast';
-import { logger } from '@/services/logger'
+import { logger } from '@/services/logger';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -19,6 +20,9 @@ export function SessionDetail() {
   const { data: session, isLoading: sessionLoading } = useSession(sessionId!);
   const { data: words, isLoading: wordsLoading } = useSessionWords(sessionId!);
   const deleteSession = useDeleteSession();
+
+  // Fetch text library item for read-aloud sessions
+  const { data: textItem } = useTextLibraryItem(session?.textLibraryId || '');
 
   // Infinite scroll state
   const [displayedWords, setDisplayedWords] = useState<typeof words>([]);
@@ -204,7 +208,11 @@ export function SessionDetail() {
         <div className="flex items-start justify-between mb-2">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-1">
-              Recording Session - {formatDate(session.startedAt)}
+              {session.sessionType === 'read_aloud' && textItem ? (
+                <>"{textItem.title}"</>
+              ) : (
+                <>Recording Session</>
+              )} - {formatDate(session.startedAt)}
             </h1>
             <p className="text-muted-foreground">{getLanguageName(session.language)}</p>
           </div>
@@ -238,9 +246,7 @@ export function SessionDetail() {
         <div className="col-span-2 space-y-8">
           {/* Read-aloud sessions: Side-by-side comparison */}
           {session.sessionType === 'read_aloud' && session.sourceText ? (
-            <div>
-              <h3 className="text-xl font-bold text-foreground mb-4">Source vs Your Reading</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 {/* Source Text */}
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground mb-2">Original Text</h4>
@@ -267,7 +273,6 @@ export function SessionDetail() {
                   )}
                 </div>
               </div>
-            </div>
           ) : (
             /* Free speak sessions: Single transcript view */
             <div>

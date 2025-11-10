@@ -60,80 +60,77 @@ pub struct VocabGrowth {
 
 /// Get overall statistics
 pub async fn get_overall_stats(pool: &SqlitePool, language: Option<&str>) -> Result<OverallStats> {
-    // Build WHERE clause for language filter
-    let language_filter = if let Some(lang) = language {
-        format!("WHERE language = '{}'", lang)
-    } else {
-        String::new()
-    };
-
     // Total sessions
-    let total_sessions: i64 = sqlx::query_scalar(&format!(
-        "SELECT COUNT(*) FROM sessions {}",
-        language_filter
-    ))
-    .fetch_one(pool)
-    .await?;
+    let total_sessions: i64 = if let Some(lang) = language {
+        sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE language = ?")
+            .bind(lang)
+            .fetch_one(pool)
+            .await?
+    } else {
+        sqlx::query_scalar("SELECT COUNT(*) FROM sessions")
+            .fetch_one(pool)
+            .await?
+    };
 
     // Total speaking time
-    let total_time: Option<i64> = sqlx::query_scalar(&format!(
-        "SELECT SUM(duration) FROM sessions {}",
-        language_filter
-    ))
-    .fetch_one(pool)
-    .await?;
+    let total_time: Option<i64> = if let Some(lang) = language {
+        sqlx::query_scalar("SELECT SUM(duration) FROM sessions WHERE language = ?")
+            .bind(lang)
+            .fetch_one(pool)
+            .await?
+    } else {
+        sqlx::query_scalar("SELECT SUM(duration) FROM sessions")
+            .fetch_one(pool)
+            .await?
+    };
 
     // Total vocabulary size
-    let vocab_filter = if let Some(lang) = language {
-        format!("WHERE language = '{}'", lang)
+    let total_vocab: i64 = if let Some(lang) = language {
+        sqlx::query_scalar("SELECT COUNT(*) FROM vocab WHERE language = ?")
+            .bind(lang)
+            .fetch_one(pool)
+            .await?
     } else {
-        String::new()
+        sqlx::query_scalar("SELECT COUNT(*) FROM vocab")
+            .fetch_one(pool)
+            .await?
     };
-    let total_vocab: i64 = sqlx::query_scalar(&format!(
-        "SELECT COUNT(*) FROM vocab {}",
-        vocab_filter
-    ))
-    .fetch_one(pool)
-    .await?;
 
-    // Average WPM - properly construct WHERE clause
-    let wpm_where = if let Some(lang) = language {
-        format!("WHERE language = '{}' AND wpm IS NOT NULL", lang)
+    // Average WPM
+    let avg_wpm: Option<f64> = if let Some(lang) = language {
+        sqlx::query_scalar("SELECT AVG(wpm) FROM sessions WHERE language = ? AND wpm IS NOT NULL")
+            .bind(lang)
+            .fetch_one(pool)
+            .await?
     } else {
-        "WHERE wpm IS NOT NULL".to_string()
+        sqlx::query_scalar("SELECT AVG(wpm) FROM sessions WHERE wpm IS NOT NULL")
+            .fetch_one(pool)
+            .await?
     };
-    let avg_wpm: Option<f64> = sqlx::query_scalar(&format!(
-        "SELECT AVG(wpm) FROM sessions {}",
-        wpm_where
-    ))
-    .fetch_one(pool)
-    .await?;
 
-    // Average unique words per session - properly construct WHERE clause
-    let unique_where = if let Some(lang) = language {
-        format!("WHERE language = '{}' AND unique_word_count IS NOT NULL", lang)
+    // Average unique words per session
+    let avg_unique: Option<f64> = if let Some(lang) = language {
+        sqlx::query_scalar("SELECT AVG(unique_word_count) FROM sessions WHERE language = ? AND unique_word_count IS NOT NULL")
+            .bind(lang)
+            .fetch_one(pool)
+            .await?
     } else {
-        "WHERE unique_word_count IS NOT NULL".to_string()
+        sqlx::query_scalar("SELECT AVG(unique_word_count) FROM sessions WHERE unique_word_count IS NOT NULL")
+            .fetch_one(pool)
+            .await?
     };
-    let avg_unique: Option<f64> = sqlx::query_scalar(&format!(
-        "SELECT AVG(unique_word_count) FROM sessions {}",
-        unique_where
-    ))
-    .fetch_one(pool)
-    .await?;
 
-    // Average new words per session - properly construct WHERE clause
-    let new_where = if let Some(lang) = language {
-        format!("WHERE language = '{}' AND new_word_count IS NOT NULL", lang)
+    // Average new words per session
+    let avg_new: Option<f64> = if let Some(lang) = language {
+        sqlx::query_scalar("SELECT AVG(new_word_count) FROM sessions WHERE language = ? AND new_word_count IS NOT NULL")
+            .bind(lang)
+            .fetch_one(pool)
+            .await?
     } else {
-        "WHERE new_word_count IS NOT NULL".to_string()
+        sqlx::query_scalar("SELECT AVG(new_word_count) FROM sessions WHERE new_word_count IS NOT NULL")
+            .fetch_one(pool)
+            .await?
     };
-    let avg_new: Option<f64> = sqlx::query_scalar(&format!(
-        "SELECT AVG(new_word_count) FROM sessions {}",
-        new_where
-    ))
-    .fetch_one(pool)
-    .await?;
 
     // Calculate streaks
     let daily_counts = get_daily_session_counts(pool, language, None).await?;
@@ -192,40 +189,75 @@ pub async fn get_daily_session_counts(
     language: Option<&str>,
     days: Option<i64>,
 ) -> Result<Vec<DailySessionCount>> {
-    let language_filter = if let Some(lang) = language {
-        format!("WHERE language = '{}'", lang)
-    } else {
-        String::new()
+    let rows = match (language, days) {
+        (Some(lang), Some(d)) => {
+            sqlx::query_as::<_, (String, i64, i64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    COUNT(*) as session_count,
+                    COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
+                FROM sessions
+                WHERE language = ? AND started_at >= strftime('%s', 'now', '-' || ? || ' days')
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .bind(lang)
+            .bind(d)
+            .fetch_all(pool)
+            .await?
+        }
+        (Some(lang), None) => {
+            sqlx::query_as::<_, (String, i64, i64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    COUNT(*) as session_count,
+                    COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
+                FROM sessions
+                WHERE language = ?
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .bind(lang)
+            .fetch_all(pool)
+            .await?
+        }
+        (None, Some(d)) => {
+            sqlx::query_as::<_, (String, i64, i64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    COUNT(*) as session_count,
+                    COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
+                FROM sessions
+                WHERE started_at >= strftime('%s', 'now', '-' || ? || ' days')
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .bind(d)
+            .fetch_all(pool)
+            .await?
+        }
+        (None, None) => {
+            sqlx::query_as::<_, (String, i64, i64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    COUNT(*) as session_count,
+                    COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
+                FROM sessions
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .fetch_all(pool)
+            .await?
+        }
     };
-
-    let days_filter = if let Some(d) = days {
-        let connector = if language_filter.is_empty() { "WHERE" } else { "AND" };
-        format!(
-            "{} started_at >= strftime('%s', 'now', '-{} days')",
-            connector, d
-        )
-    } else {
-        String::new()
-    };
-
-    let query = format!(
-        r#"
-        SELECT
-            DATE(started_at, 'unixepoch') as date,
-            COUNT(*) as session_count,
-            COALESCE(SUM(duration) / 60, 0) as total_minutes
-        FROM sessions
-        {}
-        {}
-        GROUP BY DATE(started_at, 'unixepoch')
-        ORDER BY date
-        "#,
-        language_filter, days_filter
-    );
-
-    let rows = sqlx::query_as::<_, (String, i64, i64)>(&query)
-        .fetch_all(pool)
-        .await?;
 
     let daily_counts = rows
         .into_iter()
@@ -245,38 +277,72 @@ pub async fn get_wpm_trends(
     language: Option<&str>,
     days: Option<i64>,
 ) -> Result<Vec<WpmTrend>> {
-    let language_filter = if let Some(lang) = language {
-        format!("WHERE language = '{}' AND wpm IS NOT NULL", lang)
-    } else {
-        "WHERE wpm IS NOT NULL".to_string()
+    let rows = match (language, days) {
+        (Some(lang), Some(d)) => {
+            sqlx::query_as::<_, (String, f64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    AVG(wpm) as avg_wpm
+                FROM sessions
+                WHERE language = ? AND wpm IS NOT NULL AND started_at >= strftime('%s', 'now', '-' || ? || ' days')
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .bind(lang)
+            .bind(d)
+            .fetch_all(pool)
+            .await?
+        }
+        (Some(lang), None) => {
+            sqlx::query_as::<_, (String, f64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    AVG(wpm) as avg_wpm
+                FROM sessions
+                WHERE language = ? AND wpm IS NOT NULL
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .bind(lang)
+            .fetch_all(pool)
+            .await?
+        }
+        (None, Some(d)) => {
+            sqlx::query_as::<_, (String, f64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    AVG(wpm) as avg_wpm
+                FROM sessions
+                WHERE wpm IS NOT NULL AND started_at >= strftime('%s', 'now', '-' || ? || ' days')
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .bind(d)
+            .fetch_all(pool)
+            .await?
+        }
+        (None, None) => {
+            sqlx::query_as::<_, (String, f64)>(
+                r#"
+                SELECT
+                    DATE(started_at, 'unixepoch') as date,
+                    AVG(wpm) as avg_wpm
+                FROM sessions
+                WHERE wpm IS NOT NULL
+                GROUP BY DATE(started_at, 'unixepoch')
+                ORDER BY date
+                "#,
+            )
+            .fetch_all(pool)
+            .await?
+        }
     };
-
-    let days_filter = if let Some(d) = days {
-        format!(
-            "AND started_at >= strftime('%s', 'now', '-{} days')",
-            d
-        )
-    } else {
-        String::new()
-    };
-
-    let query = format!(
-        r#"
-        SELECT
-            DATE(started_at, 'unixepoch') as date,
-            AVG(wpm) as avg_wpm
-        FROM sessions
-        {}
-        {}
-        GROUP BY DATE(started_at, 'unixepoch')
-        ORDER BY date
-        "#,
-        language_filter, days_filter
-    );
-
-    let rows = sqlx::query_as::<_, (String, f64)>(&query)
-        .fetch_all(pool)
-        .await?;
 
     let trends = rows
         .into_iter()

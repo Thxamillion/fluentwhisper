@@ -1,13 +1,34 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAllSessions, useDeleteSession } from '@/hooks/sessions';
+import { useTextLibraryItem } from '@/hooks/text-library';
 import { Loader2, Trash2, Clock, MessageSquare, TrendingUp, Languages, BookOpen, Mic, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/lib/toast';
-import { logger } from '@/services/logger'
+import { logger } from '@/services/logger';
+import type { SessionData } from '@/services/sessions/types';
+
+// Helper component to display session title for read-aloud sessions
+function SessionTitle({ session, formatDate }: { session: SessionData; formatDate: (timestamp: number) => string }) {
+  const { data: textItem } = useTextLibraryItem(session.textLibraryId || '');
+
+  if (session.sessionType === 'read_aloud' && textItem) {
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-base font-semibold text-foreground">
+          "{textItem.title}"
+        </span>
+        <span className="text-sm text-muted-foreground">•</span>
+        <div className="text-sm text-muted-foreground">{formatDate(session.startedAt)}</div>
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export function History() {
   const navigate = useNavigate();
@@ -159,6 +180,9 @@ export function History() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
+                  {/* Title for read-aloud sessions */}
+                  <SessionTitle session={session} formatDate={formatDate} />
+
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="flex items-center gap-2">
@@ -181,7 +205,10 @@ export function History() {
                       </span>
                     )}
 
-                    <div className="text-sm text-muted-foreground">{formatDate(session.startedAt)}</div>
+                    {/* Only show date for free-speak sessions (read-aloud has it in title) */}
+                    {(session.sessionType || 'free_speak') !== 'read_aloud' && (
+                      <div className="text-sm text-muted-foreground">{formatDate(session.startedAt)}</div>
+                    )}
                   </div>
 
                   {/* Stats */}

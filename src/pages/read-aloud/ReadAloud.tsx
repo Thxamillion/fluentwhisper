@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Mic, Square, Play, RotateCcw, Save, GitCompare, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Mic, Square, Play, RotateCcw, GitCompare, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTextLibraryItem } from '@/hooks/text-library';
 import { useRecording } from '@/hooks/recording';
 import { useUserVocab } from '@/hooks/vocabulary';
@@ -25,6 +25,7 @@ export function ReadAloud() {
     elapsedTime,
     startRecording,
     stopRecording,
+    createSession,
     transcribe,
     completeSession,
     isTranscribing,
@@ -35,9 +36,6 @@ export function ReadAloud() {
     audioPath: string;
     durationSeconds: number;
   } | null>(null);
-  const [transcript, setTranscript] = useState<string>('');
-  const [transcriptSegments, setTranscriptSegments] = useState<import('@/services/recording/types').TranscriptSegment[]>([]);
-  const [showTranscript, setShowTranscript] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
   // Adaptive pagination: Calculate words per page based on actual card height
@@ -196,50 +194,43 @@ export function ReadAloud() {
     }
   };
 
-  const handleTranscribe = async () => {
+  const handleTranscribeAndCompare = async () => {
     if (!recordingResult) return;
 
     try {
+      // First create the session in the database
+      const newSessionId = await createSession();
+      logger.debug('Created session:', newSessionId);
+
+      // Then transcribe the audio
       const transcriptResult = await transcribe(recordingResult.audioPath, textItem.language);
-      if (transcriptResult) {
-        setTranscript(transcriptResult.text);
-        setTranscriptSegments(transcriptResult.segments);
-        setShowTranscript(true);
-
-        logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
+      if (!transcriptResult) {
+        throw new Error('Transcription failed');
       }
-    } catch (error) {
-      console.error('Failed to transcribe:', error);
-      toast.error(`Failed to transcribe: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
 
-  const handleSave = async () => {
-    if (!sessionId || !recordingResult || !transcript) return;
+      logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
 
-    try {
+      // Finally complete the session with transcript and segments
       await completeSession(
-        sessionId,
+        newSessionId,
         recordingResult.audioPath,
-        transcript,
-        transcriptSegments,
+        transcriptResult.text,
+        transcriptResult.segments,
         recordingResult.durationSeconds,
         textItem.language
       );
 
-      // Navigate to session detail
-      navigate(`/session/${sessionId}`);
+      // Navigate to session detail for comparison
+      toast.success('Session saved successfully!');
+      navigate(`/session/${newSessionId}`);
     } catch (error) {
-      console.error('Failed to save session:', error);
-      toast.error(`Failed to save session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to transcribe/save session:', error);
+      toast.error(`Failed to process session: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleRetry = () => {
     setRecordingResult(null);
-    setTranscript('');
-    setTranscriptSegments([]);
-    setShowTranscript(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -302,38 +293,20 @@ export function ReadAloud() {
                 Retry
               </Button>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={handleTranscribe}
-                disabled={isTranscribing || isCompleting || !!transcript}
-              >
-                {isTranscribing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Transcribing...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Transcribe
-                  </>
-                )}
-              </Button>
-              <Button
                 variant="default"
                 size="sm"
-                onClick={handleSave}
-                disabled={!transcript || isCompleting}
+                onClick={handleTranscribeAndCompare}
+                disabled={isTranscribing || isCompleting}
               >
-                {isCompleting ? (
+                {isTranscribing || isCompleting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
+                    {isTranscribing ? 'Transcribing...' : 'Saving...'}
                   </>
                 ) : (
                   <>
                     <GitCompare className="w-4 h-4 mr-2" />
-                    Save & Compare
+                    Transcribe & Compare
                   </>
                 )}
               </Button>

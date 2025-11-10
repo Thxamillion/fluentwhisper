@@ -181,7 +181,7 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
                     <span
                       key={`${paraIndex}-${index}`}
                       className={`
-                        ${!isKnown ? 'bg-yellow-200 dark:bg-yellow-900/40 px-1 rounded cursor-pointer hover:bg-yellow-300 dark:hover:bg-yellow-900/60 transition-colors' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-0.5 rounded transition-colors'}
+                        ${!isKnown ? 'bg-yellow-200 dark:bg-blue-500/40 px-1 rounded cursor-pointer hover:bg-yellow-300 dark:hover:bg-blue-500/60 transition-colors' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-0.5 rounded transition-colors'}
                         ${loadingTranslation ? 'opacity-50' : ''}
                       `}
                       onClick={(e) => handleWordClick(token.text, e)}
