@@ -44,6 +44,7 @@ whisper-rs = "0.15"            # Local Whisper transcription (whisper.cpp bindin
 thiserror = "2.0"              # Better error handling
 tempfile = "3.8"               # Temporary file handling
 sysinfo = "0.32"               # System information (CPU, RAM) for model recommendations
+async-trait = "0.1.89"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-shell = "2.0"
