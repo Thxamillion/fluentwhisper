@@ -82,20 +82,28 @@ pub struct TranscriptionResponse {
 
 /// Transcribe an audio file
 #[tauri::command]
-pub async fn transcribe(_app_handle: tauri::AppHandle,
+pub async fn transcribe(app_handle: tauri::AppHandle,
     audio_path: String,
     language: String,
     model_path: Option<String>,
 ) -> Result<TranscriptionResponse, String> {
     let audio = Path::new(&audio_path);
 
+    // Get app data directory for absolute model paths
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let models_dir = app_data_dir.join("models");
+
     // Use default model path if not provided
     // TODO: Make this configurable via settings
     // Priority: small > base > tiny
     let model = model_path.map(PathBuf::from).unwrap_or_else(|| {
-        let small = PathBuf::from("models/ggml-small.bin");
-        let base = PathBuf::from("models/ggml-base.bin");
-        let tiny = PathBuf::from("models/ggml-tiny.bin");
+        let small = models_dir.join("ggml-small.bin");
+        let base = models_dir.join("ggml-base.bin");
+        let tiny = models_dir.join("ggml-tiny.bin");
 
         if small.exists() {
             small
