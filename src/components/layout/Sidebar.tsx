@@ -24,7 +24,10 @@ const navigation = [
   { name: 'Vocabulary', href: '/vocabulary', icon: BookText },
   { name: 'Progress', href: '/progress', icon: TrendingUp },
   { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Test Langpack', href: '/test', icon: FlaskConical },
+  // Only show test pages in development mode
+  ...(import.meta.env.DEV ? [
+    { name: 'Test Langpack', href: '/test', icon: FlaskConical },
+  ] : []),
 ]
 
 export function Sidebar() {

@@ -19,6 +19,7 @@ import { GlobalDownloadToast } from '@/components/GlobalDownloadToast'
 import { ModelSelectionGuard } from '@/components/ModelSelectionGuard'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { UpdateDialog } from '@/components/UpdateDialog'
 import { useSettings } from '@/hooks/settings'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
@@ -115,6 +116,9 @@ function App() {
         {/* Global download toast - persists across pages */}
         <GlobalDownloadToast />
 
+        {/* Update dialog - checks for updates on startup and every 24 hours */}
+        <UpdateDialog />
+
         <Routes>
           {/* Onboarding - standalone, no layout */}
           <Route path="/onboarding" element={
@@ -175,16 +179,21 @@ function App() {
                 <ProtectedRoute><Import /></ProtectedRoute>
               </ErrorBoundary>
             } />
-            <Route path="test" element={
-              <ErrorBoundary fallbackMessage="Failed to load test page.">
-                <Test />
-              </ErrorBoundary>
-            } />
-            <Route path="translation-test" element={
-              <ErrorBoundary fallbackMessage="Failed to load translation test.">
-                <TranslationTest />
-              </ErrorBoundary>
-            } />
+            {/* Test routes - only available in development mode */}
+            {import.meta.env.DEV && (
+              <>
+                <Route path="test" element={
+                  <ErrorBoundary fallbackMessage="Failed to load test page.">
+                    <Test />
+                  </ErrorBoundary>
+                } />
+                <Route path="translation-test" element={
+                  <ErrorBoundary fallbackMessage="Failed to load translation test.">
+                    <TranslationTest />
+                  </ErrorBoundary>
+                } />
+              </>
+            )}
           </Route>
         </Routes>
       </Router>

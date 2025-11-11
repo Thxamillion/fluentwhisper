@@ -61,19 +61,19 @@ export function Onboarding() {
   }
 
   const handleModelContinue = () => {
-    // Save selected model
-    updateSetting('selectedModel', selectedModel)
-
-    // If cloud model, skip model download
+    // If cloud model, save immediately (no download needed)
     if (isCloudModel(selectedModel)) {
-      // But still need to download language packs
+      updateSetting('selectedModel', selectedModel)
       setCurrentStep('langpack-download')
     } else {
+      // Local model - save after download completes
       setCurrentStep('download')
     }
   }
 
   const handleDownloadComplete = () => {
+    // Save selected model after successful download
+    updateSetting('selectedModel', selectedModel)
     // After model download, proceed to language pack download
     setCurrentStep('langpack-download')
   }

@@ -17,8 +17,13 @@ export function ModelSelectionGuard() {
     // Wait for data to load
     if (isLoading || !installedModels) return;
 
-    // If no model selected, don't do anything
-    if (!settings.selectedModel) return;
+    // If no model selected AND models are installed, auto-select first one
+    if (!settings.selectedModel && installedModels.length > 0) {
+      const firstModel = installedModels[0].name;
+      logger.info(`No model selected, auto-selecting: ${firstModel}`, 'ModelGuard');
+      updateSetting('selectedModel', firstModel);
+      return;
+    }
 
     // Check if selected model is actually installed
     const isSelectedModelInstalled = installedModels.some(

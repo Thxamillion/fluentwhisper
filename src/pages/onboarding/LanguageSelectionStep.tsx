@@ -24,7 +24,7 @@ export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
       <Card className="max-w-md w-full p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Welcome to FluentWhisper!</h1>
-          <p className="text-gray-600">Let's get you set up for success</p>
+          <p className="text-gray-600 dark:text-gray-400">Let's get you set up for success</p>
         </div>
 
         <div className="space-y-6">
@@ -33,13 +33,13 @@ export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
             <label className="block text-sm font-medium mb-2">
               What's your native language?
             </label>
-            <p className="text-xs text-gray-500 mb-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
               We detected {LANGUAGES.find(l => l.code === props.primaryLanguage)?.name || 'your language'}. You can change this if needed.
             </p>
             <select
               value={props.primaryLanguage}
               onChange={(e) => props.onPrimaryLanguageChange(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               {LANGUAGES.map(lang => (
                 <option key={lang.code} value={lang.code}>
@@ -57,7 +57,7 @@ export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
             <select
               value={props.learningLanguage}
               onChange={(e) => props.onLearningLanguageChange(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               {LANGUAGES.map(lang => (
                 <option key={lang.code} value={lang.code}>

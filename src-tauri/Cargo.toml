@@ -1,6 +1,6 @@
 [package]
 name = "fluent-diary"
-version = "0.1.0"
+version = "1.0.0"
 description = "Privacy-first speech practice app with offline transcription"
 authors = ["you"]
 license = ""
@@ -17,6 +17,7 @@ tauri-plugin-http = "2.0"      # HTTP client for downloads
 tauri-plugin-fs = "2.0"        # File system operations
 tauri-plugin-dialog = "2.0"    # File dialogs for text import
 tauri-plugin-deep-link = "2.0" # Deep link handling for OAuth callbacks
+tauri-plugin-updater = "2.0"   # Auto-update functionality
 keyring = "3.6"               # Secure credential storage (Keychain on macOS, Credential Manager on Windows)
 open = "5.0"                  # Open URLs in default browser
 url = "2.5"                   # URL parsing for deep links

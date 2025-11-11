@@ -12,7 +12,7 @@
     "test:deep-link": "node scripts/test-deep-link.mjs",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "dotenv -e .env -- tauri build"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +36,7 @@
     "@tauri-apps/plugin-fs": "^2.4.4",
     "@tauri-apps/plugin-os": "^2.3.2",
     "@tauri-apps/plugin-shell": "^2.3.3",
+    "@tauri-apps/plugin-updater": "^2.9.0",
     "@types/node": "^24.3.3",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@vitest/ui": "^4.0.4",
     "autoprefixer": "^10.4.21",
+    "dotenv-cli": "^11.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "vitest": "^4.0.4"
