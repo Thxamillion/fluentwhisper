@@ -121,7 +121,7 @@ export function GlobalDownloadToast() {
             {/* Title */}
             <div className="flex items-center justify-between gap-2 mb-2">
               <h3 className="font-medium text-sm text-gray-900 truncate">
-                {error ? 'Download failed' : isComplete ? 'Download complete' : 'Downloading language pack'}
+                {error ? 'Download failed' : isComplete ? 'Download complete' : `Downloading ${activeDownload?.name || 'file'}`}
               </h3>
               <button
                 onClick={clearDownload}
