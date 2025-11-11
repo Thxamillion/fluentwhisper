@@ -1,6 +1,6 @@
 {
   "productName": "Fluent Diary",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.fluentdiary.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -38,14 +38,18 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/icon.icns"
+      "icons/icon.icns",
+      "icons/icon.ico"
     ],
     "copyright": "",
     "category": "Education",
     "shortDescription": "Privacy-first speech practice app",
     "longDescription": "Desktop app for speech practice with offline transcription and metrics tracking",
     "macOS": {
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": "Developer ID Application: Quin Ortiz (3ACAJCX8FW)",
+      "providerShortName": "3ACAJCX8FW",
+      "entitlements": null
     }
   },
   "plugins": {
@@ -55,8 +59,16 @@
     "deep-link": {
       "mobile": [],
       "desktop": {
-        "schemes": ["fluentwhisper"]
+        "schemes": ["fluentdiary"]
       }
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/Thxamillion/fluentdiary-desktop/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": ""
     }
   }
 }
