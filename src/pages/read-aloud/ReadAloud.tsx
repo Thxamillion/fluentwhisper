@@ -198,11 +198,7 @@ export function ReadAloud() {
     if (!recordingResult) return;
 
     try {
-      // First create the session in the database
-      const newSessionId = await createSession();
-      logger.debug('Created session:', newSessionId);
-
-      // Then transcribe the audio
+      // First transcribe the audio (if this fails, nothing gets persisted)
       const transcriptResult = await transcribe(recordingResult.audioPath, textItem.language);
       if (!transcriptResult) {
         throw new Error('Transcription failed');
@@ -210,7 +206,11 @@ export function ReadAloud() {
 
       logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
 
-      // Finally complete the session with transcript and segments
+      // Only create session after successful transcription
+      const newSessionId = await createSession();
+      logger.debug('Created session:', newSessionId);
+
+      // Immediately complete the session (atomic operation)
       await completeSession(
         newSessionId,
         recordingResult.audioPath,

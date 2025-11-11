@@ -68,20 +68,19 @@ export function Record() {
     if (!recordingData) return;
 
     try {
-      // First create the session in the database
-      setProcessingStage('saving');
-      const newSessionId = await recording.createSession();
-      logger.debug('Created session:', newSessionId);
-
-      // Then transcribe
+      // First transcribe (if this fails, nothing gets persisted)
       setProcessingStage('transcribing');
       const transcriptResult = await recording.transcribe(recordingData.filePath, selectedLanguage);
       setTranscript(transcriptResult.text);
 
       logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
 
-      // Finally complete the session
+      // Only create session after successful transcription
       setProcessingStage('saving');
+      const newSessionId = await recording.createSession();
+      logger.debug('Created session:', newSessionId);
+
+      // Immediately complete the session (atomic operation)
       await recording.completeSession(
         newSessionId,
         recordingData.filePath,

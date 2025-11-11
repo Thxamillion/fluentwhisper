@@ -286,7 +286,7 @@ pub async fn get_sessions_by_language(
                word_count, unique_word_count, wpm, new_word_count,
                session_type, text_library_id, source_text
         FROM sessions
-        WHERE language = ?
+        WHERE language = ? AND ended_at IS NOT NULL
         ORDER BY started_at DESC
         "#,
     )
@@ -306,6 +306,7 @@ pub async fn get_all_sessions(pool: &SqlitePool) -> Result<Vec<SessionData>> {
                word_count, unique_word_count, wpm, new_word_count,
                session_type, text_library_id, source_text
         FROM sessions
+        WHERE ended_at IS NOT NULL
         ORDER BY started_at DESC
         "#,
     )
