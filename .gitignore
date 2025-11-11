@@ -94,3 +94,5 @@ TODO.md
 BACKLOG.md
 todo/
 scripts/LANGUAGE_PACK_RELEASE.md
+docs/RELEASE.md
+scripts/generate-update-manifest.sh

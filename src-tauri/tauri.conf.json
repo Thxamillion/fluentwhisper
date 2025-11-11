@@ -49,7 +49,7 @@
       "minimumSystemVersion": "10.15",
       "signingIdentity": "Developer ID Application: Quin Ortiz (3ACAJCX8FW)",
       "providerShortName": "3ACAJCX8FW",
-      "entitlements": null
+      "entitlements": "Entitlements.plist"
     }
   },
   "plugins": {
@@ -68,7 +68,7 @@
         "https://github.com/Thxamillion/fluentdiary-desktop/releases/latest/download/latest.json"
       ],
       "dialog": true,
-      "pubkey": ""
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI0RTgyMjdDNDI3NjgyM0EKUldRNmduWkNmQ0xvdEkyWnJoN0JGWUcySkFXMmV4Vno0MFVKNCtPZ21NQTNoRHRPVkx0b1VDVUkK"
     }
   }
 }

@@ -1,13 +1,17 @@
 # FluentDiary
 
+[![Download](https://img.shields.io/github/v/release/Thxamillion/fluentdiary-desktop?label=Download&color=blue)](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/ZFwngNpk3A)
+[![Reddit](https://img.shields.io/badge/Reddit-r%2Ffluentdiary-FF4500?logo=reddit&logoColor=white)](https://reddit.com/r/fluentdiary)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri-FFC131?logo=tauri)](https://tauri.app)
+[![Stars](https://img.shields.io/github/stars/Thxamillion/fluentdiary-desktop?style=social)](https://github.com/Thxamillion/fluentdiary-desktop)
+
 **Practice speaking your target language. Track progress. Improve faster.**
 
 FluentDiary is a free, open-source desktop app that helps language learners build speaking confidence through daily practice. Record yourself speaking, get instant transcripts and speaking metrics, and watch your vocabulary grow—all completely offline.
 
 ![FluentDiary Dashboard](docs/screenshots/dashboard.png)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri-FFC131?logo=tauri)](https://tauri.app)
 
 ## ✨ Why FluentDiary?
 
@@ -31,8 +35,6 @@ FluentDiary is a free, open-source desktop app that helps language learners buil
 **Linux:**
 - [Download AppImage](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
 - [Download .deb](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
-
-> **Note:** macOS builds are currently unsigned. You may need to right-click → Open to bypass Gatekeeper. Notarization coming soon.
 
 ### Build from Source
 
