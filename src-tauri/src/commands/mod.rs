@@ -1,6 +1,7 @@
 // Tauri commands - exposes services to frontend
 
 pub mod cleanup;
+pub mod dictionaries;
 pub mod langpack;
 pub mod language_packs;
 pub mod models;

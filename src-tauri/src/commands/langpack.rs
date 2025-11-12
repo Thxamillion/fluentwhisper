@@ -1,5 +1,4 @@
-use crate::db::user::open_user_db;
-use crate::services::{lemmatization, translation};
+use crate::services::lemmatization;
 
 /// Tauri command: Get lemma (base form) for a word
 ///
@@ -7,22 +6,6 @@ use crate::services::{lemmatization, translation};
 #[tauri::command]
 pub async fn get_lemma(app_handle: tauri::AppHandle, word: String, lang: String) -> Result<Option<String>, String> {
     lemmatization::get_lemma(&word, &lang, &app_handle)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-/// Tauri command: Get translation for a lemma
-///
-/// Called from TypeScript:
-/// `invoke('get_translation', { lemma: 'estar', fromLang: 'es', toLang: 'en' })`
-#[tauri::command]
-pub async fn get_translation(
-    app_handle: tauri::AppHandle,
-    lemma: String,
-    from_lang: String,
-    to_lang: String,
-) -> Result<Option<String>, String> {
-    translation::get_translation(&lemma, &from_lang, &to_lang, &app_handle)
         .await
         .map_err(|e| e.to_string())
 }
@@ -40,90 +23,4 @@ pub async fn lemmatize_batch(app_handle: tauri::AppHandle, words: Vec<String>, l
     lemmatization::lemmatize_batch(&words, &lang, &app_handle)
         .await
         .map_err(|e| e.to_string())
-}
-
-/// Tauri command: Translate a batch of lemmas
-///
-/// More efficient for processing multiple words.
-/// Checks custom user translations first, then falls back to official translation database.
-///
-/// Called from TypeScript:
-/// `invoke('translate_batch', { lemmas: ['estar', 'correr'], fromLang: 'es', toLang: 'en' })`
-///
-/// Returns: Array of [lemma, translation | null] tuples
-#[tauri::command]
-pub async fn translate_batch(
-    app_handle: tauri::AppHandle,
-    lemmas: Vec<String>,
-    from_lang: String,
-    to_lang: String,
-) -> Result<Vec<(String, Option<String>)>, String> {
-    // Open user database to check for custom translations
-    let user_pool = open_user_db(&app_handle)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    translation::translate_batch(&lemmas, &from_lang, &to_lang, Some(&user_pool), &app_handle)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-/// Tauri command: Full pipeline - lemmatize + translate words
-///
-/// Convenience command that does both steps at once.
-/// Checks custom user translations first, then falls back to official translation database.
-///
-/// Called from TypeScript:
-/// `invoke('process_words', { words: ['estoy', 'corriendo'], lang: 'es', targetLang: 'en' })`
-///
-/// Returns: Array of { word, lemma, translation } objects
-#[tauri::command]
-pub async fn process_words(
-    app_handle: tauri::AppHandle,
-    words: Vec<String>,
-    lang: String,
-    target_lang: String,
-) -> Result<Vec<WordResult>, String> {
-    // Step 1: Lemmatize all words
-    let lemma_results = lemmatization::lemmatize_batch(&words, &lang, &app_handle)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Step 2: Extract unique lemmas for translation
-    let lemmas: Vec<String> = lemma_results.iter().map(|(_, lemma)| lemma.clone()).collect();
-
-    // Step 3: Open user database to check for custom translations
-    let user_pool = open_user_db(&app_handle)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Step 4: Translate lemmas (checks custom translations first)
-    let translation_results = translation::translate_batch(&lemmas, &lang, &target_lang, Some(&user_pool), &app_handle)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Step 5: Combine results
-    let mut results = Vec::with_capacity(words.len());
-
-    for (i, (word, lemma)) in lemma_results.iter().enumerate() {
-        let translation = translation_results
-            .get(i)
-            .and_then(|(_, trans)| trans.clone());
-
-        results.push(WordResult {
-            word: word.clone(),
-            lemma: lemma.clone(),
-            translation,
-        });
-    }
-
-    Ok(results)
-}
-
-/// Result structure for process_words command
-#[derive(serde::Serialize)]
-pub struct WordResult {
-    pub word: String,
-    pub lemma: String,
-    pub translation: Option<String>,
 }

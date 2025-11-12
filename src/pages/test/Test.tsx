@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useProcessWords } from '@/hooks/langpack';
+import { invoke } from '@tauri-apps/api/core';
 import { useVocabStats, useRecordWord } from '@/hooks/vocabulary';
 import { tokenize } from '@/services/text';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+
+interface LemmaResult {
+  word: string;
+  lemma: string;
+}
 
 /**
  * Test page for development
@@ -14,15 +19,10 @@ import { Card } from '@/components/ui/card';
 export function Test() {
   const [inputText, setInputText] = useState('estoy corriendo del parque');
   const [words, setWords] = useState<string[]>([]);
+  const [data, setData] = useState<LemmaResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const [savedWords, setSavedWords] = useState<Set<string>>(new Set());
-
-  // Use the processWords hook
-  const { data, isLoading, error } = useProcessWords(
-    words,
-    'es',
-    'en',
-    words.length > 0
-  );
 
   // Get vocabulary stats
   const { data: stats, refetch: refetchStats } = useVocabStats('es', true);
@@ -61,11 +61,27 @@ export function Test() {
     }
   }, [data, recordWord, savedWords, refetchStats]);
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     // Use proper tokenization service with Spanish language rules
     const tokens = tokenize(inputText, 'es');
     setWords(tokens);
     setSavedWords(new Set()); // Reset for new batch
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Lemmatize only (no translations)
+      const results = await invoke<[string, string][]>('lemmatize_batch', {
+        words: tokens,
+        lang: 'es',
+      });
+
+      setData(results.map(([word, lemma]) => ({ word, lemma })));
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to process words'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClear = () => {
@@ -193,7 +209,7 @@ export function Test() {
                     wasSaved ? 'bg-green-50 border-green-200' : 'bg-gray-50'
                   }`}
                 >
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500 font-medium">Word</p>
                       <p className="text-lg font-semibold">{result.word}</p>
@@ -208,12 +224,6 @@ export function Test() {
                           </span>
                         )}
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Translation</p>
-                      <p className="text-lg font-semibold">
-                        {result.translation || '(not found)'}
-                      </p>
                     </div>
                   </div>
                 </div>

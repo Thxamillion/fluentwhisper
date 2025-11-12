@@ -313,17 +313,13 @@ pub async fn get_recent_vocab(
         let lemma: String = row.get("lemma");
         let forms_json: String = row.get("forms_spoken");
 
-        // 1. Check for custom translation first
-        let translation = match get_custom_translation(pool, &lemma, language, primary_language).await {
-            Ok(Some(custom)) => Some(custom),
-            _ => {
-                // 2. Fall back to official translation database
-                crate::services::translation::get_translation(&lemma, language, primary_language, app_handle)
-                    .await
-                    .ok()
-                    .flatten()
-            }
-        };
+        println!("[get_recent_vocab] Processing lemma: '{}', language: {}, primary_language: {}", lemma, language, primary_language);
+
+        // Check for custom translation only
+        let translation = get_custom_translation(pool, &lemma, language, primary_language)
+            .await
+            .ok()
+            .flatten();
 
         words.push(VocabWordWithTranslation {
             id: row.get("id"),
@@ -362,6 +358,76 @@ pub async fn delete_word(pool: &SqlitePool, lemma: &str, language: &str) -> Resu
         .execute(pool)
         .await?;
     Ok(())
+}
+
+/// Fix vocabulary entries by re-lemmatizing inflected forms
+/// Returns the number of entries fixed
+pub async fn fix_vocab_lemmas(
+    pool: &SqlitePool,
+    language: &str,
+    app_handle: &tauri::AppHandle,
+) -> Result<i32> {
+    use crate::services::lemmatization;
+
+    println!("[fix_vocab_lemmas] Starting vocabulary lemma fix for language: {}", language);
+
+    // Get all vocabulary entries for this language
+    let rows = sqlx::query(
+        "SELECT id, lemma, forms_spoken FROM vocab WHERE language = ?"
+    )
+    .bind(language)
+    .fetch_all(pool)
+    .await?;
+
+    let mut fixed_count = 0;
+
+    for row in rows {
+        let id: i64 = row.get("id");
+        let stored_lemma: String = row.get("lemma");
+        let forms_json: String = row.get("forms_spoken");
+
+        // Parse forms to get the original spoken form
+        let forms: Vec<String> = serde_json::from_str(&forms_json).unwrap_or_default();
+
+        if forms.is_empty() {
+            continue;
+        }
+
+        // Take the first form as representative
+        let representative_form = &forms[0];
+
+        // Get correct lemma from lemmatization service
+        match lemmatization::get_lemma(representative_form, language, app_handle).await {
+            Ok(Some(correct_lemma)) => {
+                // Check if stored lemma is different from correct lemma
+                if stored_lemma != correct_lemma {
+                    println!("[fix_vocab_lemmas] Fixing: '{}' -> '{}' (was stored as '{}')",
+                             representative_form, correct_lemma, stored_lemma);
+
+                    // Update the lemma
+                    sqlx::query(
+                        "UPDATE vocab SET lemma = ?, updated_at = ? WHERE id = ?"
+                    )
+                    .bind(&correct_lemma)
+                    .bind(now())
+                    .bind(id)
+                    .execute(pool)
+                    .await?;
+
+                    fixed_count += 1;
+                }
+            }
+            Ok(None) => {
+                println!("[fix_vocab_lemmas] No lemma found for: '{}'", representative_form);
+            }
+            Err(e) => {
+                println!("[fix_vocab_lemmas] Error lemmatizing '{}': {}", representative_form, e);
+            }
+        }
+    }
+
+    println!("[fix_vocab_lemmas] Fixed {} vocabulary entries", fixed_count);
+    Ok(fixed_count)
 }
 
 /// Set a custom translation for a word (creates or updates)

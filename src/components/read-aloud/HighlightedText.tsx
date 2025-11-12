@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { TranslationTooltip } from './TranslationTooltip';
-import { getLemma, getTranslation } from '@/services/langpack';
+import { getLemma } from '@/services/langpack';
 import type { VocabWord } from '@/services/vocabulary';
 import { logger } from '@/services/logger'
 
@@ -19,7 +19,7 @@ interface Token {
 interface SelectedWord {
   word: string;
   lemma: string;
-  translation: string;
+  translation: string | null;
   position: { x: number; y: number };
 }
 
@@ -62,26 +62,8 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
         // Continue with original word as lemma
       }
 
-      // Get translation with timeout
-      let translation = 'Translation not available';
-      try {
-        const targetLang = 'en';
-        const translationResult = await Promise.race([
-          getTranslation(lemma, language as any, targetLang),
-          new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error('Translation timeout')), 3000)
-          ),
-        ]);
-        // Extract the data field from ServiceResult
-        if (translationResult && typeof translationResult === 'object' && 'data' in translationResult) {
-          if (translationResult.success && translationResult.data) {
-            translation = String(translationResult.data);
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to get translation:', error);
-        // Continue with fallback translation
-      }
+      // No automatic translations - user can use dictionary button
+      const translation = null;
 
       // Get click position for tooltip - ensure it's within viewport
       const rect = (event.target as HTMLElement).getBoundingClientRect();
@@ -108,7 +90,6 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
       if (
         !word ||
         !lemma ||
-        !translation ||
         !isFinite(x) ||
         !isFinite(y) ||
         x < 0 ||
@@ -126,7 +107,7 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
         setSelectedWord({
           word: String(word),
           lemma: String(lemma),
-          translation: String(translation),
+          translation: translation,
           position: { x: Number(x), y: Number(y) },
         });
       }, 0);

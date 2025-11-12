@@ -105,9 +105,10 @@ export function useAutoDownload({
         setProgress(100);
         setDownloadDetails(null);
 
-        // Invalidate language pack status query to refetch and update UI
+        // Invalidate queries to refetch and update UI
         queryClient.invalidateQueries({ queryKey: ['languagePackStatus'] });
-        logger.debug('Invalidated language pack status queries', 'useAutoDownload');
+        queryClient.invalidateQueries({ queryKey: ['installedLanguages'] });
+        logger.debug('Invalidated language pack queries', 'useAutoDownload');
       } catch (err) {
         logger.error('Language pack download failed:', 'useAutoDownload', err);
         setError(err instanceof Error ? err.message : String(err));

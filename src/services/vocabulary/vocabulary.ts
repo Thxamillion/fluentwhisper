@@ -111,3 +111,22 @@ export async function getRecentVocab(
     };
   }
 }
+
+/**
+ * Fix vocabulary entries by re-lemmatizing inflected forms
+ * Returns the number of entries fixed
+ */
+export async function fixVocabLemmas(
+  language: LangCode
+): Promise<ServiceResult<number>> {
+  try {
+    const fixedCount = await invoke<number>('fix_vocab_lemmas', { language });
+    return { success: true, data: fixedCount };
+  } catch (error) {
+    console.error('[fixVocabLemmas] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

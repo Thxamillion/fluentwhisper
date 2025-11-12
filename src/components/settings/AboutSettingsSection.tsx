@@ -92,12 +92,6 @@ export function AboutSettingsSection() {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground text-center">
-              Made with ❤️ for language learners worldwide
-            </p>
-          </div>
         </div>
       </Card>
     </div>

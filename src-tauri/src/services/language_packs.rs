@@ -25,6 +25,7 @@ impl Drop for LockFileGuard {
 
 /// Progress update for a single file download
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DownloadProgress {
     pub file_type: String,      // "lemmas" or "translations"
     pub language_pair: String,   // "es" or "es-en"

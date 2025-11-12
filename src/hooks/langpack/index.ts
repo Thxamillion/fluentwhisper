@@ -1,2 +1,2 @@
 // Re-export all language pack hooks
-export * from './useProcessWords';
+// (currently empty - translation hooks removed)

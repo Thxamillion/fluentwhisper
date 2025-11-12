@@ -14,7 +14,6 @@ import { Import } from '@/pages/import/Import'
 import { Test } from '@/pages/test/Test'
 import { ReadAloud } from '@/pages/read-aloud/ReadAloud'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
-import { TranslationTest } from '@/pages/translation-test/TranslationTest'
 import { GlobalDownloadToast } from '@/components/GlobalDownloadToast'
 import { ModelSelectionGuard } from '@/components/ModelSelectionGuard'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -185,11 +184,6 @@ function App() {
                 <Route path="test" element={
                   <ErrorBoundary fallbackMessage="Failed to load test page.">
                     <Test />
-                  </ErrorBoundary>
-                } />
-                <Route path="translation-test" element={
-                  <ErrorBoundary fallbackMessage="Failed to load translation test.">
-                    <TranslationTest />
                   </ErrorBoundary>
                 } />
               </>

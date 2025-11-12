@@ -225,6 +225,105 @@ pub async fn initialize_user_db(app_handle: &tauri::AppHandle) -> Result<SqliteP
         .execute(&pool)
         .await?;
 
+    // Create dictionaries table for external dictionary lookups
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS dictionaries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            language TEXT NOT NULL,
+            name TEXT NOT NULL,
+            url_template TEXT NOT NULL,
+            dict_type TEXT NOT NULL CHECK(dict_type IN ('embedded', 'popup')),
+            is_active INTEGER NOT NULL DEFAULT 1,
+            sort_order INTEGER NOT NULL,
+            is_default INTEGER NOT NULL DEFAULT 1,
+            created_at INTEGER NOT NULL
+        )
+        "#
+    )
+    .execute(&pool)
+    .await
+    .context("Failed to create dictionaries table")?;
+
+    // Create dictionaries index
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_dictionaries_lang ON dictionaries(language, is_active, sort_order)")
+        .execute(&pool)
+        .await?;
+
+    // Seed default dictionaries if table is empty
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM dictionaries")
+        .fetch_one(&pool)
+        .await?;
+
+    if count.0 == 0 {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        // Spanish dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('es', 'WordReference', 'https://www.wordreference.com/es/en/translation.asp?spen=[WORD]', 'popup', 1, 1, 1, ?),
+                ('es', 'SpanishDict', 'https://www.spanishdict.com/translate/[WORD]', 'popup', 1, 2, 1, ?),
+                ('es', 'Google Translate', 'https://translate.google.com/?sl=es&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // French dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('fr', 'WordReference', 'https://www.wordreference.com/fren/[WORD]', 'popup', 1, 1, 1, ?),
+                ('fr', 'Larousse', 'https://www.larousse.fr/dictionnaires/francais-anglais/[WORD]', 'popup', 1, 2, 1, ?),
+                ('fr', 'Google Translate', 'https://translate.google.com/?sl=fr&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // German dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('de', 'WordReference', 'https://www.wordreference.com/deen/[WORD]', 'popup', 1, 1, 1, ?),
+                ('de', 'Dict.cc', 'https://www.dict.cc/?s=[WORD]', 'popup', 1, 2, 1, ?),
+                ('de', 'Google Translate', 'https://translate.google.com/?sl=de&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // Italian dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('it', 'WordReference', 'https://www.wordreference.com/iten/[WORD]', 'popup', 1, 1, 1, ?),
+                ('it', 'Google Translate', 'https://translate.google.com/?sl=it&tl=en&text=[WORD]&op=translate', 'popup', 0, 2, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+    }
+
     Ok(pool)
 }
 
@@ -282,6 +381,105 @@ pub async fn open_user_db(app_handle: &tauri::AppHandle) -> Result<SqlitePool> {
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_custom_translations_lookup ON custom_translations(lemma, lang_from, lang_to)")
         .execute(&pool)
         .await?;
+
+    // Migration: Create dictionaries table for external dictionary lookups
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS dictionaries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            language TEXT NOT NULL,
+            name TEXT NOT NULL,
+            url_template TEXT NOT NULL,
+            dict_type TEXT NOT NULL CHECK(dict_type IN ('embedded', 'popup')),
+            is_active INTEGER NOT NULL DEFAULT 1,
+            sort_order INTEGER NOT NULL,
+            is_default INTEGER NOT NULL DEFAULT 1,
+            created_at INTEGER NOT NULL
+        )
+        "#
+    )
+    .execute(&pool)
+    .await
+    .context("Failed to create dictionaries table")?;
+
+    // Create dictionaries index
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_dictionaries_lang ON dictionaries(language, is_active, sort_order)")
+        .execute(&pool)
+        .await?;
+
+    // Seed default dictionaries if table is empty
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM dictionaries")
+        .fetch_one(&pool)
+        .await?;
+
+    if count.0 == 0 {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        // Spanish dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('es', 'WordReference', 'https://www.wordreference.com/es/en/translation.asp?spen=[WORD]', 'popup', 1, 1, 1, ?),
+                ('es', 'SpanishDict', 'https://www.spanishdict.com/translate/[WORD]', 'popup', 1, 2, 1, ?),
+                ('es', 'Google Translate', 'https://translate.google.com/?sl=es&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // French dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('fr', 'WordReference', 'https://www.wordreference.com/fren/[WORD]', 'popup', 1, 1, 1, ?),
+                ('fr', 'Larousse', 'https://www.larousse.fr/dictionnaires/francais-anglais/[WORD]', 'popup', 1, 2, 1, ?),
+                ('fr', 'Google Translate', 'https://translate.google.com/?sl=fr&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // German dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('de', 'WordReference', 'https://www.wordreference.com/deen/[WORD]', 'popup', 1, 1, 1, ?),
+                ('de', 'Dict.cc', 'https://www.dict.cc/?s=[WORD]', 'popup', 1, 2, 1, ?),
+                ('de', 'Google Translate', 'https://translate.google.com/?sl=de&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // Italian dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('it', 'WordReference', 'https://www.wordreference.com/iten/[WORD]', 'popup', 1, 1, 1, ?),
+                ('it', 'Google Translate', 'https://translate.google.com/?sl=it&tl=en&text=[WORD]&op=translate', 'popup', 0, 2, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+    }
 
     Ok(pool)
 }

@@ -69,6 +69,9 @@ src-tauri/langpacks/**/*.db
 scripts/kaikki-*.jsonl
 scripts/*.jsonl
 
+# Translation databases (downloaded at runtime)
+/translations/
+
 # Audio recordings (optional - uncomment if you don't want to track audio files)
 # *.wav
 # *.mp3

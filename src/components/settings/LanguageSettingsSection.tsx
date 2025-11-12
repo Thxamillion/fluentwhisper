@@ -15,9 +15,6 @@ export function LanguageSettingsSection() {
 
   return (
     <div className="space-y-6">
-      {/* Language Pack Status */}
-      <LanguagePackSection />
-
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Language Preferences</h3>
         <div className="space-y-4">
@@ -62,6 +59,9 @@ export function LanguageSettingsSection() {
           </div>
         </div>
       </Card>
+
+      {/* Language Pack Status */}
+      <LanguagePackSection />
     </div>
   )
 }

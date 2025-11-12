@@ -6,7 +6,7 @@ import { X, Volume2, Check } from 'lucide-react';
 interface TranslationTooltipProps {
   word: string;
   lemma: string;
-  translation: string;
+  translation: string | null;
   position: { x: number; y: number };
   onClose: () => void;
   onMarkKnown?: () => void;
@@ -47,7 +47,7 @@ export function TranslationTooltip({
   }, [onClose]);
 
   // Validate all required props
-  if (!word || !lemma || !translation) {
+  if (!word || !lemma) {
     console.error('Invalid tooltip data - missing text:', { word, lemma, translation });
     return null;
   }
@@ -111,12 +111,18 @@ export function TranslationTooltip({
             </button>
           </div>
 
-          {/* Translation */}
+          {/* Translation or Dictionary Hint */}
           <div className="mb-4">
             <div className="text-sm text-muted-foreground mb-1">Translation:</div>
-            <div className="text-base font-medium text-blue-600 dark:text-blue-400">
-              {translation}
-            </div>
+            {translation ? (
+              <div className="text-base font-medium text-blue-600 dark:text-blue-400">
+                {translation}
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground italic">
+                Use the dictionary button in vocabulary to look up this word
+              </div>
+            )}
           </div>
 
           {/* Actions */}

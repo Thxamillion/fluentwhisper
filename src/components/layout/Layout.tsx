@@ -1,7 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { FirstRunCheck } from '../FirstRunCheck'
-import { LanguagePackBanner } from '../LanguagePackBanner'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 
 export function Layout() {
@@ -17,8 +16,6 @@ export function Layout() {
           <main className="flex-1 overflow-auto">
             {/* First Run Check Banner - Whisper Model */}
             <FirstRunCheck />
-            {/* Language Pack Banner */}
-            <LanguagePackBanner />
             <Outlet />
           </main>
         </div>

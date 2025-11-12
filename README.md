@@ -13,7 +13,7 @@ FluentDiary is a free, open-source desktop app that helps language learners buil
 
 ![FluentDiary Dashboard](docs/screenshots/dashboard.png)
 
-## ✨ Why FluentDiary?
+##  Why FluentDiary?
 
 - **🎤 Speak daily** - Build the speaking habit without pressure. Talk about your day, practice pronunciation, or record your thoughts in your target language.
 - **📊 Track real progress** - See concrete improvements in speaking speed (WPM), vocabulary growth, and session history over time.
