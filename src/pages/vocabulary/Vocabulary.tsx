@@ -5,7 +5,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useDownloadStore } from '@/stores/downloadStore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,18 +20,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from '@/lib/toast';
-import { logger } from '@/services/logger'
+import { DictionaryButton } from '@/components/dictionary';
 
 export function Vocabulary() {
   const { settings } = useSettingsStore();
-  const { activeDownload } = useDownloadStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMastered, setFilterMastered] = useState<'all' | 'mastered' | 'learning'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [customTranslations, setCustomTranslations] = useState<Record<string, string>>({});
   const [loadingTranslations, setLoadingTranslations] = useState(false);
-  const [translationsUnavailable, setTranslationsUnavailable] = useState(false);
 
   // Dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -139,7 +136,7 @@ export function Vocabulary() {
     }
   };
 
-  // Inline edit handlers
+  // Custom translation edit handlers
   const handleEditClick = (wordId: number, currentTranslation: string) => {
     setEditingWordId(wordId);
     setEditValue(currentTranslation || '');
@@ -159,7 +156,7 @@ export function Vocabulary() {
       });
 
       // Update local translations state
-      setTranslations((prev) => ({
+      setCustomTranslations((prev) => ({
         ...prev,
         [lemma]: editValue.trim(),
       }));
@@ -167,7 +164,7 @@ export function Vocabulary() {
       // Exit edit mode
       setEditingWordId(null);
       setEditValue('');
-      toast.success('Translation updated');
+      toast.success('Custom translation saved');
     } catch (error) {
       console.error('Failed to save translation:', error);
       toast.error(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -181,69 +178,42 @@ export function Vocabulary() {
     setEditValue('');
   };
 
-  // Reset translation unavailable flag when languages change
+  // Fetch custom translations for visible words
   useEffect(() => {
-    setTranslationsUnavailable(false);
-  }, [settings.targetLanguage, settings.primaryLanguage]);
+    const fetchCustomTranslations = async () => {
+      if (!filteredVocab || filteredVocab.length === 0) return;
 
-  // Watch for language pack download completion and retry translations
-  useEffect(() => {
-    if (activeDownload?.type === 'language-pack' && activeDownload.progress.percentage >= 100) {
-      // Language pack download completed, retry translations
-      logger.debug('Language pack download complete, retrying translations', 'Vocabulary');
-      setTranslationsUnavailable(false);
-    }
-  }, [activeDownload]);
-
-  // Fetch translations for visible words
-  useEffect(() => {
-    if (!filteredVocab || filteredVocab.length === 0) return;
-
-    // Don't retry if translations are unavailable
-    if (translationsUnavailable) return;
-
-    const fetchTranslations = async () => {
       setLoadingTranslations(true);
 
-      // Recalculate pagination inside effect to avoid dependency on paginatedVocab
       const startIdx = (currentPage - 1) * itemsPerPage;
       const endIdx = startIdx + itemsPerPage;
       const pageWords = filteredVocab.slice(startIdx, endIdx);
-      const lemmas = pageWords.map((w) => w.lemma);
 
-      try {
-        const results = await invoke<Array<[string, string | null]>>('translate_batch', {
-          lemmas,
-          fromLang: settings.targetLanguage, // From target language (learning)
-          toLang: settings.primaryLanguage,  // To primary language (native)
-        });
+      const translationsMap: Record<string, string> = {};
 
-        const translationMap: Record<string, string> = {};
-        results.forEach(([lemma, translation]) => {
-          if (translation) {
-            translationMap[lemma] = translation;
+      for (const word of pageWords) {
+        try {
+          // Only fetch custom translations (user-created ones)
+          const result = await invoke<string | null>('get_custom_translation', {
+            lemma: word.lemma,
+            langFrom: word.language,
+            langTo: settings.primaryLanguage,
+          });
+
+          if (result) {
+            translationsMap[word.lemma] = result;
           }
-        });
-
-        setTranslations((prev) => ({ ...prev, ...translationMap }));
-        setTranslationsUnavailable(false); // Reset if successful
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-
-        // Check if it's a "database not found" error
-        if (errorMsg.includes('Translation database not found') || errorMsg.includes('Please download the language pack')) {
-          logger.debug('Translation pack not available yet, will retry when languages change', 'Vocabulary');
-          setTranslationsUnavailable(true);
-        } else {
-          console.error('Failed to fetch translations:', error);
+        } catch (error) {
+          // Silently ignore - just means no custom translation exists
         }
-      } finally {
-        setLoadingTranslations(false);
       }
+
+      setCustomTranslations((prev) => ({ ...prev, ...translationsMap }));
+      setLoadingTranslations(false);
     };
 
-    fetchTranslations();
-  }, [currentPage, itemsPerPage, filteredVocab, settings.targetLanguage, settings.primaryLanguage, translationsUnavailable]);
+    fetchCustomTranslations();
+  }, [currentPage, itemsPerPage, filteredVocab, settings.primaryLanguage]);
 
   return (
     <div className="p-8">
@@ -296,7 +266,7 @@ export function Vocabulary() {
               <thead className="bg-muted border-b border-border">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Word</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Translation</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Dictionary</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Forms Used</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Usage</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">First Seen</th>
@@ -319,10 +289,6 @@ export function Vocabulary() {
                     <td className="px-4 py-3 text-card-foreground">
                       {loadingTranslations ? (
                         <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                      ) : translationsUnavailable ? (
-                        <span className="text-xs text-gray-400 italic">
-                          {activeDownload?.type === 'language-pack' ? 'Downloading...' : 'Language pack needed'}
-                        </span>
                       ) : editingWordId === word.id ? (
                         <div className="flex items-center gap-2">
                           <input
@@ -330,26 +296,57 @@ export function Vocabulary() {
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleEditSave(word.lemma, word.language);
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleEditSave(word.lemma, word.language);
+                              }
                               if (e.key === 'Escape') handleEditCancel();
                             }}
-                            onBlur={() => handleEditSave(word.lemma, word.language)}
-                            className="flex-1 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
                             autoFocus
                             disabled={isSaving}
+                            placeholder="Enter translation..."
                           />
-                          {isSaving && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+                          <Button
+                            size="sm"
+                            onClick={() => handleEditSave(word.lemma, word.language)}
+                            disabled={isSaving || !editValue.trim()}
+                          >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleEditCancel}
+                            disabled={isSaving}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : customTranslations[word.lemma] ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditClick(word.id, customTranslations[word.lemma])}
+                            className="flex items-center gap-2 hover:text-blue-600 transition-colors group"
+                          >
+                            <span>{customTranslations[word.lemma]}</span>
+                            <Edit className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                          <DictionaryButton word={word.lemma} language={word.language} />
                         </div>
                       ) : (
-                        <button
-                          onClick={() => handleEditClick(word.id, translations[word.lemma] || '')}
-                          className="flex items-center gap-2 hover:text-blue-600 transition-colors group"
-                        >
-                          <span>{translations[word.lemma] || '-'}</span>
-                          <Edit className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditClick(word.id, '')}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Add translation
+                          </button>
+                          <DictionaryButton word={word.lemma} language={word.language} />
+                        </div>
                       )}
-                    </td>                    <td className="px-4 py-3">
+                    </td>
+                    <td className="px-4 py-3">
                       {word.forms_spoken.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {word.forms_spoken.map((form, idx) => (

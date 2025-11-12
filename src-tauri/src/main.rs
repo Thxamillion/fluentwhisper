@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use fluent_diary::commands::{cleanup, langpack, language_packs, models, recording, sessions, stats, system, text_library, vocabulary};
+use fluent_diary::commands::{cleanup, dictionaries, langpack, language_packs, models, recording, sessions, stats, system, text_library, vocabulary};
 use fluent_diary::services::recording::RecorderState;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -42,10 +42,7 @@ fn main() {
             greet,
             log_marker,
             langpack::get_lemma,
-            langpack::get_translation,
             langpack::lemmatize_batch,
-            langpack::translate_batch,
-            langpack::process_words,
             vocabulary::record_word,
             vocabulary::get_user_vocab,
             vocabulary::is_new_word,
@@ -54,7 +51,9 @@ fn main() {
             vocabulary::get_recent_vocab,
             vocabulary::delete_vocab_word,
             vocabulary::set_custom_translation,
+            vocabulary::get_custom_translation,
             vocabulary::delete_custom_translation,
+            vocabulary::fix_vocab_lemmas,
             recording::get_recording_devices,
             recording::start_recording,
             recording::stop_recording,
@@ -99,6 +98,12 @@ fn main() {
             language_packs::get_required_packs,
             language_packs::download_language_pair,
             system::get_system_specs,
+            dictionaries::get_dictionaries,
+            dictionaries::update_dictionary_active,
+            dictionaries::update_dictionary_sort_order,
+            dictionaries::reorder_dictionaries,
+            dictionaries::add_dictionary,
+            dictionaries::delete_dictionary,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -109,6 +109,21 @@ pub async fn set_custom_translation(
         .map_err(|e| e.to_string())
 }
 
+/// Get a custom translation if it exists
+#[tauri::command]
+pub async fn get_custom_translation(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    lang_from: String,
+    lang_to: String,
+) -> Result<Option<String>, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::get_custom_translation(&pool, &lemma, &lang_from, &lang_to)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 /// Delete a custom translation (reset to default)
 #[tauri::command]
 pub async fn delete_custom_translation(
@@ -120,6 +135,20 @@ pub async fn delete_custom_translation(
     let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
 
     vocabulary::delete_custom_translation(&pool, &lemma, &lang_from, &lang_to)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Fix vocabulary entries by re-lemmatizing inflected forms
+/// Returns the number of entries fixed
+#[tauri::command]
+pub async fn fix_vocab_lemmas(
+    app_handle: tauri::AppHandle,
+    language: String,
+) -> Result<i32, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::fix_vocab_lemmas(&pool, &language, &app_handle)
         .await
         .map_err(|e| e.to_string())
 }

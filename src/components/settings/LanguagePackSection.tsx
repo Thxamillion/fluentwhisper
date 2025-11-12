@@ -79,11 +79,6 @@ export function LanguagePackSection() {
                     • Missing lemmatization: {packStatus.missingLemmas.map(getLanguageName).join(', ')}
                   </p>
                 )}
-                {packStatus.missingTranslations.length > 0 && (
-                  <p>
-                    • Missing translations: {packStatus.missingTranslations.length} database(s)
-                  </p>
-                )}
               </div>
               <p className="text-xs text-yellow-700 mt-2">
                 Download will start automatically
@@ -119,7 +114,7 @@ export function LanguagePackSection() {
       )}
 
       <p className="text-xs text-gray-500 mt-4">
-        Language packs are downloaded automatically when you change languages. They include lemmatization databases and translation dictionaries.
+        Language packs are downloaded automatically when you change languages. They include lemmatization databases for vocabulary tracking.
       </p>
     </Card>
   );
