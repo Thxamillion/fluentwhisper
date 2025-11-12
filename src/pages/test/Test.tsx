@@ -90,9 +90,20 @@ export function Test() {
     setSavedWords(new Set());
   };
 
-  const handleResetOnboarding = () => {
-    localStorage.removeItem('onboarding_completed');
-    window.location.href = '/onboarding';
+  const handleResetOnboarding = async () => {
+    try {
+      // Reset all app data via Tauri command
+      await invoke('reset_app_data');
+
+      // Clear localStorage onboarding flag
+      localStorage.removeItem('onboarding_completed');
+
+      // Redirect to onboarding
+      window.location.href = '/onboarding';
+    } catch (error) {
+      console.error('Failed to reset app data:', error);
+      alert('Failed to reset app data: ' + error);
+    }
   };
 
   // Error boundary test component
@@ -132,14 +143,14 @@ export function Test() {
         </Button>
       </Card>
 
-      {/* Reset Onboarding */}
-      <Card className="p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-2">Reset Onboarding</h2>
+      {/* Reset App Data */}
+      <Card className="p-6 mb-6 border-orange-200">
+        <h2 className="text-xl font-semibold mb-2 text-orange-700">Reset All App Data</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Clear onboarding completion flag and return to the onboarding flow.
+          Delete all app data including models, sessions, vocabulary, settings, and cache. This will return you to the onboarding flow.
         </p>
-        <Button onClick={handleResetOnboarding} variant="outline">
-          Reset Onboarding
+        <Button onClick={handleResetOnboarding} variant="destructive">
+          Reset All Data
         </Button>
       </Card>
 

@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Download } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { useDownloadModel } from '@/hooks/models'
+import { DownloadProgress } from '@/components/DownloadProgress'
 import { useEffect } from 'react'
 import { logger } from '@/services/logger'
 
@@ -47,19 +48,13 @@ export function DownloadStep(props: DownloadStepProps) {
           </div>
           <h1 className="text-3xl font-bold mb-2">Downloading Whisper Model</h1>
           <p className="text-gray-600">
-            Check the download toast in the bottom-right corner for progress
+            This may take a few minutes depending on your connection speed
           </p>
         </div>
 
         <div className="space-y-6">
-          {/* Loading Spinner */}
-          <div className="flex justify-center py-4">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          </div>
-
-          <div className="text-center text-sm text-gray-500">
-            This may take a few minutes depending on your connection speed
-          </div>
+          {/* Download Progress */}
+          <DownloadProgress />
 
           {/* Cancel Button */}
           <Button

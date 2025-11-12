@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use sysinfo::System;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemSpecs {
@@ -81,4 +82,42 @@ fn recommend_model(ram_gb: f64, cpu_cores: usize) -> String {
         // Prioritize speed and smooth performance
         "tiny".to_string()
     }
+}
+
+/// Reset all app data (databases, settings, models, cache)
+/// This is a destructive operation - use only for testing/development
+#[tauri::command]
+pub fn reset_app_data(app: AppHandle) -> Result<(), String> {
+    use std::fs;
+
+    // Get app data directory
+    let app_data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    // Get cache directory
+    let cache_dir = app.path()
+        .app_cache_dir()
+        .map_err(|e| format!("Failed to get cache directory: {}", e))?;
+
+    println!("[reset_app_data] Resetting app data...");
+    println!("[reset_app_data] App data dir: {:?}", app_data_dir);
+    println!("[reset_app_data] Cache dir: {:?}", cache_dir);
+
+    // Remove app data directory
+    if app_data_dir.exists() {
+        fs::remove_dir_all(&app_data_dir)
+            .map_err(|e| format!("Failed to remove app data: {}", e))?;
+        println!("[reset_app_data] Removed app data directory");
+    }
+
+    // Remove cache directory
+    if cache_dir.exists() {
+        fs::remove_dir_all(&cache_dir)
+            .map_err(|e| format!("Failed to remove cache: {}", e))?;
+        println!("[reset_app_data] Removed cache directory");
+    }
+
+    println!("[reset_app_data] App data reset complete!");
+    Ok(())
 }

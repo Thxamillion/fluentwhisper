@@ -5,9 +5,10 @@
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 import { useEffect } from 'react';
 import { useAutoDownload } from '@/hooks/language-packs';
-import { DownloadProgress } from '@/components/language-packs/DownloadProgress';
+import { DownloadProgress } from '@/components/DownloadProgress';
 
 interface LanguagePackDownloadStepProps {
   primaryLanguage: string;
@@ -67,23 +68,30 @@ export function LanguagePackDownloadStep({
     return null;
   }
 
+  const languageName = learningLanguage === 'es' ? 'Spanish' :
+                       learningLanguage === 'fr' ? 'French' :
+                       learningLanguage === 'de' ? 'German' :
+                       learningLanguage === 'it' ? 'Italian' :
+                       learningLanguage;
+
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <Card className="max-w-md w-full p-8">
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+              <Download className="w-8 h-8 text-blue-600 animate-pulse" />
+            </div>
+          </div>
           <h1 className="text-3xl font-bold mb-2">Downloading Language Packs</h1>
           <p className="text-gray-600">
-            Setting up {learningLanguage === 'es' ? 'Spanish' : learningLanguage === 'fr' ? 'French' : learningLanguage === 'de' ? 'German' : learningLanguage === 'it' ? 'Italian' : learningLanguage} for you
+            Setting up vocabulary tracking for {languageName}
           </p>
         </div>
 
         <div className="space-y-6">
-          <DownloadProgress
-            isDownloading={isDownloading}
-            progress={progress}
-            details={downloadDetails}
-            error={error}
-          />
+          {/* Unified Download Progress */}
+          <DownloadProgress />
 
           {!isDownloading && progress === 0 && !error && (
             <div className="text-center text-sm text-gray-500">

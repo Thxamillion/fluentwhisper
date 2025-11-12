@@ -1,9 +1,11 @@
 /**
  * Global download toast
  * Persists across pages for both language packs and Whisper models
+ * Hidden during onboarding (inline progress shown instead)
  */
 
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Download, X } from 'lucide-react';
 import { listen } from '@tauri-apps/api/event';
 import { useDownloadStore } from '@/stores/downloadStore';
@@ -52,7 +54,11 @@ function formatLanguagePackName(event: LanguagePackProgressEvent): string {
 }
 
 export function GlobalDownloadToast() {
+  const location = useLocation();
   const { activeDownload, isDownloading, error, setLanguagePackProgress, setModelProgress, clearDownload } = useDownloadStore();
+
+  // Hide during onboarding (progress shown inline there)
+  const isOnboarding = location.pathname === '/onboarding';
 
   // Listen to language pack download progress
   useEffect(() => {
@@ -100,7 +106,8 @@ export function GlobalDownloadToast() {
     }
   }, [activeDownload, clearDownload]);
 
-  if (!isDownloading && !error) {
+  // Hide during onboarding OR if no download active
+  if (isOnboarding || (!isDownloading && !error)) {
     return null;
   }
 

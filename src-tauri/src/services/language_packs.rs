@@ -137,7 +137,9 @@ async fn download_file_with_progress(
     // Create lock file to prevent duplicate downloads
     let lock_file = destination.with_extension("lock");
     if lock_file.exists() {
-        anyhow::bail!("Download already in progress for {}", language_pair);
+        println!("[download_file] Download already in progress for {}, skipping", language_pair);
+        // Not an error - just means another download is in progress
+        return Ok(());
     }
     std::fs::File::create(&lock_file)
         .context("Failed to create lock file")?;
@@ -288,7 +290,6 @@ pub fn get_required_packs(
     app: &AppHandle,
 ) -> Result<RequiredPacks> {
     let mut lemmas = Vec::new();
-    let mut translations = Vec::new();
 
     // Check if target language lemmas are installed
     if !is_lemmas_installed(target_lang, app)? {
@@ -301,17 +302,9 @@ pub fn get_required_packs(
         lemmas.push(primary_lang.to_string());
     }
 
-    // Check if translation database is installed
-    // Bidirectional database, so only need one direction
-    let db_name = if target_lang < primary_lang {
-        (target_lang.to_string(), primary_lang.to_string())
-    } else {
-        (primary_lang.to_string(), target_lang.to_string())
-    };
-
-    if !is_translation_installed(&db_name.0, &db_name.1, app)? {
-        translations.push(db_name);
-    }
-
-    Ok(RequiredPacks { lemmas, translations })
+    // No longer checking for translations - we use external dictionaries instead
+    Ok(RequiredPacks {
+        lemmas,
+        translations: Vec::new() // Always empty now
+    })
 }

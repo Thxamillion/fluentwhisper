@@ -13,6 +13,7 @@ export interface WhisperModel {
 }
 
 export interface DownloadProgress {
+  modelName: string;
   downloadedBytes: number;
   totalBytes: number;
   percentage: number;

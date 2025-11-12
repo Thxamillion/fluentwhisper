@@ -30,6 +30,7 @@ pub struct WhisperModel {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadProgress {
+    pub model_name: String,
     pub downloaded_bytes: u64,
     pub total_bytes: u64,
     pub percentage: f64,
@@ -199,6 +200,7 @@ pub async fn download_model(
     // Download in chunks with progress
     let mut downloaded: u64 = 0;
     let mut stream = response.bytes_stream();
+    let mut last_progress_emit = std::time::Instant::now();
 
     use futures_util::StreamExt;
     while let Some(chunk) = stream.next().await {
@@ -209,13 +211,18 @@ pub async fn download_model(
 
         downloaded += chunk.len() as u64;
 
-        let percentage = (downloaded as f64 / total_size as f64) * 100.0;
-        progress_callback(DownloadProgress {
-            downloaded_bytes: downloaded,
-            total_bytes: total_size,
-            percentage,
-            is_complete: false,
-        });
+        // Emit progress every 500ms to avoid overwhelming the event system
+        if last_progress_emit.elapsed().as_millis() > 500 || downloaded == total_size {
+            let percentage = (downloaded as f64 / total_size as f64) * 100.0;
+            progress_callback(DownloadProgress {
+                model_name: model.display_name.clone(),
+                downloaded_bytes: downloaded,
+                total_bytes: total_size,
+                percentage,
+                is_complete: false,
+            });
+            last_progress_emit = std::time::Instant::now();
+        }
     }
 
     // Finalize
@@ -229,6 +236,7 @@ pub async fn download_model(
 
     // Final progress callback
     progress_callback(DownloadProgress {
+        model_name: model.display_name.clone(),
         downloaded_bytes: total_size,
         total_bytes: total_size,
         percentage: 100.0,

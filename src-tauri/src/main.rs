@@ -98,6 +98,7 @@ fn main() {
             language_packs::get_required_packs,
             language_packs::download_language_pair,
             system::get_system_specs,
+            system::reset_app_data,
             dictionaries::get_dictionaries,
             dictionaries::update_dictionary_active,
             dictionaries::update_dictionary_sort_order,
