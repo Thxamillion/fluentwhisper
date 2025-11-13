@@ -74,7 +74,52 @@ export function getStartOfDaysAgo(days: number): number {
 
 /**
  * Format seconds as minutes (rounded)
+ * @deprecated Use formatDuration() instead for better accuracy
  */
 export function formatMinutes(seconds: number): number {
   return Math.round(seconds / 60)
+}
+
+/**
+ * Format duration in seconds as a human-readable string
+ * Shows seconds for durations under 1 minute, otherwise shows minutes and seconds
+ *
+ * Examples:
+ * - 33s → "33s"
+ * - 68s → "1m 8s"
+ * - 125s → "2m 5s"
+ * - 3665s → "1h 1m"
+ */
+export function formatDuration(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds}s`
+  }
+
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+
+  if (hours > 0) {
+    // For hour+ durations, omit seconds (e.g., "1h 5m")
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+  }
+
+  // For minute durations, show seconds if non-zero
+  return secs > 0 ? `${minutes}m ${secs}s` : `${minutes}m`
+}
+
+/**
+ * Format duration in seconds as a compact string (for tight spaces)
+ * Always rounds to whole minutes for durations >= 1 minute
+ *
+ * Examples:
+ * - 33s → "33s"
+ * - 68s → "1m"
+ * - 125s → "2m"
+ */
+export function formatDurationCompact(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds}s`
+  }
+  return `${Math.floor(seconds / 60)}m`
 }

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Clock, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { SessionData } from '@/services/sessions/types'
-import { formatRelativeTime, formatMinutes } from '@/utils/dateFormatting'
+import { formatRelativeTime, formatDurationCompact } from '@/utils/dateFormatting'
 
 interface RecentSessionsProps {
   sessions: SessionData[]
@@ -41,7 +41,7 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
                   {formatRelativeTime(session.startedAt)}
                 </span>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{formatMinutes(session.duration || 0)}m</span>
+                  <span>{formatDurationCompact(session.duration || 0)}</span>
                   <span>•</span>
                   <span>{Math.round(session.wpm || 0)} WPM</span>
                   <span>•</span>

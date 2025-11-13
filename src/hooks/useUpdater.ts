@@ -11,6 +11,7 @@ import {
   installUpdate,
   getCurrentVersion,
   type UpdateInfo,
+  type ProgressCallback,
 } from '../services/updater';
 
 const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -28,7 +29,7 @@ export function useUpdateCheck() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to check for updates');
       }
-      return result.update;
+      return result.data;
     },
     refetchInterval: UPDATE_CHECK_INTERVAL,
     refetchOnWindowFocus: false,
@@ -50,7 +51,7 @@ export function useManualUpdateCheck() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to check for updates');
       }
-      return result.update;
+      return result.data;
     },
     onSuccess: (data) => {
       // Update the cached update check result
@@ -60,12 +61,12 @@ export function useManualUpdateCheck() {
 }
 
 /**
- * Hook to install an update
+ * Hook to install an update with progress tracking
  */
-export function useInstallUpdate() {
+export function useInstallUpdate(onProgress?: ProgressCallback) {
   return useMutation({
     mutationFn: async () => {
-      const result = await installUpdate();
+      const result = await installUpdate(onProgress);
       if (!result.success) {
         throw new Error(result.error || 'Failed to install update');
       }

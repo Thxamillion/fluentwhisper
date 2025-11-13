@@ -6,6 +6,7 @@ import { useRecentVocab } from '@/hooks/vocabulary'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { calculateTodayStats, calculateWeekStats, calculateWpmChange, getRecentSessions } from '@/utils/sessionStats'
 import { calculateDailyGoalState } from '@/utils/dailyGoalState'
+import { formatDurationCompact } from '@/utils/dateFormatting'
 import { DailyGoalModal } from '@/components/DailyGoalModal'
 import { StatCard, QuickStartBanner, RecentSessions, NewWords, PracticeCalendar } from '@/components/dashboard'
 
@@ -31,8 +32,8 @@ export function Dashboard() {
   )
 
   // Calculate derived stats
-  const todayStats = allSessions ? calculateTodayStats(allSessions) : { sessions: 0, minutes: 0, newWords: 0 }
-  const weekStats = allSessions ? calculateWeekStats(allSessions) : { sessions: 0, minutes: 0, newWords: 0 }
+  const todayStats = allSessions ? calculateTodayStats(allSessions) : { sessions: 0, seconds: 0, minutes: 0, newWords: 0 }
+  const weekStats = allSessions ? calculateWeekStats(allSessions) : { sessions: 0, seconds: 0, minutes: 0, newWords: 0 }
   const wpmChange = wpmTrends ? calculateWpmChange(wpmTrends) : 0
   const recentSessions = allSessions ? getRecentSessions(allSessions, 4) : []
 
@@ -79,7 +80,7 @@ export function Dashboard() {
             <StatCard
               icon={TrendingUp}
               label="This Week"
-              value={`${weekStats.minutes}m`}
+              value={formatDurationCompact(weekStats.seconds)}
               subtitle={`+${weekStats.newWords} words`}
             />
 

@@ -3,20 +3,25 @@
  */
 
 import { SessionData } from '@/services/sessions/types'
-import { isToday, isWithinDays, formatMinutes } from './dateFormatting'
+import { isToday, isWithinDays } from './dateFormatting'
 
 /**
  * Calculate today's session statistics
+ * Returns total seconds (not rounded minutes) to avoid cumulative rounding errors
  */
 export function calculateTodayStats(sessions: SessionData[]) {
   const todaySessions = sessions.filter(s => isToday(s.startedAt))
 
+  // Sum raw seconds first, then caller can format as needed
+  const totalSeconds = todaySessions.reduce(
+    (sum, s) => sum + (s.duration || 0),
+    0
+  )
+
   return {
     sessions: todaySessions.length,
-    minutes: todaySessions.reduce(
-      (sum, s) => sum + formatMinutes(s.duration || 0),
-      0
-    ),
+    seconds: totalSeconds,
+    minutes: Math.floor(totalSeconds / 60), // Floor instead of round for accuracy
     newWords: todaySessions.reduce(
       (sum, s) => sum + (s.newWordCount || 0),
       0
@@ -26,16 +31,21 @@ export function calculateTodayStats(sessions: SessionData[]) {
 
 /**
  * Calculate this week's session statistics (last 7 days)
+ * Returns total seconds (not rounded minutes) to avoid cumulative rounding errors
  */
 export function calculateWeekStats(sessions: SessionData[]) {
   const weekSessions = sessions.filter(s => isWithinDays(s.startedAt, 7))
 
+  // Sum raw seconds first, then caller can format as needed
+  const totalSeconds = weekSessions.reduce(
+    (sum, s) => sum + (s.duration || 0),
+    0
+  )
+
   return {
     sessions: weekSessions.length,
-    minutes: weekSessions.reduce(
-      (sum, s) => sum + formatMinutes(s.duration || 0),
-      0
-    ),
+    seconds: totalSeconds,
+    minutes: Math.floor(totalSeconds / 60), // Floor instead of round for accuracy
     newWords: weekSessions.reduce(
       (sum, s) => sum + (s.newWordCount || 0),
       0

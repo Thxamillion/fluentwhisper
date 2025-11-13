@@ -12,6 +12,7 @@ import {
 } from '../../hooks/models';
 import { useSystemSpecs } from '@/hooks/system';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useDownloadStore } from '@/stores/downloadStore';
 
 export function WhisperModelSection() {
   const { data: availableModels, isLoading: loadingAvailable } = useAvailableModels();
@@ -19,6 +20,7 @@ export function WhisperModelSection() {
   const { data: systemSpecs, isLoading: loadingSpecs } = useSystemSpecs();
   const downloadModel = useDownloadModel();
   const deleteModel = useDeleteModel();
+  const { activeDownload } = useDownloadStore();
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
@@ -59,7 +61,7 @@ export function WhisperModelSection() {
 
   const hasAnyModelInstalled = installedModels && installedModels.length > 0;
   const isDownloading = downloadModel.isPending;
-  const progress = downloadModel.progress;
+  const progress = activeDownload?.type === 'whisper-model' ? activeDownload.progress : null;
   const recommendedModel = systemSpecs?.recommended_model;
 
   // Helper to check if model might be slow on this system

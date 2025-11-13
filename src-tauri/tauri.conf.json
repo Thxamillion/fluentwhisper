@@ -37,6 +37,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/icon.icns",
       "icons/icon.ico"
@@ -67,8 +68,8 @@
       "endpoints": [
         "https://github.com/Thxamillion/fluentdiary-desktop/releases/latest/download/latest.json"
       ],
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI0RTgyMjdDNDI3NjgyM0EKUldRNmduWkNmQ0xvdEkyWnJoN0JGWUcySkFXMmV4Vno0MFVKNCtPZ21NQTNoRHRPVkx0b1VDVUkK"
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5OEY4QkQ4NjYyNkVFMjMKUldRajdpWm0ySXVQeVhPWDY3cWJrK1BLNzZoRytTemxxWWJzRlY5MHV4YUdkd2tUcThiOE1hMUEK"
     }
   }
 }

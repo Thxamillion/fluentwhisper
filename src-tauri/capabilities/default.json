@@ -7,7 +7,10 @@
     "core:window:allow-create",
     "core:webview:allow-create-webview-window",
     "shell:allow-open",
-    "core:webview:allow-internal-toggle-devtools"
+    "core:webview:allow-internal-toggle-devtools",
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download-and-install"
   ]
 }
 

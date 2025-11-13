@@ -758,6 +758,44 @@ export class ErrorBoundary extends Component<Props, State> {
 
 ---
 
+### 7.1.1 Release Management Best Practices
+
+**IMPORTANT: Preventing "Latest" Release Conflicts**
+
+When testing older versions (e.g., creating v1.0.0 after v1.0.2 exists), GitHub will automatically mark the newest created release as "Latest", which breaks the updater for production users.
+
+**Solution: Use Pre-releases for Testing**
+
+Always mark test releases as pre-release to prevent them from becoming "Latest":
+
+```bash
+# ✅ GOOD - Create test release as pre-release
+gh release create v1.0.0 \
+  --prerelease \
+  --title "v1.0.0 - Test Release" \
+  --notes "Test version - not for production use" \
+  "Fluent Diary_1.0.0_aarch64.dmg"
+
+# ❌ BAD - Creates normal release, becomes "Latest"
+gh release create v1.0.0 \
+  --title "v1.0.0" \
+  "Fluent Diary_1.0.0_aarch64.dmg"
+```
+
+**If you accidentally create a normal release:**
+
+```bash
+# Fix by marking the correct version as latest
+gh release edit v1.0.2 --repo Thxamillion/fluentdiary-desktop --latest
+```
+
+**Release Strategy:**
+- **Production releases:** Normal releases (no `--prerelease` flag)
+- **Test releases:** Always use `--prerelease` flag
+- **Beta channel (future):** Use `-beta`, `-rc` suffixes with `--prerelease`
+
+---
+
 ### 7.2 Documentation & Support Setup
 **Time:** 2 hours
 
