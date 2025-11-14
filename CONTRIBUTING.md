@@ -87,39 +87,6 @@ function useSessionStats() { }
 - **No `any` types** - use proper typing or `unknown`
 - Use **Zod schemas** for settings and runtime validation
 
-### Error Handling
-Use try/catch **only at boundaries** where external systems can fail:
-- Tauri commands (Rust backend)
-- Whisper transcription
-- File system operations
-- IndexedDB operations
-- Audio recording
-
-Keep try blocks **small** - wrap only the specific operation that can fail.
-
-```typescript
-// ✅ GOOD - Focused error handling
-async function transcribeAudio(blob: Blob) {
-  try {
-    const text = await invoke('whisper_transcribe', { audio: blob });
-    return { success: true, data: text };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-// ❌ BAD - Wrapping everything
-async function processSession() {
-  try {
-    const stats = calculateStats();  // Pure function, won't throw
-    const wpm = computeWPM(stats);   // Pure function, won't throw
-    const text = await transcribe(); // Only this can fail
-  } catch (error) {
-    // Which part failed? Unclear!
-  }
-}
-```
-
 ## Making Changes
 
 ### Workflow
@@ -159,23 +126,9 @@ async function processSession() {
 - **Test thoroughly** - Make sure it works on your platform
 - **Update documentation** - If you change functionality, update README or docs
 
-## What to Contribute
-
-### Good First Issues
-Look for issues labeled [`good first issue`](https://github.com/Thxamillion/fluentdiary-desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - these are beginner-friendly tasks.
-
-### Feature Requests
-Check the [Upcoming Features](README.md#-upcoming-features) section in the README or browse open issues.
-
-### Bug Reports
-Found a bug? [Open an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new) with:
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Your platform (OS, version)
-
 ## Questions?
 
+- **Join our Discord:** [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/ZFwngNpk3A)
 - **General questions:** Open a [GitHub Discussion](https://github.com/Thxamillion/fluentdiary-desktop/discussions)
 - **Bug reports:** [Create an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new)
 - **Feature ideas:** [Create an issue](https://github.com/Thxamillion/fluentdiary-desktop/issues/new) with the "enhancement" label
