@@ -3,9 +3,11 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { recordingService } from '../../services/recording';
 import type { DeviceInfo, RecordingResult } from '../../services/recording/types';
+import { invoke } from '@tauri-apps/api/core';
+import { useRecordingStore } from '../../stores/recordingStore';
 
 /**
  * Hook to get available recording devices
@@ -29,7 +31,8 @@ export function useRecordingDevices() {
  */
 export function useRecording() {
   const queryClient = useQueryClient();
-  const [isRecording, setIsRecording] = useState(false);
+  // Use global Zustand store instead of local state
+  const { isRecording, setIsRecording } = useRecordingStore();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionType, setSessionType] = useState<'free_speak' | 'read_aloud'>('free_speak');
   const [textLibraryId, setTextLibraryId] = useState<string | null>(null);
@@ -40,6 +43,24 @@ export function useRecording() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const tempSessionIdRef = useRef<string | null>(null); // Temporary ID for audio file naming
+
+  // Sync frontend state with backend on mount
+  useEffect(() => {
+    const checkBackendState = async () => {
+      try {
+        const backendIsRecording = await invoke<boolean>('is_recording');
+        console.log('[useRecording] Backend recording state:', backendIsRecording);
+        if (backendIsRecording && !isRecording) {
+          console.warn('[useRecording] Backend is recording but frontend state is false. Syncing...');
+          setIsRecording(true);
+        }
+      } catch (error) {
+        console.error('[useRecording] Failed to check backend recording state:', error);
+      }
+    };
+
+    checkBackendState();
+  }, []); // Run once on mount
 
   // Start recording mutation
   const startMutation = useMutation({

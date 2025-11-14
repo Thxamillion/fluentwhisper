@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useSidebar } from '@/contexts/SidebarContext'
+import { useRecording } from '@/hooks/recording'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
@@ -33,6 +34,7 @@ const navigation = [
 export function Sidebar() {
   const location = useLocation()
   const { isCollapsed, setIsCollapsed } = useSidebar()
+  const { isRecording } = useRecording()
 
   return (
     <div
@@ -69,14 +71,20 @@ export function Sidebar() {
               <li key={item.name}>
                 <Link
                   to={item.href}
+                  onClick={(e) => {
+                    if (isRecording) {
+                      e.preventDefault();
+                    }
+                  }}
                   className={cn(
                     'group flex items-center rounded-md p-2 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
-                    isCollapsed ? 'justify-center' : ''
+                    isCollapsed ? 'justify-center' : '',
+                    isRecording && 'opacity-50 cursor-not-allowed'
                   )}
-                  title={isCollapsed ? item.name : undefined}
+                  title={isCollapsed ? item.name : isRecording ? 'Stop recording first' : undefined}
                 >
                   <IconComponent
                     className={cn(
