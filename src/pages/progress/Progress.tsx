@@ -22,6 +22,16 @@ export function Progress() {
     return Math.floor(seconds / 60);
   };
 
+  /**
+   * Format a date string (YYYY-MM-DD) as a local date without UTC conversion
+   * Backend returns local dates, so we need to parse them as local, not UTC
+   */
+  const formatLocalDate = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   const totalHours = formatHours(stats?.totalSpeakingTimeSeconds || 0);
   const totalMinutes = formatMinutes(stats?.totalSpeakingTimeSeconds || 0);
 
@@ -132,7 +142,7 @@ export function Progress() {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis
                         dataKey="date"
-                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        tickFormatter={formatLocalDate}
                         className="text-xs"
                         tick={{ fontSize: 11 }}
                       />
@@ -142,7 +152,9 @@ export function Progress() {
                         width={45}
                         label={{ value: 'WPM', angle: -90, position: 'insideLeft', offset: 0, style: { fontSize: 11, textAnchor: 'middle' } }}
                       />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartTooltip
+                        content={<ChartTooltipContent labelFormatter={(label) => formatLocalDate(label as string)} />}
+                      />
                       <Line
                         type="monotone"
                         dataKey="avgWpm"
@@ -201,7 +213,7 @@ export function Progress() {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis
                         dataKey="date"
-                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        tickFormatter={formatLocalDate}
                         className="text-xs"
                         tick={{ fontSize: 11 }}
                       />
@@ -211,7 +223,9 @@ export function Progress() {
                         width={55}
                         label={{ value: 'Total Words', angle: -90, position: 'insideLeft', offset: 0, style: { fontSize: 11, textAnchor: 'middle' } }}
                       />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartTooltip
+                        content={<ChartTooltipContent labelFormatter={(label) => formatLocalDate(label as string)} />}
+                      />
                       <Area
                         type="monotone"
                         dataKey="cumulativeTotal"

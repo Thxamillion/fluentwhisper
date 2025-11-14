@@ -5,7 +5,7 @@
  */
 
 use anyhow::Result;
-use chrono::{NaiveDate, Utc};
+use chrono::{Local, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 
@@ -194,12 +194,12 @@ pub async fn get_daily_session_counts(
             sqlx::query_as::<_, (String, i64, i64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     COUNT(*) as session_count,
                     COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
                 FROM sessions
                 WHERE language = ? AND started_at >= strftime('%s', 'now', '-' || ? || ' days')
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -212,12 +212,12 @@ pub async fn get_daily_session_counts(
             sqlx::query_as::<_, (String, i64, i64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     COUNT(*) as session_count,
                     COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
                 FROM sessions
                 WHERE language = ?
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -229,12 +229,12 @@ pub async fn get_daily_session_counts(
             sqlx::query_as::<_, (String, i64, i64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     COUNT(*) as session_count,
                     COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
                 FROM sessions
                 WHERE started_at >= strftime('%s', 'now', '-' || ? || ' days')
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -246,11 +246,11 @@ pub async fn get_daily_session_counts(
             sqlx::query_as::<_, (String, i64, i64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     COUNT(*) as session_count,
                     COALESCE((SUM(duration) + 59) / 60, 0) as total_minutes
                 FROM sessions
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -282,11 +282,11 @@ pub async fn get_wpm_trends(
             sqlx::query_as::<_, (String, f64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     AVG(wpm) as avg_wpm
                 FROM sessions
                 WHERE language = ? AND wpm IS NOT NULL AND started_at >= strftime('%s', 'now', '-' || ? || ' days')
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -299,11 +299,11 @@ pub async fn get_wpm_trends(
             sqlx::query_as::<_, (String, f64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     AVG(wpm) as avg_wpm
                 FROM sessions
                 WHERE language = ? AND wpm IS NOT NULL
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -315,11 +315,11 @@ pub async fn get_wpm_trends(
             sqlx::query_as::<_, (String, f64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     AVG(wpm) as avg_wpm
                 FROM sessions
                 WHERE wpm IS NOT NULL AND started_at >= strftime('%s', 'now', '-' || ? || ' days')
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -331,11 +331,11 @@ pub async fn get_wpm_trends(
             sqlx::query_as::<_, (String, f64)>(
                 r#"
                 SELECT
-                    DATE(started_at, 'unixepoch') as date,
+                    DATE(started_at, 'unixepoch', 'localtime') as date,
                     AVG(wpm) as avg_wpm
                 FROM sessions
                 WHERE wpm IS NOT NULL
-                GROUP BY DATE(started_at, 'unixepoch')
+                GROUP BY DATE(started_at, 'unixepoch', 'localtime')
                 ORDER BY date
                 "#,
             )
@@ -363,11 +363,11 @@ pub async fn get_vocab_growth(
     let rows = sqlx::query_as::<_, (String, i64)>(
         r#"
         SELECT
-            DATE(first_seen_at, 'unixepoch') as date,
+            DATE(first_seen_at, 'unixepoch', 'localtime') as date,
             COUNT(*) as new_words
         FROM vocab
         WHERE language = ?
-        GROUP BY DATE(first_seen_at, 'unixepoch')
+        GROUP BY DATE(first_seen_at, 'unixepoch', 'localtime')
         ORDER BY date
         "#,
     )
@@ -398,7 +398,7 @@ fn calculate_streaks(daily_counts: &[DailySessionCount]) -> (i64, i64) {
         return (0, 0);
     }
 
-    let today = Utc::now().date_naive();
+    let today = Local::now().date_naive();
     let mut current_streak = 0i64;
     let mut longest_streak = 0i64;
     let mut temp_streak = 0i64;
