@@ -88,6 +88,7 @@ scripts/*.jsonl
 *.bak
 
 # Internal planning/personal docs (keep locally, don't commit)
+CLAUDE.md
 PRODUCTION_RELEASE_PLAN.md
 UPDATES_AND_DISTRIBUTION.md
 prd.md
