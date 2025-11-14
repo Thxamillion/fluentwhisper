@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "notes": "v1.0.0 - Initial Production Release\n\nBug Fixes:\n- Fix timezone issues in stats and charts\n- Fix Mac production microphone permissions\n- Fix transcription on Windows\n- Prevent orphaned sessions on transcription failure\n- Fix onboarding model selection\n- Improve download progress UI\n- Replace console logs with logger for cleaner production builds",
+  "notes": "v1.0.0 - Initial Production Release\n\nBug Fixes:\n- Fix timezone issues in stats and charts\n- Fix Mac production microphone permissions\n- Fix transcription on Windows\n- Prevent orphaned sessions on transcription failure\n- Fix onboarding model selection\n- Improve download progress UI",
   "pub_date": "2025-11-14T17:03:00Z",
   "platforms": {
     "darwin-aarch64": {
