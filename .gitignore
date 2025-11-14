@@ -96,6 +96,16 @@ PROGRESS.md
 TODO.md
 BACKLOG.md
 todo/
+scripts/
+mockups/
+supabase/
+desktop-auth-callback.html
+database-schema.md
+seed_data.sql
+*.sql
 scripts/LANGUAGE_PACK_RELEASE.md
 docs/RELEASE.md
 scripts/generate-update-manifest.sh
+latest-*.json
+*_build.log
+build_log*.txt
