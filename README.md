@@ -112,18 +112,13 @@ Track your speaking progress over time with detailed analytics and visualization
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-### Recording Interface
-Simple, distraction-free interface for daily speaking practice.
+### Progress Tracking
+Visualize your improvement with charts showing speaking speed, session history, and vocabulary growth.
 
-![Recording](docs/screenshots/recording.png)
-
-### Vocabulary Tracking
-Automatically discover and track new words as you speak.
-
-![Vocabulary](docs/screenshots/vocabulary.png)
+![Progress](docs/screenshots/progress.png)
 
 ### Read Aloud Mode
-Practice pronunciation with your own imported texts.
+Practice pronunciation with your own imported texts and get instant feedback.
 
 ![Read Aloud](docs/screenshots/read-aloud.png)
 
