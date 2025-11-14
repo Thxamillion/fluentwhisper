@@ -51,7 +51,7 @@ export function Progress() {
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-8 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-hidden">
           {/* LEFT SIDEBAR - Overall Stats */}
           <div className="space-y-6">
             {/* Key Achievements */}

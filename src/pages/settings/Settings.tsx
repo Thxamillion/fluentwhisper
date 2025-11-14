@@ -40,7 +40,7 @@ export function Settings() {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-8 max-w-4xl">
+        <div className="p-8 max-w-[1600px]">
           {/* Auto-save indicator */}
           <div className="flex items-center justify-end mb-6">
             {showSaved && (

@@ -51,6 +51,11 @@
       "signingIdentity": "Developer ID Application: Quin Ortiz (3ACAJCX8FW)",
       "providerShortName": "3ACAJCX8FW",
       "entitlements": "Entitlements.plist"
+    },
+    "windows": {
+      "nsis": {
+        "compression": "lzma"
+      }
     }
   },
   "plugins": {
