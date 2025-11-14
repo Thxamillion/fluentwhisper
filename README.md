@@ -27,14 +27,11 @@ FluentDiary is a free, open-source desktop app that helps language learners buil
 
 **macOS:**
 - [Download for Apple Silicon (M1/M2/M3)](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest) - macOS 11+
-- [Download for Intel](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest) - macOS 11+
 
 **Windows:**
 - [Download for Windows](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest) - Windows 10+
 
-**Linux:**
-- [Download AppImage](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
-- [Download .deb](https://github.com/Thxamillion/fluentdiary-desktop/releases/latest)
+> **Note:** Intel Mac users can [build from source](#build-from-source) below. Linux support coming soon!
 
 ### Build from Source
 
