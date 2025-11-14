@@ -94,6 +94,7 @@ Todo items:
 
 - [ ] **Filler word detection** - Track "um", "uh", "like" and the like to reduce their usage
 - [ ] **Sentence complexity analysis** - See how your sentence structure improves
+- [ ] **New speaking modes** - A tutor mode to capture your tutor lessons. A Ai convo mode to caputure conversations with Ai models like ChatGPT.
 - [ ] **Audio playback with highlights** - Click on transcript words to jump to that point in audio
 - [ ] **Export data** - Export sessions/vocabulary to CSV/JSON
 - [ ] **More languages** - Expanding language pack support
