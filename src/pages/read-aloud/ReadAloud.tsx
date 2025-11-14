@@ -340,6 +340,7 @@ export function ReadAloud() {
                       <HighlightedText
                         text={currentPageText}
                         language={textItem.language}
+                        primaryLanguage={settings.primaryLanguage}
                         userVocab={userVocab}
                       />
                     </ErrorBoundary>

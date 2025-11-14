@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, Volume2, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 
 interface TranslationTooltipProps {
   word: string;
@@ -88,15 +88,7 @@ export function TranslationTooltip({
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-bold text-lg">{word}</h3>
-                <button
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                  title="Pronounce"
-                >
-                  <Volume2 className="w-4 h-4 text-gray-500" />
-                </button>
-              </div>
+              <h3 className="font-bold text-lg mb-1">{word}</h3>
               {lemma !== word.toLowerCase() && (
                 <p className="text-xs text-muted-foreground">
                   Base form: <span className="font-medium">{lemma}</span>

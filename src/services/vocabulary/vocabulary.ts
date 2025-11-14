@@ -130,3 +130,27 @@ export async function fixVocabLemmas(
     };
   }
 }
+
+/**
+ * Get custom translation for a word
+ */
+export async function getCustomTranslation(
+  lemma: string,
+  langFrom: LangCode,
+  langTo: LangCode
+): Promise<ServiceResult<string | null>> {
+  try {
+    const translation = await invoke<string | null>('get_custom_translation', {
+      lemma,
+      langFrom,
+      langTo,
+    });
+    return { success: true, data: translation };
+  } catch (error) {
+    console.error('[getCustomTranslation] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

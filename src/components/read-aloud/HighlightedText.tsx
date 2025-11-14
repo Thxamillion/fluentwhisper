@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { TranslationTooltip } from './TranslationTooltip';
 import { getLemma } from '@/services/langpack';
-import type { VocabWord } from '@/services/vocabulary';
+import { getCustomTranslation } from '@/services/vocabulary';
+import type { VocabWord, LangCode } from '@/services/vocabulary';
 import { logger } from '@/services/logger'
 
 interface HighlightedTextProps {
   text: string;
   language: string;
+  primaryLanguage: string;
   userVocab: VocabWord[];
 }
 
@@ -23,13 +25,25 @@ interface SelectedWord {
   position: { x: number; y: number };
 }
 
-export function HighlightedText({ text, language, userVocab }: HighlightedTextProps) {
+export function HighlightedText({ text, language, primaryLanguage, userVocab }: HighlightedTextProps) {
   const [selectedWord, setSelectedWord] = useState<SelectedWord | null>(null);
   const [loadingTranslation, setLoadingTranslation] = useState(false);
 
-  // Create a Set of known lemmas for fast lookup
+  // Create a Set of known lemmas AND all forms_spoken for fast lookup
   const knownLemmas = useMemo(() => {
-    return new Set(userVocab.map((v) => v.lemma.toLowerCase()));
+    const knownSet = new Set<string>();
+
+    userVocab.forEach((v) => {
+      // Add the lemma itself
+      knownSet.add(v.lemma.toLowerCase());
+
+      // Add all forms from forms_spoken
+      v.forms_spoken.forEach((form) => {
+        knownSet.add(form.toLowerCase());
+      });
+    });
+
+    return knownSet;
   }, [userVocab]);
 
   const handleWordClick = async (word: string, event: React.MouseEvent) => {
@@ -62,8 +76,21 @@ export function HighlightedText({ text, language, userVocab }: HighlightedTextPr
         // Continue with original word as lemma
       }
 
-      // No automatic translations - user can use dictionary button
-      const translation = null;
+      // Fetch custom translation if it exists
+      let translation: string | null = null;
+      try {
+        const translationResult = await getCustomTranslation(
+          lemma,
+          language as LangCode,
+          primaryLanguage as LangCode
+        );
+        if (translationResult.success && translationResult.data) {
+          translation = translationResult.data;
+        }
+      } catch (error) {
+        console.warn('Failed to get custom translation:', error);
+        // Continue with no translation
+      }
 
       // Get click position for tooltip - ensure it's within viewport
       const rect = (event.target as HTMLElement).getBoundingClientRect();
