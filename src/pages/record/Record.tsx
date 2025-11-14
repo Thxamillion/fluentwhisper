@@ -52,7 +52,7 @@ export function Record() {
         // Show review state without transcribing
         setProcessingStage('review');
       } catch (error) {
-        console.error('Recording process failed:', error);
+        logger.error('Recording process failed', 'Record', error);
         setProcessingStage('idle');
       }
     } else {
@@ -94,7 +94,7 @@ export function Record() {
       toast.success('Session saved successfully!');
       navigate(`/session/${newSessionId}`);
     } catch (error) {
-      console.error('Failed to transcribe/save session:', error);
+      logger.error('Failed to transcribe/save session', 'Record', error);
       toast.error('Failed to process session. Please try again.');
       setProcessingStage('review');
     }
@@ -110,9 +110,9 @@ export function Record() {
       try {
         const { recordingService } = await import('@/services/recording');
         await recordingService.deleteAudioFile(recordingData.filePath);
-        logger.debug('Deleted audio file:', recordingData.filePath);
+        logger.debug('Deleted audio file', 'Record', recordingData.filePath);
       } catch (error) {
-        console.error('Failed to delete audio file:', error);
+        logger.error('Failed to delete audio file', 'Record', error);
         // Continue with reset even if deletion fails
       }
     }
