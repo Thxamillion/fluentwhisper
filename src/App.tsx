@@ -23,8 +23,10 @@ import { useSettings } from '@/hooks/settings'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { logger } from '@/services/logger'
 import { initAnalytics, enableTracking, disableTracking } from '@/services/analytics'
+import { toast } from '@/lib/toast'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -129,6 +131,33 @@ function AnalyticsListener() {
   return null
 }
 
+// Language pack listener - shows warning when primary language pack is missing
+function LanguagePackListener() {
+  useEffect(() => {
+    const unlistenPromise = listen<string>('primary-language-pack-missing', (event) => {
+      const language = event.payload
+      const languageName = language === 'en' ? 'English' :
+                          language === 'es' ? 'Spanish' :
+                          language === 'fr' ? 'French' :
+                          language === 'de' ? 'German' :
+                          language === 'it' ? 'Italian' : language
+
+      toast.warning(
+        `${languageName} language pack missing. Vocabulary filtering disabled. Download it in Settings → Languages.`,
+        { duration: 8000 }
+      )
+
+      logger.warn(`Primary language pack missing: ${language}`, 'LanguagePack')
+    })
+
+    return () => {
+      unlistenPromise.then((unlisten) => unlisten())
+    }
+  }, [])
+
+  return null
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -141,6 +170,7 @@ function App() {
         <CleanupListener />
         <DebugModeListener />
         <AnalyticsListener />
+        <LanguagePackListener />
         <ModelSelectionGuard />
 
         {/* Global download toast - persists across pages */}

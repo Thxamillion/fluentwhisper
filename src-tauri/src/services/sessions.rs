@@ -294,8 +294,20 @@ async fn is_primary_language_word(
         }
         Err(e) => {
             // Error accessing primary language database (maybe not installed)
+            // Emit an event to notify the frontend
+            let error_msg = e.to_string();
+            if error_msg.contains("not found") {
+                // Only emit once per session by using a static flag
+                use std::sync::atomic::{AtomicBool, Ordering};
+                static NOTIFICATION_SENT: AtomicBool = AtomicBool::new(false);
+
+                if !NOTIFICATION_SENT.swap(true, Ordering::Relaxed) {
+                    let _ = app_handle.emit("primary-language-pack-missing", primary_language);
+                    eprintln!("[vocab_filter] Primary language pack missing: {}. Vocabulary filtering disabled.", primary_language);
+                }
+            }
+
             // Don't filter out words on error - let them through
-            println!("[vocab_filter] Warning: Could not check primary language for '{}': {}", word, e);
             false
         }
     }
