@@ -13,6 +13,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use uuid::Uuid;
+use tauri::Emitter;
 
 use super::lemmatization::get_lemma;
 use super::vocabulary::record_word;
