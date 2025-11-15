@@ -34,7 +34,7 @@ export function useRecording() {
   // Use global Zustand store instead of local state
   const { isRecording, setIsRecording } = useRecordingStore();
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [sessionType, setSessionType] = useState<'free_speak' | 'read_aloud'>('free_speak');
+  const [sessionType, setSessionType] = useState<'free_speak' | 'read_aloud' | 'tutor' | 'conversation'>('free_speak');
   const [textLibraryId, setTextLibraryId] = useState<string | null>(null);
   const [sourceText, setSourceText] = useState<string | null>(null);
   const [language, setLanguage] = useState<string>('en');
@@ -149,7 +149,7 @@ export function useRecording() {
     }: {
       language: string;
       primaryLanguage: string;
-      sessionType?: 'free_speak' | 'read_aloud';
+      sessionType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation';
       textLibraryId?: string;
       sourceText?: string;
     }) => {
@@ -175,11 +175,13 @@ export function useRecording() {
     mutationFn: async ({
       audioPath,
       language,
+      sessionType,
     }: {
       audioPath: string;
       language?: string;
+      sessionType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation';
     }) => {
-      const result = await recordingService.transcribeAudio(audioPath, language);
+      const result = await recordingService.transcribeAudio(audioPath, language, undefined, sessionType);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -206,7 +208,7 @@ export function useRecording() {
       segments: import('../../services/recording/types').TranscriptSegment[];
       durationSeconds: number;
       language: string;
-      sessionType?: 'free_speak' | 'read_aloud';
+      sessionType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation';
       textLibraryId?: string;
       sourceText?: string;
     }) => {
@@ -249,7 +251,7 @@ export function useRecording() {
       lang: string,
       deviceName?: string,
       primaryLang?: string,
-      type: 'free_speak' | 'read_aloud' = 'free_speak',
+      type: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation' = 'free_speak',
       libraryId?: string,
       text?: string
     ) => {
@@ -284,8 +286,8 @@ export function useRecording() {
 
   // Transcribe function
   const transcribe = useCallback(
-    (audioPath: string, lang?: string) => {
-      return transcribeMutation.mutateAsync({ audioPath, language: lang });
+    (audioPath: string, lang?: string, sessType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation') => {
+      return transcribeMutation.mutateAsync({ audioPath, language: lang, sessionType: sessType });
     },
     [transcribeMutation]
   );

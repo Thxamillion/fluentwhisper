@@ -34,6 +34,7 @@ export function Record() {
     durationSeconds: number;
   } | null>(null);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
+  const [sessionType, setSessionType] = useState<'free_speak' | 'tutor' | 'conversation'>('free_speak');
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -60,7 +61,7 @@ export function Record() {
       setTranscript('');
       setRecordingData(null);
       setProcessingStage('idle');
-      recording.startRecording(selectedLanguage, selectedDevice, primaryLanguage);
+      recording.startRecording(selectedLanguage, selectedDevice, primaryLanguage, sessionType);
     }
   };
 
@@ -70,7 +71,7 @@ export function Record() {
     try {
       // First transcribe (if this fails, nothing gets persisted)
       setProcessingStage('transcribing');
-      const transcriptResult = await recording.transcribe(recordingData.filePath, selectedLanguage);
+      const transcriptResult = await recording.transcribe(recordingData.filePath, selectedLanguage, sessionType);
       setTranscript(transcriptResult.text);
 
       logger.debug(`Transcribed ${transcriptResult.segments.length} segments with timestamps`);
@@ -176,6 +177,46 @@ export function Record() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Session Type Selector */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setSessionType('free_speak')}
+            disabled={recording.isRecording || processingStage !== 'idle'}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+              sessionType === 'free_speak'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="text-sm font-medium">Free Speak</div>
+            <div className="text-xs text-muted-foreground mt-1">Counts toward WPM</div>
+          </button>
+          <button
+            onClick={() => setSessionType('tutor')}
+            disabled={recording.isRecording || processingStage !== 'idle'}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+              sessionType === 'tutor'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="text-sm font-medium">Tutor Session</div>
+            <div className="text-xs text-muted-foreground mt-1">Practice only</div>
+          </button>
+          <button
+            onClick={() => setSessionType('conversation')}
+            disabled={recording.isRecording || processingStage !== 'idle'}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+              sessionType === 'conversation'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="text-sm font-medium">Conversation</div>
+            <div className="text-xs text-muted-foreground mt-1">Practice only</div>
+          </button>
         </div>
 
         {/* Selected Prompt Display */}

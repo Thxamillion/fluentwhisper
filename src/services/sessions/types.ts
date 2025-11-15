@@ -3,7 +3,7 @@
  * Matches Rust SessionData struct
  */
 
-export type SessionType = 'free_speak' | 'read_aloud';
+export type SessionType = 'free_speak' | 'read_aloud' | 'tutor' | 'conversation';
 
 export interface SessionData {
   id: string;

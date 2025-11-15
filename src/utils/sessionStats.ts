@@ -8,9 +8,14 @@ import { isToday, isWithinDays } from './dateFormatting'
 /**
  * Calculate today's session statistics
  * Returns total seconds (not rounded minutes) to avoid cumulative rounding errors
+ * Only includes WPM-eligible sessions (free_speak and read_aloud)
  */
 export function calculateTodayStats(sessions: SessionData[]) {
-  const todaySessions = sessions.filter(s => isToday(s.startedAt))
+  // Filter for today's WPM-eligible sessions (exclude tutor and conversation)
+  const todaySessions = sessions.filter(s =>
+    isToday(s.startedAt) &&
+    (s.sessionType === 'free_speak' || s.sessionType === 'read_aloud')
+  )
 
   // Sum raw seconds first, then caller can format as needed
   const totalSeconds = todaySessions.reduce(
@@ -32,9 +37,14 @@ export function calculateTodayStats(sessions: SessionData[]) {
 /**
  * Calculate this week's session statistics (last 7 days)
  * Returns total seconds (not rounded minutes) to avoid cumulative rounding errors
+ * Only includes WPM-eligible sessions (free_speak and read_aloud)
  */
 export function calculateWeekStats(sessions: SessionData[]) {
-  const weekSessions = sessions.filter(s => isWithinDays(s.startedAt, 7))
+  // Filter for this week's WPM-eligible sessions (exclude tutor and conversation)
+  const weekSessions = sessions.filter(s =>
+    isWithinDays(s.startedAt, 7) &&
+    (s.sessionType === 'free_speak' || s.sessionType === 'read_aloud')
+  )
 
   // Sum raw seconds first, then caller can format as needed
   const totalSeconds = weekSessions.reduce(
