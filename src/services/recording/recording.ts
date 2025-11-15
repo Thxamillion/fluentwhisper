@@ -33,7 +33,7 @@ export async function getRecordingDevices(): Promise<ServiceResult<DeviceInfo[]>
 export async function createSession(
   language: string,
   primaryLanguage: string,
-  sessionType?: 'free_speak' | 'read_aloud',
+  sessionType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation',
   textLibraryId?: string,
   sourceText?: string
 ): Promise<ServiceResult<string>> {
@@ -111,7 +111,8 @@ export async function stopRecording(): Promise<ServiceResult<RecordingResult>> {
 export async function transcribeAudio(
   audioPath: string,
   language?: string,
-  modelPath?: string
+  modelPath?: string,
+  sessionType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation'
 ): Promise<ServiceResult<{ text: string; segments: TranscriptSegment[] }>> {
   try {
     // Get selected model from settings
@@ -131,6 +132,7 @@ export async function transcribeAudio(
       audioPath,
       language: language || '',
       modelPath: modelPath || null,
+      sessionType: sessionType || null,
     });
 
     return { success: true, data: response };
@@ -153,7 +155,7 @@ export async function completeSession(
   segments: TranscriptSegment[],
   durationSeconds: number,
   language: string,
-  sessionType?: 'free_speak' | 'read_aloud',
+  sessionType?: 'free_speak' | 'read_aloud' | 'tutor' | 'conversation',
   textLibraryId?: string,
   sourceText?: string
 ): Promise<ServiceResult<TranscriptionResult>> {

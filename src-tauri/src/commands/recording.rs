@@ -86,6 +86,7 @@ pub async fn transcribe(app_handle: tauri::AppHandle,
     audio_path: String,
     language: String,
     model_path: Option<String>,
+    session_type: Option<String>,
 ) -> Result<TranscriptionResponse, String> {
     let audio = Path::new(&audio_path);
 
@@ -122,10 +123,22 @@ pub async fn transcribe(app_handle: tauri::AppHandle,
         ));
     }
 
-    let language_opt = if language.is_empty() {
-        None
-    } else {
-        Some(language.as_str())
+    // Determine language setting based on session type
+    // For 'tutor' and 'conversation' modes, use auto-detection (None)
+    // For 'free_speak' and 'read_aloud', use the specified language
+    let language_opt = match session_type.as_deref() {
+        Some("tutor") | Some("conversation") => {
+            // Auto-detect language for mixed-language conversations
+            None
+        }
+        _ => {
+            // Use specified language for free_speak and read_aloud
+            if language.is_empty() {
+                None
+            } else {
+                Some(language.as_str())
+            }
+        }
     };
 
     let result = transcribe_audio_file(audio, &model, language_opt)
