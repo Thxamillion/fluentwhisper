@@ -72,9 +72,16 @@ pub fn get_langpacks_dir(app: &AppHandle) -> Result<PathBuf> {
 
 /// Check if a lemma database is installed for a language
 pub fn is_lemmas_installed(lang: &str, app: &AppHandle) -> Result<bool> {
-    // English is always bundled
+    // Check bundled resources for English
     if lang == "en" {
-        return Ok(true);
+        use tauri::Manager;
+        if let Ok(resource_path) = app.path().resource_dir() {
+            let bundled_path = resource_path.join("langpacks").join("en").join("lemmas.db");
+            if bundled_path.exists() {
+                return Ok(true);
+            }
+        }
+        // Fall through to check downloaded packs
     }
 
     let langpacks_dir = get_langpacks_dir(app)?;
@@ -94,7 +101,12 @@ pub fn is_translation_installed(from_lang: &str, to_lang: &str, app: &AppHandle)
 
 /// Get list of installed language codes
 pub fn get_installed_languages(app: &AppHandle) -> Result<Vec<String>> {
-    let mut installed = vec!["en".to_string()]; // English is always available
+    let mut installed = Vec::new();
+
+    // Check if English is installed (bundled or downloaded)
+    if is_lemmas_installed("en", app)? {
+        installed.push("en".to_string());
+    }
 
     let langpacks_dir = get_langpacks_dir(app)?;
 
