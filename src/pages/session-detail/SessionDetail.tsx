@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSession, useSessionWords, useDeleteSession } from '@/hooks/sessions';
 import { useTextLibraryItem } from '@/hooks/text-library';
-import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles, ArrowUp } from 'lucide-react';
+import { useDeleteVocabWord, useToggleVocabMastered } from '@/hooks/vocabulary';
+import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles, ArrowUp, Minus, Plus } from 'lucide-react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from '@/lib/toast';
 import { logger } from '@/services/logger';
+import { LangCode } from '@/services/vocabulary/types';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -20,6 +22,8 @@ export function SessionDetail() {
   const { data: session, isLoading: sessionLoading } = useSession(sessionId!);
   const { data: words, isLoading: wordsLoading } = useSessionWords(sessionId!);
   const deleteSession = useDeleteSession();
+  const deleteWord = useDeleteVocabWord();
+  const toggleMastered = useToggleVocabMastered();
 
   // Fetch text library item for read-aloud sessions
   const { data: textItem } = useTextLibraryItem(session?.textLibraryId || '');
@@ -304,7 +308,7 @@ export function SessionDetail() {
               <div>
                 <div className="grid grid-cols-3 gap-3">
                   {(displayedWords ?? []).map((word) => (
-                    <Card key={word.lemma} className="p-3 hover:bg-muted/50 transition-colors">
+                    <Card key={word.lemma} className="p-3 hover:bg-muted/50 transition-colors group relative">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <span className="text-base font-medium text-foreground truncate">
                           {word.lemma}
@@ -315,9 +319,29 @@ export function SessionDetail() {
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        × {word.count}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          × {word.count}
+                        </span>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => deleteWord.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
+                            disabled={deleteWord.isPending}
+                            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                            title="Delete word"
+                          >
+                            <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
+                          </button>
+                          <button
+                            onClick={() => toggleMastered.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
+                            disabled={toggleMastered.isPending}
+                            className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                            title="Toggle mastered"
+                          >
+                            <Plus className="w-3 h-3 text-green-600 dark:text-green-400" />
+                          </button>
+                        </div>
+                      </div>
                     </Card>
                   ))}
                 </div>
