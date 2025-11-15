@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Sparkles, ArrowRight, Loader2 } from 'lucide-react'
+import { Sparkles, ArrowRight, Loader2, Minus, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { VocabWordWithTranslation } from '@/services/vocabulary/types'
+import { VocabWordWithTranslation, LangCode } from '@/services/vocabulary/types'
+import { useDeleteVocabWord, useToggleVocabMastered } from '@/hooks/vocabulary'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 interface NewWordsProps {
   words: VocabWordWithTranslation[] | undefined
@@ -11,6 +13,9 @@ interface NewWordsProps {
 
 export function NewWords({ words, isLoading }: NewWordsProps) {
   const navigate = useNavigate()
+  const language = useSettingsStore((state) => state.settings.targetLanguage)
+  const deleteWord = useDeleteVocabWord()
+  const toggleMastered = useToggleVocabMastered()
 
   return (
     <Card className="border-gray-200 dark:border-gray-800">
@@ -41,12 +46,36 @@ export function NewWords({ words, isLoading }: NewWordsProps) {
             {words.map((word) => (
               <div
                 key={word.id}
-                className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                className="flex items-center justify-between gap-2 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
               >
-                <span className="text-sm font-medium">{word.lemma}</span>
-                <span className="text-xs text-muted-foreground">
-                  {word.translation || 'No translation'}
-                </span>
+                <div className="flex-1 flex items-center justify-between min-w-0">
+                  <span className="text-sm font-medium truncate">{word.lemma}</span>
+                  <span className="text-xs text-muted-foreground truncate ml-2">
+                    {word.translation || 'No translation'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => deleteWord.mutate({ lemma: word.lemma, language: language as LangCode })}
+                    disabled={deleteWord.isPending}
+                    className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                    title="Delete word"
+                  >
+                    <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
+                  </button>
+                  <button
+                    onClick={() => toggleMastered.mutate({ lemma: word.lemma, language: language as LangCode })}
+                    disabled={toggleMastered.isPending}
+                    className={`p-1 rounded transition-colors ${
+                      word.mastered
+                        ? 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50'
+                        : 'hover:bg-green-100 dark:hover:bg-green-900/30'
+                    }`}
+                    title={word.mastered ? 'Mark as needs practice' : 'Mark as mastered'}
+                  >
+                    <Plus className={`w-3 h-3 ${word.mastered ? 'text-green-700 dark:text-green-300' : 'text-green-600 dark:text-green-400'}`} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

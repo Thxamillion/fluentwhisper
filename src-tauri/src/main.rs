@@ -51,6 +51,7 @@ fn main() {
             vocabulary::clean_vocab_punctuation,
             vocabulary::get_recent_vocab,
             vocabulary::delete_vocab_word,
+            vocabulary::toggle_vocab_mastered,
             vocabulary::set_custom_translation,
             vocabulary::get_custom_translation,
             vocabulary::delete_custom_translation,

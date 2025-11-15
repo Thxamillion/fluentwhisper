@@ -154,3 +154,42 @@ export async function getCustomTranslation(
     };
   }
 }
+
+/**
+ * Delete a word from user's vocabulary
+ */
+export async function deleteVocabWord(
+  lemma: string,
+  language: LangCode
+): Promise<ServiceResult<void>> {
+  try {
+    await invoke('delete_vocab_word', { lemma, language });
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error('[deleteVocabWord] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Toggle mastered status for a word
+ * Returns the new mastered status
+ */
+export async function toggleVocabMastered(
+  lemma: string,
+  language: LangCode
+): Promise<ServiceResult<boolean>> {
+  try {
+    const newMastered = await invoke<boolean>('toggle_vocab_mastered', { lemma, language });
+    return { success: true, data: newMastered };
+  } catch (error) {
+    console.error('[toggleVocabMastered] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

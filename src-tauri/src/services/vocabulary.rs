@@ -360,6 +360,35 @@ pub async fn delete_word(pool: &SqlitePool, lemma: &str, language: &str) -> Resu
     Ok(())
 }
 
+/// Toggle mastered status for a word
+pub async fn toggle_mastered(pool: &SqlitePool, lemma: &str, language: &str) -> Result<bool> {
+    let timestamp = now();
+
+    // Get current mastered status
+    let current_mastered: bool = sqlx::query_scalar(
+        "SELECT mastered FROM vocab WHERE lemma = ? AND language = ?"
+    )
+    .bind(lemma)
+    .bind(language)
+    .fetch_one(pool)
+    .await?;
+
+    // Toggle it
+    let new_mastered = !current_mastered;
+
+    sqlx::query(
+        "UPDATE vocab SET mastered = ?, updated_at = ? WHERE lemma = ? AND language = ?"
+    )
+    .bind(new_mastered)
+    .bind(timestamp)
+    .bind(lemma)
+    .bind(language)
+    .execute(pool)
+    .await?;
+
+    Ok(new_mastered)
+}
+
 /// Fix vocabulary entries by re-lemmatizing inflected forms
 /// Returns the number of entries fixed
 pub async fn fix_vocab_lemmas(

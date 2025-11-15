@@ -92,6 +92,21 @@ pub async fn delete_vocab_word(
         .map_err(|e| e.to_string())
 }
 
+/// Toggle mastered status for a word
+/// Returns the new mastered status (true if now mastered, false if unmarked)
+#[tauri::command]
+pub async fn toggle_vocab_mastered(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    language: String,
+) -> Result<bool, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::toggle_mastered(&pool, &lemma, &language)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 /// Set a custom translation for a word
 #[tauri::command]
 pub async fn set_custom_translation(

@@ -109,8 +109,17 @@ pub async fn complete_session(
     let now = Utc::now().timestamp();
     let duration = duration_seconds as i64;
 
+    // Get the primary_language from the session
+    let primary_language: String = sqlx::query_scalar(
+        "SELECT primary_language FROM sessions WHERE id = ?"
+    )
+    .bind(session_id)
+    .fetch_one(pool)
+    .await
+    .context("Failed to get primary language from session")?;
+
     // Process the transcript to extract words and calculate stats
-    let stats = process_transcript(pool, app_handle, session_id, transcript, duration, language).await?;
+    let stats = process_transcript(pool, app_handle, session_id, transcript, duration, language, &primary_language).await?;
 
     // Update the session with all data
     sqlx::query(
@@ -161,6 +170,7 @@ async fn process_transcript(
     transcript: &str,
     duration_seconds: i64,
     language: &str,
+    primary_language: &str,
 ) -> Result<SessionStats> {
     // Tokenize the transcript into words
     let words = tokenize_transcript(transcript);
@@ -179,6 +189,11 @@ async fn process_transcript(
     let mut new_words = 0;
 
     for word in &words {
+        // Skip if word exists in primary language (filter out native language words)
+        if is_primary_language_word(word, primary_language, app_handle).await {
+            continue;
+        }
+
         // Lemmatize the word
         let lemma = get_lemma(word, language, app_handle)
             .await
@@ -254,6 +269,36 @@ async fn is_new_word_for_user(pool: &SqlitePool, lemma: &str, language: &str) ->
     .context("Failed to check if word is new")?;
 
     Ok(count == 0)
+}
+
+/// Check if a word exists in the primary language lemma database
+/// This helps filter out native language words from foreign language sessions
+async fn is_primary_language_word(
+    word: &str,
+    primary_language: &str,
+    app_handle: &tauri::AppHandle,
+) -> bool {
+    // Try to get the lemma for this word in the primary language
+    // If it exists, it's a primary language word and should be filtered out
+    match get_lemma(word, primary_language, app_handle).await {
+        Ok(Some(_)) => {
+            // Word exists in primary language database
+            println!("[vocab_filter] Skipping primary language word: '{}' (found in {} lemma DB)", word, primary_language);
+            true
+        }
+        Ok(None) => {
+            // Word not found in primary language database
+            // Could also check if the word itself (not inflected) exists
+            // For now, we'll consider it not a primary language word
+            false
+        }
+        Err(e) => {
+            // Error accessing primary language database (maybe not installed)
+            // Don't filter out words on error - let them through
+            println!("[vocab_filter] Warning: Could not check primary language for '{}': {}", word, e);
+            false
+        }
+    }
 }
 
 /// Get session by ID

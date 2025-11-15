@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { recordWord, getUserVocab, getVocabStats, getRecentVocab } from '@/services/vocabulary';
+import { recordWord, getUserVocab, getVocabStats, getRecentVocab, deleteVocabWord, toggleVocabMastered } from '@/services/vocabulary';
 import type { LangCode } from '@/services/vocabulary/types';
 
 /**
@@ -94,6 +94,64 @@ export function useRecordWord() {
       queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['recentVocab', variables.language] });
+    },
+  });
+}
+
+/**
+ * Hook to delete a word from vocabulary
+ */
+export function useDeleteVocabWord() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      lemma,
+      language,
+    }: {
+      lemma: string;
+      language: LangCode;
+    }) => {
+      const result = await deleteVocabWord(lemma, language);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete word');
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate vocabulary and stats queries to refetch
+      queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
+    },
+  });
+}
+
+/**
+ * Hook to toggle mastered status for a word
+ * Returns the new mastered status
+ */
+export function useToggleVocabMastered() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      lemma,
+      language,
+    }: {
+      lemma: string;
+      language: LangCode;
+    }) => {
+      const result = await toggleVocabMastered(lemma, language);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to toggle mastered status');
+      }
+      return result.data!; // boolean: new mastered status
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate vocabulary and stats queries to refetch
+      queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
     },
   });
 }
