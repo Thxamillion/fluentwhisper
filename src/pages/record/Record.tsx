@@ -1,7 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { ChevronDown, Mic, Square, Loader2, CheckCircle, RotateCcw, Save, Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { ChevronDown, Mic, Square, Loader2, CheckCircle, RotateCcw, Save, Trash2, Info } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRecording, useRecordingDevices } from '@/hooks/recording'
 import { useDefaultModelInstalled } from '@/hooks/models'
@@ -35,6 +44,42 @@ export function Record() {
   } | null>(null);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
   const [sessionType, setSessionType] = useState<'free_speak' | 'tutor' | 'conversation'>('free_speak');
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
+  const [selectedInfoType, setSelectedInfoType] = useState<'free_speak' | 'tutor' | 'conversation'>('free_speak');
+
+  // Session type information
+  const sessionTypeInfo = {
+    free_speak: {
+      title: 'Free Speak',
+      countsWPM: true,
+      tips: [
+        'Practice speaking naturally without reading',
+        'Focus on fluency over accuracy',
+        'Try to speak for at least 2-3 minutes',
+        'Use practice prompts for inspiration',
+      ],
+    },
+    tutor: {
+      title: 'Tutor Session',
+      countsWPM: false,
+      tips: [
+        'Record both you and your tutor speaking',
+        'Auto-detects multiple languages',
+        'Great for conversation practice',
+        'Review difficult words after the session',
+      ],
+    },
+    conversation: {
+      title: 'Conversation',
+      countsWPM: false,
+      tips: [
+        'Record casual conversations',
+        'Works with AI voice assistants',
+        'Auto-detects language switching',
+        'Perfect for tracking real-world practice',
+      ],
+    },
+  };
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -149,10 +194,17 @@ export function Record() {
     setPromptsExpanded(false);
   };
 
+  const handleInfoClick = (type: 'free_speak' | 'tutor' | 'conversation', e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedInfoType(type);
+    setInfoModalOpen(true);
+  };
+
   return (
     <div className="p-8 max-w-3xl mx-auto">
       <div className="space-y-6">
-        {/* Collapsible Prompt Picker */}
+        {/* Collapsible Prompt Picker - Only show for Free Speak */}
+        {sessionType === 'free_speak' && (
         <div className="relative border rounded-lg">
           <button
             onClick={() => setPromptsExpanded(!promptsExpanded)}
@@ -178,49 +230,10 @@ export function Record() {
             </div>
           )}
         </div>
+        )}
 
-        {/* Session Type Selector */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => setSessionType('free_speak')}
-            disabled={recording.isRecording || processingStage !== 'idle'}
-            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
-              sessionType === 'free_speak'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
-            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="text-sm font-medium">Free Speak</div>
-            <div className="text-xs text-muted-foreground mt-1">Counts toward WPM</div>
-          </button>
-          <button
-            onClick={() => setSessionType('tutor')}
-            disabled={recording.isRecording || processingStage !== 'idle'}
-            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
-              sessionType === 'tutor'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
-            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="text-sm font-medium">Tutor Session</div>
-            <div className="text-xs text-muted-foreground mt-1">Practice only</div>
-          </button>
-          <button
-            onClick={() => setSessionType('conversation')}
-            disabled={recording.isRecording || processingStage !== 'idle'}
-            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
-              sessionType === 'conversation'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
-            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="text-sm font-medium">Conversation</div>
-            <div className="text-xs text-muted-foreground mt-1">Practice only</div>
-          </button>
-        </div>
-
-        {/* Selected Prompt Display */}
-        {selectedPrompt && (
+        {/* Selected Prompt Display - Only show for Free Speak */}
+        {sessionType === 'free_speak' && selectedPrompt && (
           <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
@@ -238,6 +251,79 @@ export function Record() {
             </CardContent>
           </Card>
         )}
+
+        {/* Session Type Selector */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setSessionType('free_speak')}
+            disabled={recording.isRecording || processingStage !== 'idle'}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all relative ${
+              sessionType === 'free_speak'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 text-left">
+                <div className="text-sm font-medium">Free Speak</div>
+                <div className="text-xs text-muted-foreground mt-1">Speak your mind</div>
+              </div>
+              <button
+                onClick={(e) => handleInfoClick('free_speak', e)}
+                className="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                disabled={recording.isRecording || processingStage !== 'idle'}
+              >
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          </button>
+          <button
+            onClick={() => setSessionType('tutor')}
+            disabled={recording.isRecording || processingStage !== 'idle'}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all relative ${
+              sessionType === 'tutor'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 text-left">
+                <div className="text-sm font-medium">Tutor</div>
+                <div className="text-xs text-muted-foreground mt-1">Record a tutor session</div>
+              </div>
+              <button
+                onClick={(e) => handleInfoClick('tutor', e)}
+                className="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                disabled={recording.isRecording || processingStage !== 'idle'}
+              >
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          </button>
+          <button
+            onClick={() => setSessionType('conversation')}
+            disabled={recording.isRecording || processingStage !== 'idle'}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all relative ${
+              sessionType === 'conversation'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            } ${recording.isRecording || processingStage !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 text-left">
+                <div className="text-sm font-medium">Conversation</div>
+                <div className="text-xs text-muted-foreground mt-1">Record a conversation</div>
+              </div>
+              <button
+                onClick={(e) => handleInfoClick('conversation', e)}
+                className="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                disabled={recording.isRecording || processingStage !== 'idle'}
+              >
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          </button>
+        </div>
 
         {/* Recorder Panel */}
         <Card>
@@ -338,6 +424,41 @@ export function Record() {
         variant="danger"
         onConfirm={confirmDiscard}
       />
+
+      {/* Session Type Info Modal */}
+      <AlertDialog open={infoModalOpen} onOpenChange={setInfoModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{sessionTypeInfo[selectedInfoType].title}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+              <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <span className="text-sm">
+                {sessionTypeInfo[selectedInfoType].countsWPM
+                  ? 'This session type counts toward your WPM statistics'
+                  : 'This session type does not count toward your WPM statistics'}
+              </span>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium mb-2">Tips:</h4>
+              <ul className="space-y-2">
+                {sessionTypeInfo[selectedInfoType].tips.map((tip, index) => (
+                  <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <span className="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setInfoModalOpen(false)}>
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
