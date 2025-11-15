@@ -24,6 +24,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { logger } from '@/services/logger'
+import { initAnalytics, enableTracking, disableTracking } from '@/services/analytics'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -99,6 +100,35 @@ function DebugModeListener() {
   return null
 }
 
+// Analytics listener - initializes PostHog and syncs with settings
+function AnalyticsListener() {
+  const { settings } = useSettingsStore()
+
+  useEffect(() => {
+    // Initialize PostHog once on mount
+    const apiKey = import.meta.env.VITE_POSTHOG_API_KEY
+    if (apiKey) {
+      initAnalytics(apiKey, settings.analyticsEnabled)
+      logger.info('Analytics initialized', 'Analytics')
+    } else {
+      logger.debug('No PostHog API key found, analytics disabled', 'Analytics')
+    }
+  }, []) // Only run once on mount
+
+  useEffect(() => {
+    // Update opt-in/opt-out when setting changes
+    if (settings.analyticsEnabled) {
+      enableTracking()
+      logger.info('Analytics tracking enabled', 'Analytics')
+    } else {
+      disableTracking()
+      logger.info('Analytics tracking disabled', 'Analytics')
+    }
+  }, [settings.analyticsEnabled])
+
+  return null
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -110,6 +140,7 @@ function App() {
         {/* Global listeners - always active */}
         <CleanupListener />
         <DebugModeListener />
+        <AnalyticsListener />
         <ModelSelectionGuard />
 
         {/* Global download toast - persists across pages */}
