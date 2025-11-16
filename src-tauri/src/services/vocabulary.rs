@@ -283,7 +283,7 @@ pub async fn clean_punctuation(pool: &SqlitePool) -> Result<i32> {
 /// Returns words learned in the last N days, with translations to primary language
 pub async fn get_recent_vocab(
     pool: &SqlitePool,
-    app_handle: &tauri::AppHandle,
+    _app_handle: &tauri::AppHandle,
     language: &str,
     primary_language: &str,
     days: i32,
@@ -633,5 +633,88 @@ mod tests {
         assert_eq!(stats.total_words, 3);
         assert_eq!(stats.mastered_words, 0);
         assert_eq!(stats.words_this_week, 3);
+    }
+
+    #[tokio::test]
+    async fn test_delete_word() {
+        let pool = setup_test_db().await;
+
+        // Add a word
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+
+        // Verify it exists
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words.len(), 1);
+
+        // Delete it
+        delete_word(&pool, "estar", "es").await.unwrap();
+
+        // Verify it's gone
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_delete_nonexistent_word() {
+        let pool = setup_test_db().await;
+
+        // Delete a word that doesn't exist - should not error
+        let result = delete_word(&pool, "nonexistent", "es").await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_toggle_mastered() {
+        let pool = setup_test_db().await;
+
+        // Add a word (mastered defaults to false)
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+
+        // Verify initial state
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].mastered, false);
+
+        // Toggle to true
+        let new_status = toggle_mastered(&pool, "estar", "es").await.unwrap();
+        assert_eq!(new_status, true);
+
+        // Verify it was updated
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].mastered, true);
+
+        // Toggle back to false
+        let new_status = toggle_mastered(&pool, "estar", "es").await.unwrap();
+        assert_eq!(new_status, false);
+
+        // Verify it was updated again
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].mastered, false);
+    }
+
+    #[tokio::test]
+    async fn test_toggle_mastered_updates_stats() {
+        let pool = setup_test_db().await;
+
+        // Add words
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+        record_word(&pool, "correr", "es", "corriendo").await.unwrap();
+
+        // Initial stats - no mastered words
+        let stats = get_vocab_stats(&pool, "es").await.unwrap();
+        assert_eq!(stats.mastered_words, 0);
+
+        // Master one word
+        toggle_mastered(&pool, "estar", "es").await.unwrap();
+
+        // Stats should show 1 mastered
+        let stats = get_vocab_stats(&pool, "es").await.unwrap();
+        assert_eq!(stats.mastered_words, 1);
+
+        // Master second word
+        toggle_mastered(&pool, "correr", "es").await.unwrap();
+
+        // Stats should show 2 mastered
+        let stats = get_vocab_stats(&pool, "es").await.unwrap();
+        assert_eq!(stats.mastered_words, 2);
     }
 }
