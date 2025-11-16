@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { recordWord, getUserVocab, getVocabStats, getRecentVocab, deleteVocabWord, toggleVocabMastered } from '@/services/vocabulary';
 import type { LangCode } from '@/services/vocabulary/types';
+import { toast } from '@/lib/toast';
 
 /**
  * Hook to get user's vocabulary for a language
@@ -116,12 +117,19 @@ export function useDeleteVocabWord() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to delete word');
       }
+      return lemma;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (lemma, variables) => {
+      // Show success toast
+      toast.success(`"${lemma}" removed from vocabulary`);
+
       // Invalidate vocabulary and stats queries to refetch
       queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
+    },
+    onError: (error, variables) => {
+      toast.error(`Failed to delete "${variables.lemma}"`);
     },
   });
 }
@@ -145,13 +153,22 @@ export function useToggleVocabMastered() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to toggle mastered status');
       }
-      return result.data!; // boolean: new mastered status
+      return { lemma, newMastered: result.data! }; // Return both lemma and new status
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      // Show success toast
+      const message = data.newMastered
+        ? `"${data.lemma}" marked as mastered`
+        : `"${data.lemma}" marked as needs practice`;
+      toast.success(message);
+
       // Invalidate vocabulary and stats queries to refetch
       queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
+    },
+    onError: (error, variables) => {
+      toast.error(`Failed to update "${variables.lemma}"`);
     },
   });
 }
