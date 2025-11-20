@@ -6,6 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { DeviceInfo, RecordingResult, TranscriptionResult, TranscriptSegment } from './types';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { logger } from '@/services/logger'
+import { removeHallucinations } from '@/services/transcription/filters';
 
 export type ServiceResult<T> =
   | { success: true; data: T }
@@ -135,7 +136,24 @@ export async function transcribeAudio(
       sessionType: sessionType || null,
     });
 
-    return { success: true, data: response };
+    // Apply hallucination filters if enabled
+    const settings = useSettingsStore.getState().settings;
+    const filteredText = removeHallucinations(response.text, {
+      enabled: settings.hallucinationFilterEnabled,
+      filterYoutube: settings.filterYoutubeHallucinations,
+      filterMarkers: settings.filterMarkerHallucinations,
+      filterCredits: settings.filterCreditHallucinations,
+      filterRepetition: settings.filterRepetitionHallucinations,
+      repetitionThreshold: settings.repetitionThreshold,
+    });
+
+    logger.debug('Hallucination filter applied', 'transcribeAudio', {
+      original: response.text.length,
+      filtered: filteredText.length,
+      removed: response.text.length - filteredText.length,
+    });
+
+    return { success: true, data: { ...response, text: filteredText } };
   } catch (error) {
     console.error('Failed to transcribe audio:', error);
     return {

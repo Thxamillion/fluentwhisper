@@ -1,7 +1,7 @@
-import { Settings, Mic, Globe, Shield, Code, Info } from 'lucide-react'
+import { Settings, Mic, Globe, Shield, Code, Info, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type SettingsSection = 'general' | 'audio' | 'language' | 'privacy' | 'developer' | 'about'
+export type SettingsSection = 'general' | 'audio' | 'transcription' | 'language' | 'privacy' | 'developer' | 'about'
 
 interface SettingsSidebarProps {
   activeSection: SettingsSection
@@ -11,6 +11,7 @@ interface SettingsSidebarProps {
 const sections = [
   { id: 'general' as const, name: 'General', icon: Settings },
   { id: 'audio' as const, name: 'Audio', icon: Mic },
+  { id: 'transcription' as const, name: 'Transcription', icon: FileText },
   { id: 'language' as const, name: 'Language', icon: Globe },
   { id: 'privacy' as const, name: 'Privacy', icon: Shield },
   { id: 'developer' as const, name: 'Developer', icon: Code },
