@@ -208,6 +208,7 @@ export function useAddVocabTag() {
       queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
       queryClient.invalidateQueries({ queryKey: ['vocabByTag'] });
+      queryClient.invalidateQueries({ queryKey: ['sessionWords'] });
     },
     onError: (error, variables) => {
       toast.error(`Failed to tag "${variables.lemma}"`);
@@ -245,6 +246,7 @@ export function useRemoveVocabTag() {
       queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
       queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
       queryClient.invalidateQueries({ queryKey: ['vocabByTag'] });
+      queryClient.invalidateQueries({ queryKey: ['sessionWords'] });
     },
     onError: (error, variables) => {
       toast.error(`Failed to remove tag from "${variables.lemma}"`);

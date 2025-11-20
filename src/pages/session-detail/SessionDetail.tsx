@@ -325,38 +325,45 @@ export function SessionDetail() {
                           <span className="text-xs text-muted-foreground">
                             × {word.count}
                           </span>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {/* Remove tag button - only show if word has a tag */}
-                            {word.tags && word.tags.length > 0 && (
+                          <div className="relative flex items-center gap-1">
+                            {/* "..." indicator - shows when not hovering */}
+                            <span className="text-xs text-muted-foreground opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
+                              •••
+                            </span>
+                            {/* Buttons - show on hover */}
+                            <div className="absolute right-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Remove tag button - only show if word has a tag */}
+                              {word.tags && word.tags.length > 0 && (
+                                <button
+                                  onClick={() => removeTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: word.tags![0] })}
+                                  disabled={removeTag.isPending}
+                                  className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                  title="Remove tag"
+                                >
+                                  <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                </button>
+                              )}
+                              {/* Add needs practice button - only show if not already tagged */}
+                              {(!word.tags || !word.tags.includes(VOCAB_TAGS.NEEDS_PRACTICE)) && (
+                                <button
+                                  onClick={() => addTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: VOCAB_TAGS.NEEDS_PRACTICE })}
+                                  disabled={addTag.isPending}
+                                  className="p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-colors"
+                                  title="Mark as needs practice"
+                                >
+                                  <Plus className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+                                </button>
+                              )}
+                              {/* Delete word button */}
                               <button
-                                onClick={() => removeTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: word.tags![0] })}
-                                disabled={removeTag.isPending}
+                                onClick={() => deleteWord.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
+                                disabled={deleteWord.isPending}
                                 className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                                title="Remove tag"
+                                title="Delete word"
                               >
-                                <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                <X className="w-3 h-3 text-red-600 dark:text-red-400" />
                               </button>
-                            )}
-                            {/* Add needs practice button - only show if not already tagged */}
-                            {(!word.tags || !word.tags.includes(VOCAB_TAGS.NEEDS_PRACTICE)) && (
-                              <button
-                                onClick={() => addTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: VOCAB_TAGS.NEEDS_PRACTICE })}
-                                disabled={addTag.isPending}
-                                className="p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-colors"
-                                title="Mark as needs practice"
-                              >
-                                <Plus className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
-                              </button>
-                            )}
-                            {/* Delete word button */}
-                            <button
-                              onClick={() => deleteWord.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
-                              disabled={deleteWord.isPending}
-                              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                              title="Delete word"
-                            >
-                              <X className="w-3 h-3 text-red-600 dark:text-red-400" />
-                            </button>
+                            </div>
                           </div>
                         </div>
                         {/* Show tag badge if word has tag */}
