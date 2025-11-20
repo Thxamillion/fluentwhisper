@@ -193,3 +193,65 @@ export async function toggleVocabMastered(
     };
   }
 }
+
+/**
+ * Add a tag to a word
+ * Tags are mutually exclusive - adding a new tag removes any existing tag
+ * Returns the updated tags array
+ */
+export async function addVocabTag(
+  lemma: string,
+  language: LangCode,
+  tag: string
+): Promise<ServiceResult<string[]>> {
+  try {
+    const tags = await invoke<string[]>('add_vocab_tag', { lemma, language, tag });
+    return { success: true, data: tags };
+  } catch (error) {
+    console.error('[addVocabTag] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Remove a tag from a word
+ * Returns the updated tags array
+ */
+export async function removeVocabTag(
+  lemma: string,
+  language: LangCode,
+  tag: string
+): Promise<ServiceResult<string[]>> {
+  try {
+    const tags = await invoke<string[]>('remove_vocab_tag', { lemma, language, tag });
+    return { success: true, data: tags };
+  } catch (error) {
+    console.error('[removeVocabTag] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get vocabulary filtered by tag
+ */
+export async function getVocabByTag(
+  language: LangCode,
+  tag: string
+): Promise<ServiceResult<VocabWord[]>> {
+  try {
+    const words = await invoke<VocabWord[]>('get_vocab_by_tag', { language, tag });
+    return { success: true, data: words };
+  } catch (error) {
+    console.error('[getVocabByTag] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

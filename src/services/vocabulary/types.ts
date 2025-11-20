@@ -13,6 +13,7 @@ export interface VocabWord {
   last_seen_at: number;
   usage_count: number;
   mastered: boolean;
+  tags: string[];
 }
 
 export interface VocabWordWithTranslation extends VocabWord {
@@ -30,3 +31,11 @@ export interface ServiceResult<T> {
   data?: T;
   error?: string;
 }
+
+// Tag constants
+export const VOCAB_TAGS = {
+  NEEDS_PRACTICE: 'needs-practice',
+  MASTERED: 'mastered',
+} as const;
+
+export type VocabTag = typeof VOCAB_TAGS[keyof typeof VOCAB_TAGS];

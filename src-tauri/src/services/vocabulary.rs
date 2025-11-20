@@ -23,6 +23,7 @@ pub struct VocabWord {
     pub last_seen_at: i64,
     pub usage_count: i32,
     pub mastered: bool,
+    pub tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +36,7 @@ pub struct VocabWordWithTranslation {
     pub last_seen_at: i64,
     pub usage_count: i32,
     pub mastered: bool,
+    pub tags: Vec<String>,
     pub translation: Option<String>,
 }
 
@@ -82,6 +84,8 @@ pub async fn record_word(
                 forms.push(form_spoken.to_string());
             }
 
+            let new_usage_count = usage_count + 1;
+
             // Update record
             sqlx::query(
                 r#"
@@ -95,11 +99,41 @@ pub async fn record_word(
             )
             .bind(serde_json::to_string(&forms)?)
             .bind(timestamp)
-            .bind(usage_count + 1)
+            .bind(new_usage_count)
             .bind(timestamp)
             .bind(id)
             .execute(pool)
             .await?;
+
+            // AUTO-MASTERING LOGIC: Check if word should be auto-mastered
+            if new_usage_count >= 20 {
+                // Get current tags
+                let tags_json: String = sqlx::query_scalar(
+                    "SELECT COALESCE(tags, '[]') FROM vocab WHERE id = ?"
+                )
+                .bind(id)
+                .fetch_one(pool)
+                .await?;
+
+                let tags: Vec<String> = serde_json::from_str(&tags_json)
+                    .unwrap_or_default();
+
+                // Only auto-master if word doesn't have "needs-practice" tag
+                // and doesn't already have "mastered" tag
+                if !tags.contains(&"needs-practice".to_string()) && !tags.contains(&"mastered".to_string()) {
+                    let mastered_tags = vec!["mastered".to_string()];
+                    sqlx::query(
+                        "UPDATE vocab SET tags = ?, mastered = 1, updated_at = ? WHERE id = ?"
+                    )
+                    .bind(serde_json::to_string(&mastered_tags)?)
+                    .bind(timestamp)
+                    .bind(id)
+                    .execute(pool)
+                    .await?;
+
+                    println!("[vocab] Auto-mastered word '{}' after {} uses", lemma, new_usage_count);
+                }
+            }
 
             Ok(false) // Not a new word
         }
@@ -142,7 +176,7 @@ pub async fn get_user_vocab(
     let rows = sqlx::query(
         r#"
         SELECT id, language, lemma, forms_spoken,
-               first_seen_at, last_seen_at, usage_count, mastered
+               first_seen_at, last_seen_at, usage_count, mastered, COALESCE(tags, '[]') as tags
         FROM vocab
         WHERE language = ?
         ORDER BY usage_count DESC, last_seen_at DESC
@@ -159,6 +193,10 @@ pub async fn get_user_vocab(
         let forms: Vec<String> = serde_json::from_str(&forms_json)
             .unwrap_or_default();
 
+        let tags_json: String = row.get("tags");
+        let tags: Vec<String> = serde_json::from_str(&tags_json)
+            .unwrap_or_default();
+
         words.push(VocabWord {
             id: row.get("id"),
             language: row.get("language"),
@@ -168,6 +206,7 @@ pub async fn get_user_vocab(
             last_seen_at: row.get("last_seen_at"),
             usage_count: row.get("usage_count"),
             mastered: row.get("mastered"),
+            tags,
         });
     }
 
@@ -294,7 +333,7 @@ pub async fn get_recent_vocab(
     // Get recent words
     let rows = sqlx::query(
         r#"
-        SELECT id, language, lemma, forms_spoken, first_seen_at, last_seen_at, usage_count, mastered
+        SELECT id, language, lemma, forms_spoken, first_seen_at, last_seen_at, usage_count, mastered, COALESCE(tags, '[]') as tags
         FROM vocab
         WHERE language = ? AND first_seen_at >= ?
         ORDER BY first_seen_at DESC
@@ -312,6 +351,7 @@ pub async fn get_recent_vocab(
     for row in rows {
         let lemma: String = row.get("lemma");
         let forms_json: String = row.get("forms_spoken");
+        let tags_json: String = row.get("tags");
 
         println!("[get_recent_vocab] Processing lemma: '{}', language: {}, primary_language: {}", lemma, language, primary_language);
 
@@ -330,6 +370,7 @@ pub async fn get_recent_vocab(
             last_seen_at: row.get("last_seen_at"),
             usage_count: row.get("usage_count"),
             mastered: row.get("mastered"),
+            tags: serde_json::from_str(&tags_json).unwrap_or_default(),
             translation,
         });
     }
@@ -361,6 +402,7 @@ pub async fn delete_word(pool: &SqlitePool, lemma: &str, language: &str) -> Resu
 }
 
 /// Toggle mastered status for a word
+/// DEPRECATED: Use add_tag/remove_tag instead for new code
 pub async fn toggle_mastered(pool: &SqlitePool, lemma: &str, language: &str) -> Result<bool> {
     let timestamp = now();
 
@@ -387,6 +429,132 @@ pub async fn toggle_mastered(pool: &SqlitePool, lemma: &str, language: &str) -> 
     .await?;
 
     Ok(new_mastered)
+}
+
+/// Add a tag to a word (user action)
+/// Tags are mutually exclusive - adding a new tag removes any existing tag
+/// Both tags and mastered boolean are updated for compatibility
+pub async fn add_tag(pool: &SqlitePool, lemma: &str, language: &str, tag: &str) -> Result<Vec<String>> {
+    let timestamp = now();
+
+    // Get current tags
+    let current_tags_json: String = sqlx::query_scalar(
+        "SELECT COALESCE(tags, '[]') FROM vocab WHERE lemma = ? AND language = ?"
+    )
+    .bind(lemma)
+    .bind(language)
+    .fetch_one(pool)
+    .await?;
+
+    let mut tags: Vec<String> = serde_json::from_str(&current_tags_json)
+        .unwrap_or_default();
+
+    // Tags are mutually exclusive - remove any existing tag
+    tags.clear();
+
+    // Add new tag
+    tags.push(tag.to_string());
+
+    // Update database (both tags and mastered for compatibility)
+    let new_tags_json = serde_json::to_string(&tags)?;
+    let mastered = tag == "mastered";
+
+    sqlx::query(
+        "UPDATE vocab SET tags = ?, mastered = ?, updated_at = ? WHERE lemma = ? AND language = ?"
+    )
+    .bind(&new_tags_json)
+    .bind(mastered)
+    .bind(timestamp)
+    .bind(lemma)
+    .bind(language)
+    .execute(pool)
+    .await?;
+
+    Ok(tags)
+}
+
+/// Remove tag from a word
+pub async fn remove_tag(pool: &SqlitePool, lemma: &str, language: &str, tag: &str) -> Result<Vec<String>> {
+    let timestamp = now();
+
+    // Get current tags
+    let current_tags_json: String = sqlx::query_scalar(
+        "SELECT COALESCE(tags, '[]') FROM vocab WHERE lemma = ? AND language = ?"
+    )
+    .bind(lemma)
+    .bind(language)
+    .fetch_one(pool)
+    .await?;
+
+    let mut tags: Vec<String> = serde_json::from_str(&current_tags_json)
+        .unwrap_or_default();
+
+    // Remove the tag
+    tags.retain(|t| t != tag);
+
+    // Update database (both tags and mastered for compatibility)
+    let new_tags_json = serde_json::to_string(&tags)?;
+    let mastered = tags.contains(&"mastered".to_string());
+
+    sqlx::query(
+        "UPDATE vocab SET tags = ?, mastered = ?, updated_at = ? WHERE lemma = ? AND language = ?"
+    )
+    .bind(&new_tags_json)
+    .bind(mastered)
+    .bind(timestamp)
+    .bind(lemma)
+    .bind(language)
+    .execute(pool)
+    .await?;
+
+    Ok(tags)
+}
+
+/// Get vocabulary filtered by tag
+pub async fn get_vocab_by_tag(
+    pool: &SqlitePool,
+    language: &str,
+    tag: &str,
+) -> Result<Vec<VocabWord>> {
+    let tag_pattern = format!("%\"{}\":%", tag);
+
+    let rows = sqlx::query(
+        r#"
+        SELECT id, language, lemma, forms_spoken,
+               first_seen_at, last_seen_at, usage_count, mastered, COALESCE(tags, '[]') as tags
+        FROM vocab
+        WHERE language = ? AND tags LIKE ?
+        ORDER BY usage_count DESC, last_seen_at DESC
+        "#
+    )
+    .bind(language)
+    .bind(tag_pattern)
+    .fetch_all(pool)
+    .await?;
+
+    let mut words = Vec::new();
+
+    for row in rows {
+        let forms_json: String = row.get("forms_spoken");
+        let forms: Vec<String> = serde_json::from_str(&forms_json).unwrap_or_default();
+
+        let tags_json: String = row.get("tags");
+        let tags: Vec<String> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+        words.push(VocabWord {
+            id: row.get("id"),
+            language: row.get("language"),
+            lemma: row.get("lemma"),
+            forms_spoken: forms,
+            first_seen_at: row.get("first_seen_at"),
+            last_seen_at: row.get("last_seen_at"),
+            usage_count: row.get("usage_count"),
+            mastered: row.get("mastered"),
+            tags,
+        });
+    }
+
+    Ok(words)
 }
 
 /// Fix vocabulary entries by re-lemmatizing inflected forms

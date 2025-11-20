@@ -167,3 +167,49 @@ pub async fn fix_vocab_lemmas(
         .await
         .map_err(|e| e.to_string())
 }
+
+/// Add a tag to a word
+/// Returns the updated tags array
+#[tauri::command]
+pub async fn add_vocab_tag(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    language: String,
+    tag: String,
+) -> Result<Vec<String>, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::add_tag(&pool, &lemma, &language, &tag)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Remove a tag from a word
+/// Returns the updated tags array
+#[tauri::command]
+pub async fn remove_vocab_tag(
+    app_handle: tauri::AppHandle,
+    lemma: String,
+    language: String,
+    tag: String,
+) -> Result<Vec<String>, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::remove_tag(&pool, &lemma, &language, &tag)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Get vocabulary filtered by tag
+#[tauri::command]
+pub async fn get_vocab_by_tag(
+    app_handle: tauri::AppHandle,
+    language: String,
+    tag: String,
+) -> Result<Vec<VocabWord>, String> {
+    let pool = open_user_db(&app_handle).await.map_err(|e| e.to_string())?;
+
+    vocabulary::get_vocab_by_tag(&pool, &language, &tag)
+        .await
+        .map_err(|e| e.to_string())
+}

@@ -137,6 +137,33 @@ pub async fn initialize_user_db(app_handle: &tauri::AppHandle) -> Result<SqliteP
         .execute(&pool)
         .await?;
 
+    // Migration: Add tags column to vocab table
+    let _ = sqlx::query("ALTER TABLE vocab ADD COLUMN tags TEXT DEFAULT '[]'")
+        .execute(&pool)
+        .await;
+    // Ignore errors - column might already exist
+
+    // Migration: Convert existing mastered boolean to tags (one-time conversion)
+    // Only converts if tags column is empty/null
+    let _ = sqlx::query(
+        r#"
+        UPDATE vocab
+        SET tags = CASE
+            WHEN mastered = 1 THEN '["mastered"]'
+            ELSE '[]'
+        END
+        WHERE tags IS NULL OR tags = '' OR tags = '[]'
+        "#
+    )
+    .execute(&pool)
+    .await;
+    // Ignore errors - migration might have already run
+
+    // Create index for filtering by tags
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_vocab_tags ON vocab(tags)")
+        .execute(&pool)
+        .await?;
+
     // Create text_library table
     sqlx::query(
         r#"
