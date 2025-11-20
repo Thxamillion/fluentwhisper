@@ -8,6 +8,9 @@ const languageOptions = [
   { code: 'fr', label: 'French' },
   { code: 'de', label: 'German' },
   { code: 'it', label: 'Italian' },
+  { code: 'pt', label: 'Portuguese' },
+  { code: 'nl', label: 'Dutch' },
+  { code: 'ru', label: 'Russian' },
 ]
 
 export function LanguageSettingsSection() {

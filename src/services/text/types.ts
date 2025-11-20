@@ -2,7 +2,7 @@
  * Type definitions for text processing services
  */
 
-export type LangCode = 'es' | 'en' | 'fr' | 'de';
+export type LangCode = 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt' | 'nl' | 'ru';
 
 export interface TokenizationOptions {
   /**

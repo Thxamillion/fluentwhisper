@@ -359,6 +359,70 @@ pub async fn initialize_user_db(app_handle: &tauri::AppHandle) -> Result<SqliteP
         .bind(now)
         .execute(&pool)
         .await?;
+
+        // English dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('en', 'Merriam-Webster', 'https://www.merriam-webster.com/dictionary/[WORD]', 'popup', 1, 1, 1, ?),
+                ('en', 'Cambridge', 'https://dictionary.cambridge.org/dictionary/english/[WORD]', 'popup', 1, 2, 1, ?),
+                ('en', 'Oxford', 'https://www.oxfordlearnersdictionaries.com/definition/english/[WORD]', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // Portuguese dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('pt', 'WordReference', 'https://www.wordreference.com/pten/[WORD]', 'popup', 1, 1, 1, ?),
+                ('pt', 'Linguee', 'https://www.linguee.com/portuguese-english/search?source=auto&query=[WORD]', 'popup', 1, 2, 1, ?),
+                ('pt', 'Google Translate', 'https://translate.google.com/?sl=pt&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // Dutch dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('nl', 'WordReference', 'https://www.wordreference.com/nlen/[WORD]', 'popup', 1, 1, 1, ?),
+                ('nl', 'Van Dale', 'https://www.vandale.nl/gratis-woordenboek/nederlands-engels/vertaling/[WORD]', 'popup', 1, 2, 1, ?),
+                ('nl', 'Google Translate', 'https://translate.google.com/?sl=nl&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
+
+        // Russian dictionaries
+        sqlx::query(
+            r#"
+            INSERT INTO dictionaries (language, name, url_template, dict_type, is_active, sort_order, is_default, created_at)
+            VALUES
+                ('ru', 'WordReference', 'https://www.wordreference.com/ruen/[WORD]', 'popup', 1, 1, 1, ?),
+                ('ru', 'Reverso Context', 'https://context.reverso.net/translation/russian-english/[WORD]', 'popup', 1, 2, 1, ?),
+                ('ru', 'Google Translate', 'https://translate.google.com/?sl=ru&tl=en&text=[WORD]&op=translate', 'popup', 0, 3, 1, ?)
+            "#
+        )
+        .bind(now)
+        .bind(now)
+        .bind(now)
+        .execute(&pool)
+        .await?;
     }
 
     Ok(pool)

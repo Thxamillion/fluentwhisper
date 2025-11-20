@@ -15,10 +15,14 @@ interface DictionaryButtonProps {
 
 // Default dictionary URLs by language
 const DEFAULT_DICTIONARIES: Record<string, string> = {
+  en: 'https://www.merriam-webster.com/dictionary/[WORD]',
   es: 'https://www.wordreference.com/es/en/translation.asp?spen=[WORD]',
   fr: 'https://www.wordreference.com/fren/[WORD]',
   de: 'https://www.wordreference.com/deen/[WORD]',
   it: 'https://www.wordreference.com/iten/[WORD]',
+  pt: 'https://www.wordreference.com/pten/[WORD]',
+  nl: 'https://www.wordreference.com/nlen/[WORD]',
+  ru: 'https://www.wordreference.com/ruen/[WORD]',
 };
 
 export function DictionaryButton({ word, language }: DictionaryButtonProps) {
