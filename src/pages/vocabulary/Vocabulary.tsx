@@ -295,8 +295,8 @@ export function Vocabulary() {
                               ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                               : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
                           }`}>
-                            {word.tags[0] === VOCAB_TAGS.MASTERED && '🎯 Mastered'}
-                            {word.tags[0] === VOCAB_TAGS.NEEDS_PRACTICE && '⚠️ Needs Practice'}
+                            {word.tags[0] === VOCAB_TAGS.MASTERED && 'Mastered'}
+                            {word.tags[0] === VOCAB_TAGS.NEEDS_PRACTICE && 'Practice'}
                           </span>
                         )}
                       </div>
