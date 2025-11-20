@@ -148,7 +148,7 @@ export function Library() {
                 className="hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
                 onClick={() => handleReadAloud(item)}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex flex-col h-full">
                   {/* Header with icon */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -159,7 +159,7 @@ export function Library() {
                         <div className="text-xs text-muted-foreground mb-1">
                           {new Date(item.createdAt * 1000).toLocaleDateString()}
                         </div>
-                        <h3 className="font-bold text-lg group-hover:text-blue-600 transition-colors line-clamp-2">
+                        <h3 className="font-bold text-lg group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
                           {item.title}
                         </h3>
                       </div>
@@ -187,7 +187,7 @@ export function Library() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 pt-4 border-t">
+                  <div className="flex items-center gap-2 pt-4 border-t mt-auto">
                     <Button
                       size="sm"
                       className="flex-1"

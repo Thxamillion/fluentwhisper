@@ -406,7 +406,7 @@ export function Record() {
               marginLeft: isCollapsed ? '88px' : '280px'
             }}
           >
-            <div className="mr-4 border border-gray-200/50 rounded-xl bg-white/80 backdrop-blur-md p-4 shadow-lg">
+            <div className="mr-4 border border-border rounded-xl bg-card/80 backdrop-blur-md p-4 shadow-lg">
               <AudioPlayer src={convertFileSrc(recordingData.filePath)} />
             </div>
           </div>
