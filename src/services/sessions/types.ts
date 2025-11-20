@@ -33,4 +33,5 @@ export interface SessionWord {
   lemma: string;
   count: number;
   isNew: boolean;
+  tags?: string[];
 }

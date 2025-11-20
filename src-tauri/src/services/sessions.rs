@@ -11,19 +11,21 @@
 use anyhow::{Context, Result};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
+use sqlx::{SqlitePool, Row};
 use uuid::Uuid;
 use tauri::Emitter;
 
 use super::lemmatization::get_lemma;
 use super::vocabulary::record_word;
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionWord {
     pub lemma: String,
     pub count: i64,
     pub is_new: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
@@ -377,18 +379,41 @@ pub async fn get_all_sessions(pool: &SqlitePool) -> Result<Vec<SessionData>> {
 
 /// Get vocabulary words learned in a session
 pub async fn get_session_words(pool: &SqlitePool, session_id: &str) -> Result<Vec<SessionWord>> {
-    let words = sqlx::query_as::<_, SessionWord>(
+    // First get the language for this session
+    let language: String = sqlx::query_scalar("SELECT language FROM sessions WHERE id = ?")
+        .bind(session_id)
+        .fetch_one(pool)
+        .await
+        .context("Failed to fetch session language")?;
+
+    // Fetch session words with their tags from vocab table
+    let rows = sqlx::query(
         r#"
-        SELECT lemma, count, is_new
-        FROM session_words
-        WHERE session_id = ?
-        ORDER BY count DESC
+        SELECT sw.lemma, sw.count, sw.is_new, COALESCE(v.tags, '[]') as tags
+        FROM session_words sw
+        LEFT JOIN vocab v ON sw.lemma = v.lemma AND v.language = ?
+        WHERE sw.session_id = ?
+        ORDER BY sw.count DESC
         "#,
     )
+    .bind(&language)
     .bind(session_id)
     .fetch_all(pool)
     .await
     .context("Failed to fetch session words")?;
+
+    let mut words = Vec::new();
+    for row in rows {
+        let tags_json: String = row.get("tags");
+        let tags: Vec<String> = serde_json::from_str(&tags_json).unwrap_or_default();
+
+        words.push(SessionWord {
+            lemma: row.get("lemma"),
+            count: row.get("count"),
+            is_new: row.get("is_new"),
+            tags: if tags.is_empty() { None } else { Some(tags) },
+        });
+    }
 
     Ok(words)
 }

@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { VOCAB_TAGS } from '@/services/vocabulary/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +26,7 @@ import { DictionaryButton } from '@/components/dictionary';
 export function Vocabulary() {
   const { settings } = useSettingsStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterMastered, setFilterMastered] = useState<'all' | 'mastered' | 'learning'>('all');
+  const [filterMastered, setFilterMastered] = useState<'all' | 'mastered' | 'needs-practice' | 'learning'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [customTranslations, setCustomTranslations] = useState<Record<string, string>>({});
@@ -73,11 +74,12 @@ export function Vocabulary() {
         word.lemma.toLowerCase().includes(searchQuery.toLowerCase()) ||
         word.forms_spoken.some((form) => form.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      // Mastered filter
+      // Tag-based filter
       const matchesMastered =
         filterMastered === 'all' ||
-        (filterMastered === 'mastered' && word.mastered) ||
-        (filterMastered === 'learning' && !word.mastered);
+        (filterMastered === 'mastered' && word.tags?.includes(VOCAB_TAGS.MASTERED)) ||
+        (filterMastered === 'needs-practice' && word.tags?.includes(VOCAB_TAGS.NEEDS_PRACTICE)) ||
+        (filterMastered === 'learning' && (!word.tags || word.tags.length === 0));
 
       return matchesSearch && matchesMastered;
     });
@@ -90,7 +92,7 @@ export function Vocabulary() {
   const paginatedVocab = filteredVocab.slice(startIndex, endIndex);
 
   // Reset to page 1 when filters change
-  const handleFilterChange = (newFilter: 'all' | 'mastered' | 'learning') => {
+  const handleFilterChange = (newFilter: 'all' | 'mastered' | 'needs-practice' | 'learning') => {
     setFilterMastered(newFilter);
     setCurrentPage(1);
   };
@@ -231,13 +233,19 @@ export function Vocabulary() {
           />
         </div>
 
-        {/* Mastery filter */}
+        {/* Tag filter */}
         <div className="flex items-center gap-2">
           <Button
             onClick={() => handleFilterChange('all')}
             variant={filterMastered === 'all' ? 'default' : 'secondary'}
           >
             All
+          </Button>
+          <Button
+            onClick={() => handleFilterChange('needs-practice')}
+            variant={filterMastered === 'needs-practice' ? 'default' : 'secondary'}
+          >
+            Needs Practice
           </Button>
           <Button
             onClick={() => handleFilterChange('mastered')}
@@ -279,9 +287,16 @@ export function Vocabulary() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-foreground">{word.lemma}</span>
-                        {word.mastered && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                            Mastered
+                        {word.tags && word.tags.length > 0 && (
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                            word.tags[0] === VOCAB_TAGS.MASTERED
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : word.tags[0] === VOCAB_TAGS.NEEDS_PRACTICE
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                          }`}>
+                            {word.tags[0] === VOCAB_TAGS.MASTERED && '🎯 Mastered'}
+                            {word.tags[0] === VOCAB_TAGS.NEEDS_PRACTICE && '⚠️ Needs Practice'}
                           </span>
                         )}
                       </div>

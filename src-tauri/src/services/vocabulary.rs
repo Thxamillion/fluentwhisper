@@ -516,19 +516,18 @@ pub async fn get_vocab_by_tag(
     language: &str,
     tag: &str,
 ) -> Result<Vec<VocabWord>> {
-    let tag_pattern = format!("%\"{}\":%", tag);
-
+    // Use SQLite's json_each to properly search within JSON arrays
     let rows = sqlx::query(
         r#"
-        SELECT id, language, lemma, forms_spoken,
-               first_seen_at, last_seen_at, usage_count, mastered, COALESCE(tags, '[]') as tags
-        FROM vocab
-        WHERE language = ? AND tags LIKE ?
-        ORDER BY usage_count DESC, last_seen_at DESC
+        SELECT v.id, v.language, v.lemma, v.forms_spoken,
+               v.first_seen_at, v.last_seen_at, v.usage_count, v.mastered, COALESCE(v.tags, '[]') as tags
+        FROM vocab v, json_each(v.tags) as tag
+        WHERE v.language = ? AND tag.value = ?
+        ORDER BY v.usage_count DESC, v.last_seen_at DESC
         "#
     )
     .bind(language)
-    .bind(tag_pattern)
+    .bind(tag)
     .fetch_all(pool)
     .await?;
 
@@ -726,6 +725,7 @@ mod tests {
                 last_seen_at INTEGER NOT NULL,
                 usage_count INTEGER DEFAULT 1,
                 mastered BOOLEAN DEFAULT 0,
+                tags TEXT DEFAULT '[]',
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL,
                 UNIQUE(language, lemma)
@@ -884,5 +884,128 @@ mod tests {
         // Stats should show 2 mastered
         let stats = get_vocab_stats(&pool, "es").await.unwrap();
         assert_eq!(stats.mastered_words, 2);
+    }
+
+    #[tokio::test]
+    async fn test_add_tag() {
+        let pool = setup_test_db().await;
+
+        // Add a word
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+
+        // Add a tag
+        let tags = add_tag(&pool, "estar", "es", "needs-practice").await.unwrap();
+        assert_eq!(tags, vec!["needs-practice"]);
+
+        // Verify tag was added
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].tags, vec!["needs-practice"]);
+        assert_eq!(words[0].mastered, false); // Should not be mastered
+    }
+
+    #[tokio::test]
+    async fn test_remove_tag() {
+        let pool = setup_test_db().await;
+
+        // Add a word and tag it
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+        add_tag(&pool, "estar", "es", "needs-practice").await.unwrap();
+
+        // Remove the tag
+        let tags = remove_tag(&pool, "estar", "es", "needs-practice").await.unwrap();
+        assert_eq!(tags, Vec::<String>::new());
+
+        // Verify tag was removed
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].tags.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_tags_mutually_exclusive() {
+        let pool = setup_test_db().await;
+
+        // Add a word
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+
+        // Add first tag
+        add_tag(&pool, "estar", "es", "needs-practice").await.unwrap();
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].tags, vec!["needs-practice"]);
+
+        // Add second tag - should replace first
+        add_tag(&pool, "estar", "es", "mastered").await.unwrap();
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].tags, vec!["mastered"]);
+        assert_eq!(words[0].mastered, true); // Should sync mastered boolean
+    }
+
+    #[tokio::test]
+    async fn test_auto_mastering_at_20_uses() {
+        let pool = setup_test_db().await;
+
+        // Record a word 19 times
+        for i in 0..19 {
+            record_word(&pool, "estar", "es", &format!("form{}", i)).await.unwrap();
+        }
+
+        // Verify not yet mastered
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].usage_count, 19);
+        assert_eq!(words[0].mastered, false);
+        assert_eq!(words[0].tags.len(), 0);
+
+        // Record 20th time - should auto-master
+        record_word(&pool, "estar", "es", "form19").await.unwrap();
+
+        // Verify auto-mastered
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].usage_count, 20);
+        assert_eq!(words[0].mastered, true);
+        assert_eq!(words[0].tags, vec!["mastered"]);
+    }
+
+    #[tokio::test]
+    async fn test_no_auto_master_with_needs_practice() {
+        let pool = setup_test_db().await;
+
+        // Add a word with "needs-practice" tag
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+        add_tag(&pool, "estar", "es", "needs-practice").await.unwrap();
+
+        // Record it 19 more times (total 20)
+        for i in 1..20 {
+            record_word(&pool, "estar", "es", &format!("form{}", i)).await.unwrap();
+        }
+
+        // Verify it was NOT auto-mastered due to needs-practice tag
+        let words = get_user_vocab(&pool, "es").await.unwrap();
+        assert_eq!(words[0].usage_count, 20);
+        assert_eq!(words[0].mastered, false);
+        assert_eq!(words[0].tags, vec!["needs-practice"]);
+    }
+
+    #[tokio::test]
+    async fn test_get_vocab_by_tag() {
+        let pool = setup_test_db().await;
+
+        // Add multiple words with different tags
+        record_word(&pool, "estar", "es", "estoy").await.unwrap();
+        add_tag(&pool, "estar", "es", "needs-practice").await.unwrap();
+
+        record_word(&pool, "correr", "es", "corriendo").await.unwrap();
+        add_tag(&pool, "correr", "es", "mastered").await.unwrap();
+
+        record_word(&pool, "casa", "es", "casa").await.unwrap();
+        // No tag for casa
+
+        // Get words with "needs-practice" tag
+        let needs_practice = get_vocab_by_tag(&pool, "es", "needs-practice").await.unwrap();
+        assert_eq!(needs_practice.len(), 1);
+        assert_eq!(needs_practice[0].lemma, "estar");
+
+        // Get words with "mastered" tag
+        let mastered = get_vocab_by_tag(&pool, "es", "mastered").await.unwrap();
+        assert_eq!(mastered.len(), 1);
+        assert_eq!(mastered[0].lemma, "correr");
     }
 }

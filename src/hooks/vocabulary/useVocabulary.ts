@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { recordWord, getUserVocab, getVocabStats, getRecentVocab, deleteVocabWord, toggleVocabMastered } from '@/services/vocabulary';
+import { recordWord, getUserVocab, getVocabStats, getRecentVocab, deleteVocabWord, toggleVocabMastered, addVocabTag, removeVocabTag, getVocabByTag } from '@/services/vocabulary';
 import type { LangCode } from '@/services/vocabulary/types';
 import { toast } from '@/lib/toast';
 
@@ -137,6 +137,7 @@ export function useDeleteVocabWord() {
 /**
  * Hook to toggle mastered status for a word
  * Returns the new mastered status
+ * DEPRECATED: Use useAddVocabTag/useRemoveVocabTag instead
  */
 export function useToggleVocabMastered() {
   const queryClient = useQueryClient();
@@ -170,5 +171,101 @@ export function useToggleVocabMastered() {
     onError: (error, variables) => {
       toast.error(`Failed to update "${variables.lemma}"`);
     },
+  });
+}
+
+/**
+ * Hook to add a tag to a word
+ * Tags are mutually exclusive - adding a new tag removes any existing tag
+ */
+export function useAddVocabTag() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      lemma,
+      language,
+      tag,
+    }: {
+      lemma: string;
+      language: LangCode;
+      tag: string;
+    }) => {
+      const result = await addVocabTag(lemma, language, tag);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to add tag');
+      }
+      return { lemma, tags: result.data! };
+    },
+    onSuccess: (data, variables) => {
+      // Show toast based on tag type
+      const tagName = variables.tag === 'needs-practice' ? 'needs practice' :
+                      variables.tag === 'mastered' ? 'mastered' : variables.tag;
+      toast.success(`"${data.lemma}" marked as ${tagName}`);
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
+      queryClient.invalidateQueries({ queryKey: ['vocabByTag'] });
+    },
+    onError: (error, variables) => {
+      toast.error(`Failed to tag "${variables.lemma}"`);
+    },
+  });
+}
+
+/**
+ * Hook to remove a tag from a word
+ */
+export function useRemoveVocabTag() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      lemma,
+      language,
+      tag,
+    }: {
+      lemma: string;
+      language: LangCode;
+      tag: string;
+    }) => {
+      const result = await removeVocabTag(lemma, language, tag);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to remove tag');
+      }
+      return { lemma, tags: result.data! };
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`Tag removed from "${data.lemma}"`);
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['userVocab', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['vocabStats', variables.language] });
+      queryClient.invalidateQueries({ queryKey: ['recentVocab'] });
+      queryClient.invalidateQueries({ queryKey: ['vocabByTag'] });
+    },
+    onError: (error, variables) => {
+      toast.error(`Failed to remove tag from "${variables.lemma}"`);
+    },
+  });
+}
+
+/**
+ * Hook to get vocabulary filtered by tag
+ */
+export function useVocabByTag(language: LangCode, tag: string, enabled = true) {
+  return useQuery({
+    queryKey: ['vocabByTag', language, tag],
+    queryFn: async () => {
+      const result = await getVocabByTag(language, tag);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get vocabulary');
+      }
+      return result.data!;
+    },
+    enabled,
+    staleTime: 1000 * 60, // 1 minute
   });
 }

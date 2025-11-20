@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSession, useSessionWords, useDeleteSession } from '@/hooks/sessions';
 import { useTextLibraryItem } from '@/hooks/text-library';
-import { useDeleteVocabWord, useToggleVocabMastered } from '@/hooks/vocabulary';
-import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles, ArrowUp, Minus, Plus } from 'lucide-react';
+import { useDeleteVocabWord, useAddVocabTag, useRemoveVocabTag } from '@/hooks/vocabulary';
+import { Loader2, ArrowLeft, Trash2, Clock, MessageSquare, TrendingUp, BookOpen, Sparkles, ArrowUp, Minus, Plus, X } from 'lucide-react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from '@/lib/toast';
 import { logger } from '@/services/logger';
-import { LangCode } from '@/services/vocabulary/types';
+import { LangCode, VOCAB_TAGS } from '@/services/vocabulary/types';
 
 export function SessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -23,7 +23,8 @@ export function SessionDetail() {
   const { data: words, isLoading: wordsLoading } = useSessionWords(sessionId!);
   const deleteSession = useDeleteSession();
   const deleteWord = useDeleteVocabWord();
-  const toggleMastered = useToggleVocabMastered();
+  const addTag = useAddVocabTag();
+  const removeTag = useRemoveVocabTag();
 
   // Fetch text library item for read-aloud sessions
   const { data: textItem } = useTextLibraryItem(session?.textLibraryId || '');
@@ -319,28 +320,58 @@ export function SessionDetail() {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
-                          × {word.count}
-                        </span>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => deleteWord.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
-                            disabled={deleteWord.isPending}
-                            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                            title="Delete word"
-                          >
-                            <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
-                          </button>
-                          <button
-                            onClick={() => toggleMastered.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
-                            disabled={toggleMastered.isPending}
-                            className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
-                            title="Toggle mastered"
-                          >
-                            <Plus className="w-3 h-3 text-green-600 dark:text-green-400" />
-                          </button>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            × {word.count}
+                          </span>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {/* Remove tag button - only show if word has a tag */}
+                            {word.tags && word.tags.length > 0 && (
+                              <button
+                                onClick={() => removeTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: word.tags![0] })}
+                                disabled={removeTag.isPending}
+                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                title="Remove tag"
+                              >
+                                <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
+                              </button>
+                            )}
+                            {/* Add needs practice button - only show if not already tagged */}
+                            {(!word.tags || !word.tags.includes(VOCAB_TAGS.NEEDS_PRACTICE)) && (
+                              <button
+                                onClick={() => addTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: VOCAB_TAGS.NEEDS_PRACTICE })}
+                                disabled={addTag.isPending}
+                                className="p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-colors"
+                                title="Mark as needs practice"
+                              >
+                                <Plus className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+                              </button>
+                            )}
+                            {/* Delete word button */}
+                            <button
+                              onClick={() => deleteWord.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
+                              disabled={deleteWord.isPending}
+                              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                              title="Delete word"
+                            >
+                              <X className="w-3 h-3 text-red-600 dark:text-red-400" />
+                            </button>
+                          </div>
                         </div>
+                        {/* Show tag badge if word has tag */}
+                        {word.tags && word.tags.length > 0 && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
+                            word.tags[0] === VOCAB_TAGS.MASTERED
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : word.tags[0] === VOCAB_TAGS.NEEDS_PRACTICE
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                          }`}>
+                            {word.tags[0] === VOCAB_TAGS.MASTERED && '🎯 Mastered'}
+                            {word.tags[0] === VOCAB_TAGS.NEEDS_PRACTICE && '⚠️ Needs Practice'}
+                          </span>
+                        )}
                       </div>
                     </Card>
                   ))}
