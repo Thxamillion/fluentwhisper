@@ -518,6 +518,45 @@ pub async fn open_user_db(app_handle: &tauri::AppHandle) -> Result<SqlitePool> {
         .await?;
     }
 
+    // Migration: Add tags column to vocab table (check if it exists first)
+    let column_exists: i32 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM pragma_table_info('vocab') WHERE name = 'tags'"
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap_or(0);
+
+    if column_exists == 0 {
+        println!("[open_user_db] Adding tags column to vocab table...");
+
+        // Column doesn't exist, add it
+        sqlx::query("ALTER TABLE vocab ADD COLUMN tags TEXT DEFAULT '[]'")
+            .execute(&pool)
+            .await?;
+
+        println!("[open_user_db] Added tags column to vocab table");
+
+        // Migration: Convert existing mastered boolean to tags (one-time conversion)
+        sqlx::query(
+            r#"
+            UPDATE vocab
+            SET tags = CASE
+                WHEN mastered = 1 THEN '["mastered"]'
+                ELSE '[]'
+            END
+            "#
+        )
+        .execute(&pool)
+        .await?;
+
+        println!("[open_user_db] Converted existing mastered values to tags");
+    }
+
+    // Create index for filtering by tags
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_vocab_tags ON vocab(tags)")
+        .execute(&pool)
+        .await?;
+
     Ok(pool)
 }
 
