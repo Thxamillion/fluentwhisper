@@ -337,10 +337,13 @@ export function SessionDetail() {
                                 <button
                                   onClick={() => removeTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: word.tags![0] })}
                                   disabled={removeTag.isPending}
-                                  className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                  className="group/btn flex items-center gap-1 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                                   title="Remove tag"
                                 >
                                   <Minus className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                  <span className="text-[10px] text-red-600 dark:text-red-400 opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">
+                                    Remove
+                                  </span>
                                 </button>
                               )}
                               {/* Add needs practice button - only show if not already tagged */}
@@ -348,20 +351,26 @@ export function SessionDetail() {
                                 <button
                                   onClick={() => addTag.mutate({ lemma: word.lemma, language: session?.language as LangCode, tag: VOCAB_TAGS.NEEDS_PRACTICE })}
                                   disabled={addTag.isPending}
-                                  className="p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-colors"
+                                  className="group/btn flex items-center gap-1 p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-colors"
                                   title="Mark as needs practice"
                                 >
                                   <Plus className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+                                  <span className="text-[10px] text-yellow-600 dark:text-yellow-400 opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">
+                                    Practice
+                                  </span>
                                 </button>
                               )}
                               {/* Delete word button */}
                               <button
                                 onClick={() => deleteWord.mutate({ lemma: word.lemma, language: session?.language as LangCode })}
                                 disabled={deleteWord.isPending}
-                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                className="group/btn flex items-center gap-1 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                                 title="Delete word"
                               >
                                 <X className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                <span className="text-[10px] text-red-600 dark:text-red-400 opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">
+                                  Delete
+                                </span>
                               </button>
                             </div>
                           </div>
