@@ -168,6 +168,11 @@ async fn download_file_with_progress(
         .await
         .context("Failed to start download")?;
 
+    // Check if response is successful (2xx status code)
+    if !response.status().is_success() {
+        anyhow::bail!("Download failed with HTTP status: {} for URL: {}", response.status(), url);
+    }
+
     let total_size = response.content_length().unwrap_or(0);
     println!("[download_file] Total size: {} bytes", total_size);
 

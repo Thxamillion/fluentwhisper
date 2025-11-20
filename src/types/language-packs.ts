@@ -2,7 +2,7 @@
  * Language pack type definitions for on-demand language downloads
  */
 
-export type LangCode = 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt' | 'zh' | 'ja' | 'ko' | 'ar' | 'ru';
+export type LangCode = 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt' | 'nl' | 'ru' | 'zh' | 'ja' | 'ko' | 'ar';
 
 export interface LanguagePack {
   code: LangCode;

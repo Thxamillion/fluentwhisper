@@ -22,6 +22,18 @@
     "it": {
       "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/it-lemmas.db",
       "bundled": false
+    },
+    "pt": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/pt-lemmas.db",
+      "bundled": false
+    },
+    "nl": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/nl-lemmas.db",
+      "bundled": false
+    },
+    "ru": {
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/ru-lemmas.db",
+      "bundled": false
     }
   },
 

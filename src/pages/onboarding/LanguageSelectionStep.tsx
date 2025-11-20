@@ -16,6 +16,9 @@ const LANGUAGES = [
   { code: 'fr', name: 'French' },
   { code: 'de', name: 'German' },
   { code: 'it', name: 'Italian' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'nl', name: 'Dutch' },
+  { code: 'ru', name: 'Russian' },
 ]
 
 export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
