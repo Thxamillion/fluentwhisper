@@ -6,7 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { DeviceInfo, RecordingResult, TranscriptionResult, TranscriptSegment } from './types';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { logger } from '@/services/logger'
-import { removeHallucinations } from '@/services/transcription/filters';
+import { removeHallucinations, DEFAULT_FILTER_SETTINGS } from '@/services/transcription/filters';
 
 export type ServiceResult<T> =
   | { success: true; data: T }
@@ -136,16 +136,8 @@ export async function transcribeAudio(
       sessionType: sessionType || null,
     });
 
-    // Apply hallucination filters if enabled
-    const settings = useSettingsStore.getState().settings;
-    const filteredText = removeHallucinations(response.text, {
-      enabled: settings.hallucinationFilterEnabled,
-      filterYoutube: settings.filterYoutubeHallucinations,
-      filterMarkers: settings.filterMarkerHallucinations,
-      filterCredits: settings.filterCreditHallucinations,
-      filterRepetition: settings.filterRepetitionHallucinations,
-      repetitionThreshold: settings.repetitionThreshold,
-    });
+    // Apply hallucination filters (always enabled by default)
+    const filteredText = removeHallucinations(response.text, DEFAULT_FILTER_SETTINGS);
 
     logger.debug('Hallucination filter applied', 'transcribeAudio', {
       original: response.text.length,

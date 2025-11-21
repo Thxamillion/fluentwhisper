@@ -5,7 +5,6 @@ import { useAutoDownload } from '@/hooks/language-packs'
 import { SettingsSidebar, type SettingsSection } from '@/components/settings/SettingsSidebar'
 import { GeneralSettingsSection } from '@/components/settings/GeneralSettingsSection'
 import { AudioSettingsSection } from '@/components/settings/AudioSettingsSection'
-import { TranscriptionSettingsSection } from '@/components/settings/TranscriptionSettingsSection'
 import { LanguageSettingsSection } from '@/components/settings/LanguageSettingsSection'
 import { PrivacySettingsSection } from '@/components/settings/PrivacySettingsSection'
 import { DeveloperSettingsSection } from '@/components/settings/DeveloperSettingsSection'
@@ -56,7 +55,6 @@ export function Settings() {
           <div className="animate-in fade-in duration-300">
             {activeSection === 'general' && <GeneralSettingsSection />}
             {activeSection === 'audio' && <AudioSettingsSection />}
-            {activeSection === 'transcription' && <TranscriptionSettingsSection />}
             {activeSection === 'language' && <LanguageSettingsSection />}
             {activeSection === 'privacy' && <PrivacySettingsSection />}
             {activeSection === 'developer' && <DeveloperSettingsSection />}

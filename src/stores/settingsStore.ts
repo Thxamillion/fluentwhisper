@@ -18,14 +18,6 @@ export interface AppSettings {
   // Practice settings
   dailyGoalMinutes: number
 
-  // Hallucination filtering
-  hallucinationFilterEnabled: boolean
-  filterYoutubeHallucinations: boolean
-  filterMarkerHallucinations: boolean
-  filterCreditHallucinations: boolean
-  filterRepetitionHallucinations: boolean
-  repetitionThreshold: number
-
   // Privacy settings
   retentionDays: number | null  // null = never delete, number = days to keep
   analyticsEnabled: boolean  // Share anonymous usage data
@@ -57,14 +49,6 @@ const defaultSettings: AppSettings = {
   targetLanguage: 'es',
 
   dailyGoalMinutes: 15,
-
-  // Hallucination filter defaults - all enabled by default
-  hallucinationFilterEnabled: true,
-  filterYoutubeHallucinations: true,
-  filterMarkerHallucinations: true,
-  filterCreditHallucinations: true,
-  filterRepetitionHallucinations: true,
-  repetitionThreshold: 3,
 
   // Privacy defaults - never delete by default
   retentionDays: null,
