@@ -21,6 +21,7 @@ import { useSidebar } from '@/contexts/SidebarContext'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { toast } from '@/lib/toast'
 import { logger } from '@/services/logger'
+import { SessionTypeInfo, SESSION_TYPE_CONFIG, type SessionType } from '@/components/record/SessionTypeInfo'
 
 export function Record() {
   const navigate = useNavigate();
@@ -43,43 +44,9 @@ export function Record() {
     durationSeconds: number;
   } | null>(null);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
-  const [sessionType, setSessionType] = useState<'free_speak' | 'tutor' | 'conversation'>('free_speak');
+  const [sessionType, setSessionType] = useState<SessionType>('free_speak');
   const [infoModalOpen, setInfoModalOpen] = useState(false);
-  const [selectedInfoType, setSelectedInfoType] = useState<'free_speak' | 'tutor' | 'conversation'>('free_speak');
-
-  // Session type information
-  const sessionTypeInfo = {
-    free_speak: {
-      title: 'Free Speak',
-      countsWPM: true,
-      tips: [
-        'Practice speaking naturally without reading',
-        'Focus on fluency over accuracy',
-        'Try to speak for at least 2-3 minutes',
-        'Use practice prompts for inspiration',
-      ],
-    },
-    tutor: {
-      title: 'Tutor Session',
-      countsWPM: false,
-      tips: [
-        'Record both you and your tutor speaking',
-        'Auto-detects multiple languages',
-        'Great for conversation practice',
-        'Review difficult words after the session',
-      ],
-    },
-    conversation: {
-      title: 'Conversation',
-      countsWPM: false,
-      tips: [
-        'Record casual conversations',
-        'Works with AI voice assistants',
-        'Auto-detects language switching',
-        'Perfect for tracking real-world practice',
-      ],
-    },
-  };
+  const [selectedInfoType, setSelectedInfoType] = useState<SessionType>('free_speak');
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -429,29 +396,9 @@ export function Record() {
       <AlertDialog open={infoModalOpen} onOpenChange={setInfoModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{sessionTypeInfo[selectedInfoType].title}</AlertDialogTitle>
+            <AlertDialogTitle>{SESSION_TYPE_CONFIG[selectedInfoType].title}</AlertDialogTitle>
           </AlertDialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-              <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-              <span className="text-sm">
-                {sessionTypeInfo[selectedInfoType].countsWPM
-                  ? 'This session type counts toward your WPM statistics'
-                  : 'This session type does not count toward your WPM statistics'}
-              </span>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium mb-2">Tips:</h4>
-              <ul className="space-y-2">
-                {sessionTypeInfo[selectedInfoType].tips.map((tip, index) => (
-                  <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                    <span className="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
-                    <span>{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <SessionTypeInfo type={selectedInfoType} />
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setInfoModalOpen(false)}>
               Got it

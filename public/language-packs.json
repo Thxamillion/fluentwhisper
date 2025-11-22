@@ -4,8 +4,8 @@
 
   "languages": {
     "en": {
-      "lemmas_url": "bundled",
-      "bundled": true
+      "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/en-lemmas.db",
+      "bundled": false
     },
     "es": {
       "lemmas_url": "https://github.com/Thxamillion/fluentwhisper/releases/download/v1.0.0/es-lemmas.db",

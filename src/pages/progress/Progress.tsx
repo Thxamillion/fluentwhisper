@@ -49,9 +49,14 @@ export function Progress() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="es">Spanish</SelectItem>
             <SelectItem value="en">English</SelectItem>
+            <SelectItem value="es">Spanish</SelectItem>
             <SelectItem value="fr">French</SelectItem>
+            <SelectItem value="de">German</SelectItem>
+            <SelectItem value="it">Italian</SelectItem>
+            <SelectItem value="pt">Portuguese</SelectItem>
+            <SelectItem value="nl">Dutch</SelectItem>
+            <SelectItem value="ru">Russian</SelectItem>
           </SelectContent>
         </Select>
       </div>

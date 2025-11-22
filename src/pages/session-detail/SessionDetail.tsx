@@ -140,9 +140,14 @@ export function SessionDetail() {
 
   const getLanguageName = (code: string) => {
     const names: Record<string, string> = {
-      es: 'Spanish',
       en: 'English',
+      es: 'Spanish',
       fr: 'French',
+      de: 'German',
+      it: 'Italian',
+      pt: 'Portuguese',
+      nl: 'Dutch',
+      ru: 'Russian',
     };
     return names[code] || code;
   };

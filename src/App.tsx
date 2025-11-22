@@ -140,7 +140,10 @@ function LanguagePackListener() {
                           language === 'es' ? 'Spanish' :
                           language === 'fr' ? 'French' :
                           language === 'de' ? 'German' :
-                          language === 'it' ? 'Italian' : language
+                          language === 'it' ? 'Italian' :
+                          language === 'pt' ? 'Portuguese' :
+                          language === 'nl' ? 'Dutch' :
+                          language === 'ru' ? 'Russian' : language
 
       toast.warning(
         `${languageName} language pack missing. Vocabulary filtering disabled. Download it in Settings → Languages.`,
