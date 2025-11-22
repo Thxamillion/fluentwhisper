@@ -111,3 +111,4 @@ scripts/generate-update-manifest.sh
 latest-*.json
 *_build.log
 build_log*.txt
+.venv/

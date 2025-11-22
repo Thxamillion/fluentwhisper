@@ -6,6 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { DeviceInfo, RecordingResult, TranscriptionResult, TranscriptSegment } from './types';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { logger } from '@/services/logger'
+import { removeHallucinations, DEFAULT_FILTER_SETTINGS } from '@/services/transcription/filters';
 
 export type ServiceResult<T> =
   | { success: true; data: T }
@@ -135,7 +136,16 @@ export async function transcribeAudio(
       sessionType: sessionType || null,
     });
 
-    return { success: true, data: response };
+    // Apply hallucination filters (always enabled by default)
+    const filteredText = removeHallucinations(response.text, DEFAULT_FILTER_SETTINGS);
+
+    logger.debug('Hallucination filter applied', 'transcribeAudio', {
+      original: response.text.length,
+      filtered: filteredText.length,
+      removed: response.text.length - filteredText.length,
+    });
+
+    return { success: true, data: { ...response, text: filteredText } };
   } catch (error) {
     console.error('Failed to transcribe audio:', error);
     return {
