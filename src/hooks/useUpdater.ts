@@ -43,8 +43,6 @@ export function useUpdateCheck() {
  * Hook to manually trigger update check
  */
 export function useManualUpdateCheck() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async () => {
       const result = await checkForUpdates();
@@ -53,10 +51,7 @@ export function useManualUpdateCheck() {
       }
       return result.data;
     },
-    onSuccess: (data) => {
-      // Update the cached update check result
-      queryClient.setQueryData(['update-check'], data);
-    },
+    // Don't update global cache - prevents UpdateDialog from showing when manually checking
   });
 }
 
