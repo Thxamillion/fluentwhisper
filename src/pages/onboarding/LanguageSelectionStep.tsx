@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { SUPPORTED_LANGUAGES } from '@/constants/languages'
 
 interface LanguageSelectionStepProps {
   primaryLanguage: string
@@ -8,18 +9,6 @@ interface LanguageSelectionStepProps {
   onLearningLanguageChange: (lang: string) => void
   onContinue: () => void
 }
-
-// Only show languages with available language packs
-const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'it', name: 'Italian' },
-  { code: 'pt', name: 'Portuguese' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'ru', name: 'Russian' },
-]
 
 export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
   return (
@@ -37,14 +26,14 @@ export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
               What's your native language?
             </label>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              We detected {LANGUAGES.find(l => l.code === props.primaryLanguage)?.name || 'your language'}. You can change this if needed.
+              We detected {SUPPORTED_LANGUAGES.find(l => l.code === props.primaryLanguage)?.name || 'your language'}. You can change this if needed.
             </p>
             <select
               value={props.primaryLanguage}
               onChange={(e) => props.onPrimaryLanguageChange(e.target.value)}
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              {LANGUAGES.map(lang => (
+              {SUPPORTED_LANGUAGES.map(lang => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name}
                 </option>
@@ -62,7 +51,7 @@ export function LanguageSelectionStep(props: LanguageSelectionStepProps) {
               onChange={(e) => props.onLearningLanguageChange(e.target.value)}
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              {LANGUAGES.map(lang => (
+              {SUPPORTED_LANGUAGES.map(lang => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name}
                 </option>

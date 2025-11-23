@@ -18,6 +18,7 @@ import type { SourceType, DifficultyLevel } from '@/services/text-library';
 import { open } from '@tauri-apps/plugin-dialog';
 import { readTextFile } from '@tauri-apps/plugin-fs';
 import { toast } from '@/lib/toast';
+import { SUPPORTED_LANGUAGES } from '@/constants/languages';
 
 export function Import() {
   const navigate = useNavigate();
@@ -190,10 +191,11 @@ export function Import() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="es">Spanish</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="de">German</SelectItem>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { SUPPORTED_LANGUAGES } from '@/constants/languages';
 
 export function Progress() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('es');
@@ -49,14 +50,11 @@ export function Progress() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-            <SelectItem value="de">German</SelectItem>
-            <SelectItem value="it">Italian</SelectItem>
-            <SelectItem value="pt">Portuguese</SelectItem>
-            <SelectItem value="nl">Dutch</SelectItem>
-            <SelectItem value="ru">Russian</SelectItem>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <SelectItem key={lang.code} value={lang.code}>
+                {lang.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

@@ -12,17 +12,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
 import { Check, Download, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'it', name: 'Italian' },
-  { code: 'pt', name: 'Portuguese' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'ru', name: 'Russian' },
-];
+import { SUPPORTED_LANGUAGES } from '@/constants/languages';
 
 export function LanguagePackSection() {
   const { settings } = useSettingsStore();
