@@ -1,17 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { LanguagePackSection } from './LanguagePackSection'
-
-const languageOptions = [
-  { code: 'en', label: 'English' },
-  { code: 'es', label: 'Spanish' },
-  { code: 'fr', label: 'French' },
-  { code: 'de', label: 'German' },
-  { code: 'it', label: 'Italian' },
-  { code: 'pt', label: 'Portuguese' },
-  { code: 'nl', label: 'Dutch' },
-  { code: 'ru', label: 'Russian' },
-]
+import { SUPPORTED_LANGUAGES } from '@/constants/languages'
 
 export function LanguageSettingsSection() {
   const { settings, updateSetting } = useSettingsStore()
@@ -30,9 +20,9 @@ export function LanguageSettingsSection() {
               value={settings.targetLanguage}
               onChange={(e) => updateSetting('targetLanguage', e.target.value)}
             >
-              {languageOptions.map(lang => (
+              {SUPPORTED_LANGUAGES.map(lang => (
                 <option key={lang.code} value={lang.code}>
-                  {lang.label}
+                  {lang.name}
                 </option>
               ))}
             </select>
@@ -50,9 +40,9 @@ export function LanguageSettingsSection() {
               value={settings.primaryLanguage}
               onChange={(e) => updateSetting('primaryLanguage', e.target.value)}
             >
-              {languageOptions.map(lang => (
+              {SUPPORTED_LANGUAGES.map(lang => (
                 <option key={lang.code} value={lang.code}>
-                  {lang.label}
+                  {lang.name}
                 </option>
               ))}
             </select>

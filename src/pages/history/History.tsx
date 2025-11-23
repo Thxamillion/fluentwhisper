@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/lib/toast';
 import { logger } from '@/services/logger';
 import type { SessionData } from '@/services/sessions/types';
+import { SUPPORTED_LANGUAGES } from '@/constants/languages';
 
 // Helper component to display session title for read-aloud sessions
 function SessionTitle({ session, formatDate }: { session: SessionData; formatDate: (timestamp: number) => string }) {
@@ -146,9 +147,11 @@ export function History() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Languages</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <SelectItem key={lang.code} value={lang.code}>
+                {lang.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
