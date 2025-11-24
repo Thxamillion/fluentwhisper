@@ -13,7 +13,6 @@ import {
 import { ChevronDown, Mic, Square, Loader2, CheckCircle, RotateCcw, Save, Trash2, Info } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRecording, useRecordingDevices } from '@/hooks/recording'
-import { useDefaultModelInstalled } from '@/hooks/models'
 import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '@/components/AudioPlayer'
 import { convertFileSrc } from '@tauri-apps/api/core'
@@ -27,8 +26,10 @@ export function Record() {
   const navigate = useNavigate();
   const { isCollapsed } = useSidebar();
   const { settings, updateSetting } = useSettingsStore();
-  const { data: isModelInstalled } = useDefaultModelInstalled();
   const { data: devices, isLoading: devicesLoading } = useRecordingDevices();
+
+  // Check if user has selected a model in settings
+  const hasModelSelected = !!settings.selectedModel;
   const recording = useRecording();
 
   // Use targetLanguage from settings (the language you're learning/practicing)
@@ -141,7 +142,7 @@ export function Record() {
   };
 
   const isProcessing = processingStage === 'transcribing' || processingStage === 'saving' || recording.isStopping;
-  const canRecord = !devicesLoading && isModelInstalled && !isProcessing && processingStage === 'idle';
+  const canRecord = !devicesLoading && hasModelSelected && !isProcessing && processingStage === 'idle';
   const canInteract = processingStage === 'review' || canRecord;
 
   // Debug logging
@@ -296,10 +297,10 @@ export function Record() {
         <Card>
           <CardContent className="pt-6 relative">
             <div className="py-12 text-center">
-                {!isModelInstalled && (
+                {!hasModelSelected && (
                   <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-900">
-                      Please download a Whisper model in Settings before recording.
+                      Please select a Whisper model in Settings before recording.
                     </p>
                   </div>
                 )}

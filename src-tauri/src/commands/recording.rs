@@ -100,13 +100,25 @@ pub async fn transcribe(app_handle: tauri::AppHandle,
 
     // Use default model path if not provided
     // TODO: Make this configurable via settings
-    // Priority: small > base > tiny
+    // Priority: large-v3 > large-v2 > large > medium > small > base > tiny
     let model = model_path.map(PathBuf::from).unwrap_or_else(|| {
+        let large_v3 = models_dir.join("ggml-large-v3.bin");
+        let large_v2 = models_dir.join("ggml-large-v2.bin");
+        let large = models_dir.join("ggml-large.bin");
+        let medium = models_dir.join("ggml-medium.bin");
         let small = models_dir.join("ggml-small.bin");
         let base = models_dir.join("ggml-base.bin");
         let tiny = models_dir.join("ggml-tiny.bin");
 
-        if small.exists() {
+        if large_v3.exists() {
+            large_v3
+        } else if large_v2.exists() {
+            large_v2
+        } else if large.exists() {
+            large
+        } else if medium.exists() {
+            medium
+        } else if small.exists() {
             small
         } else if base.exists() {
             base
