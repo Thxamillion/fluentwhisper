@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSettings } from '@/hooks/settings'
 import { isCloudModel } from '@/stores/settingsStore'
@@ -82,9 +82,9 @@ export function Onboarding() {
     setCurrentStep('model')
   }
 
-  const handleLanguagePackDownloadComplete = () => {
+  const handleLanguagePackDownloadComplete = useCallback(() => {
     setCurrentStep('complete')
-  }
+  }, [])
 
   const handleFinish = () => {
     // Mark onboarding as completed

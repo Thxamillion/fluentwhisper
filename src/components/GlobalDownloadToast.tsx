@@ -55,7 +55,7 @@ function formatLanguagePackName(event: LanguagePackProgressEvent): string {
 
 export function GlobalDownloadToast() {
   const location = useLocation();
-  const { activeDownload, isDownloading, error, setLanguagePackProgress, setModelProgress, clearDownload } = useDownloadStore();
+  const { activeDownloads, isDownloading, error, setLanguagePackProgress, setModelProgress, removeDownload } = useDownloadStore();
 
   // Hide during onboarding (progress shown inline there)
   const isOnboarding = location.pathname === '/onboarding';
@@ -64,7 +64,9 @@ export function GlobalDownloadToast() {
   useEffect(() => {
     const unlistenPromise = listen<LanguagePackProgressEvent>('download_progress', (event) => {
       const name = formatLanguagePackName(event.payload);
-      setLanguagePackProgress({
+      // Use languagePair + fileType as unique ID
+      const id = `langpack-${event.payload.languagePair}-${event.payload.fileType}`;
+      setLanguagePackProgress(id, {
         downloadedBytes: event.payload.downloadedBytes,
         totalBytes: event.payload.totalBytes,
         percentage: event.payload.percentage,
@@ -82,9 +84,10 @@ export function GlobalDownloadToast() {
   // Listen to model download progress
   useEffect(() => {
     const unlistenPromise = listen<ModelProgressEvent>('model-download-progress', (event) => {
-      // Extract model name from current download or use a default
-      const modelName = activeDownload?.progress.modelName || 'model';
-      setModelProgress({
+      // Use a fixed ID for model download
+      const modelName = activeDownloads.find(d => d.type === 'whisper-model')?.progress.modelName || 'model';
+      const id = `whisper-${modelName}`;
+      setModelProgress(id, {
         downloadedBytes: event.payload.downloadedBytes,
         totalBytes: event.payload.totalBytes,
         percentage: event.payload.percentage,
@@ -94,20 +97,28 @@ export function GlobalDownloadToast() {
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
-  }, [setModelProgress, activeDownload]);
+  }, [setModelProgress, activeDownloads]);
 
-  // Auto-hide when complete
+  // Auto-hide completed downloads
   useEffect(() => {
-    if (activeDownload && activeDownload.progress.percentage >= 100) {
-      const timer = setTimeout(() => {
-        clearDownload();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [activeDownload, clearDownload]);
+    activeDownloads.forEach((download) => {
+      if (download.progress.percentage >= 100) {
+        const timer = setTimeout(() => {
+          removeDownload(download.id);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    });
+  }, [activeDownloads, removeDownload]);
 
-  // Hide during onboarding OR if no download active
-  if (isOnboarding || (!isDownloading && !error)) {
+  // Hide during onboarding OR if no downloads active
+  if (isOnboarding || (activeDownloads.length === 0 && !error)) {
+    return null;
+  }
+
+  // For toast, show only the first active download (keep it simple)
+  const activeDownload = activeDownloads[0];
+  if (!activeDownload && !error) {
     return null;
   }
 
@@ -131,7 +142,7 @@ export function GlobalDownloadToast() {
                 {error ? 'Download failed' : isComplete ? 'Download complete' : `Downloading ${activeDownload?.name || 'file'}`}
               </h3>
               <button
-                onClick={clearDownload}
+                onClick={() => activeDownload && removeDownload(activeDownload.id)}
                 className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Dismiss"
               >

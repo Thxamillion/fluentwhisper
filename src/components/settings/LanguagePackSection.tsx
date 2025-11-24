@@ -17,7 +17,7 @@ import { SUPPORTED_LANGUAGES } from '@/constants/languages';
 export function LanguagePackSection() {
   const { settings } = useSettingsStore();
   const queryClient = useQueryClient();
-  const { activeDownload } = useDownloadStore();
+  const { activeDownloads } = useDownloadStore();
   const { data: installedLanguages, isLoading } = useInstalledLanguages();
   const [deletingLang, setDeletingLang] = useState<string | null>(null);
 
@@ -71,9 +71,9 @@ export function LanguagePackSection() {
   };
 
   const isDownloading = (langCode: string) => {
-    if (activeDownload?.type !== 'language-pack') return false;
-    const langPair = activeDownload.progress.languagePair;
-    return langPair === langCode;
+    return activeDownloads.some(
+      download => download.type === 'language-pack' && download.progress.languagePair === langCode
+    );
   };
 
   return (
@@ -125,7 +125,7 @@ export function LanguagePackSection() {
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {downloading
-                        ? `Downloading... ${Math.round(activeDownload!.progress.percentage)}%`
+                        ? `Downloading... ${Math.round(activeDownloads.find(d => d.type === 'language-pack' && d.progress.languagePair === lang.code)?.progress.percentage || 0)}%`
                         : installed
                         ? 'Lemmas installed'
                         : 'Not installed'}

@@ -20,7 +20,7 @@ export function WhisperModelSection() {
   const { data: systemSpecs, isLoading: loadingSpecs } = useSystemSpecs();
   const downloadModel = useDownloadModel();
   const deleteModel = useDeleteModel();
-  const { activeDownload } = useDownloadStore();
+  const { activeDownloads } = useDownloadStore();
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export function WhisperModelSection() {
 
   const hasAnyModelInstalled = installedModels && installedModels.length > 0;
   const isDownloading = downloadModel.isPending;
-  const progress = activeDownload?.type === 'whisper-model' ? activeDownload.progress : null;
+  const progress = activeDownloads.find(d => d.type === 'whisper-model')?.progress || null;
   const recommendedModel = systemSpecs?.recommended_model;
 
   // Helper to check if model might be slow on this system

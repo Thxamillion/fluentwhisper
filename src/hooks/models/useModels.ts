@@ -70,7 +70,7 @@ export function useInstalledModels() {
  */
 export function useDownloadModel() {
   const queryClient = useQueryClient();
-  const { clearDownload } = useDownloadStore();
+  const { clearAllDownloads } = useDownloadStore();
 
   const mutation = useMutation({
     mutationFn: async (modelName: string) => {
@@ -84,7 +84,7 @@ export function useDownloadModel() {
       // Clear global download toast after a delay (handled by toast auto-hide)
     },
     onError: () => {
-      clearDownload();
+      clearAllDownloads();
     },
   });
 

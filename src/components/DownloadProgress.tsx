@@ -2,11 +2,13 @@
  * Unified Download Progress Component
  * Single source of truth - displays progress from downloadStore
  * Works for both Whisper models and language packs
+ * Supports multiple concurrent downloads
  */
 
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useDownloadStore } from '@/stores/downloadStore';
+import { useDownloadStore, ActiveDownload } from '@/stores/downloadStore';
+import { CheckCircle } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -16,8 +18,68 @@ function formatBytes(bytes: number): string {
   return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 }
 
+interface SingleDownloadProgressProps {
+  download: ActiveDownload;
+  isDownloading: boolean;
+}
+
+function SingleDownloadProgress({ download, isDownloading }: SingleDownloadProgressProps) {
+  const progress = download.progress.percentage || 0;
+  const isComplete = progress >= 100 && !isDownloading;
+
+  return (
+    <div className="space-y-2">
+      {/* Title and Percentage */}
+      <div className="flex items-center justify-between">
+        <div className="font-medium flex items-center gap-2">
+          {isComplete && <CheckCircle className="w-4 h-4 text-green-600" />}
+          {download.name}
+        </div>
+        <div className="text-sm text-gray-500">{Math.round(progress)}%</div>
+      </div>
+
+      {/* Progress Bar */}
+      <Progress value={progress} className="h-2" />
+
+      {/* Download Details */}
+      {isDownloading && !isComplete && (
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          {/* Type-specific details */}
+          <div>
+            {download.type === 'language-pack' && download.progress.fileType && (
+              <span>
+                {download.progress.fileType === 'lemmas' ? 'Lemmas' : 'Translations'}: {download.progress.languagePair}
+              </span>
+            )}
+          </div>
+
+          {/* Bytes and Speed */}
+          <div className="font-mono">
+            {formatBytes(download.progress.downloadedBytes)} / {formatBytes(download.progress.totalBytes)}
+            {download.progress.speedMbps && download.progress.speedMbps > 0 && (
+              <span className="ml-2">
+                ({download.progress.speedMbps.toFixed(1)} MB/s)
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Completion Message */}
+      {isComplete && (
+        <div className="text-sm text-green-600">
+          {download.type === 'whisper-model'
+            ? 'Model is ready to use!'
+            : 'Language pack is ready to use!'
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DownloadProgress() {
-  const { activeDownload, isDownloading, error } = useDownloadStore();
+  const { activeDownloads, isDownloading, error } = useDownloadStore();
 
   // Error state
   if (error) {
@@ -34,66 +96,21 @@ export function DownloadProgress() {
     );
   }
 
-  // No active download
-  if (!activeDownload && !isDownloading) {
+  // No active downloads
+  if (activeDownloads.length === 0) {
     return null;
   }
 
-  const progress = activeDownload?.progress.percentage || 0;
-  const isComplete = progress >= 100 && !isDownloading;
-
   return (
     <Card className="p-4">
-      <div className="space-y-3">
-        {/* Title and Percentage */}
-        <div className="flex items-center justify-between">
-          <div className="font-medium">
-            {isComplete
-              ? 'Download complete'
-              : activeDownload
-                ? `Downloading ${activeDownload.name}`
-                : 'Downloading...'
-            }
-          </div>
-          <div className="text-sm text-gray-500">{Math.round(progress)}%</div>
-        </div>
-
-        {/* Progress Bar */}
-        <Progress value={progress} className="h-2" />
-
-        {/* Download Details */}
-        {activeDownload && isDownloading && (
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            {/* Type-specific details */}
-            <div>
-              {activeDownload.type === 'language-pack' && activeDownload.progress.fileType && (
-                <span>
-                  {activeDownload.progress.fileType === 'lemmas' ? 'Lemmas' : 'Translations'}: {activeDownload.progress.languagePair}
-                </span>
-              )}
-            </div>
-
-            {/* Bytes and Speed */}
-            <div className="font-mono">
-              {formatBytes(activeDownload.progress.downloadedBytes)} / {formatBytes(activeDownload.progress.totalBytes)}
-              {activeDownload.progress.speedMbps && activeDownload.progress.speedMbps > 0 && (
-                <span className="ml-2">
-                  ({activeDownload.progress.speedMbps.toFixed(1)} MB/s)
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Completion Message */}
-        {isComplete && (
-          <div className="text-sm text-green-600">
-            {activeDownload?.type === 'whisper-model'
-              ? 'Model is ready to use!'
-              : 'Language packs are ready to use!'
-            }
-          </div>
-        )}
+      <div className="space-y-4">
+        {activeDownloads.map((download) => (
+          <SingleDownloadProgress
+            key={download.id}
+            download={download}
+            isDownloading={isDownloading}
+          />
+        ))}
       </div>
     </Card>
   );

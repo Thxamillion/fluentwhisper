@@ -23,58 +23,89 @@ export interface DownloadProgress {
 }
 
 export interface ActiveDownload {
+  id: string; // Unique identifier for this download
   type: DownloadType;
   progress: DownloadProgress;
   name: string; // Friendly display name
 }
 
 interface DownloadState {
-  // Current active download (only one at a time for now)
-  activeDownload: ActiveDownload | null;
+  // Multiple concurrent downloads
+  activeDownloads: ActiveDownload[];
 
-  // Track if download is in progress
+  // Track if any download is in progress
   isDownloading: boolean;
 
   // Error state
   error: string | null;
 
   // Actions
-  setLanguagePackProgress: (progress: DownloadProgress, name: string) => void;
-  setModelProgress: (progress: DownloadProgress, modelName: string) => void;
-  setDownloading: (isDownloading: boolean) => void;
+  setLanguagePackProgress: (id: string, progress: DownloadProgress, name: string) => void;
+  setModelProgress: (id: string, progress: DownloadProgress, modelName: string) => void;
+  removeDownload: (id: string) => void;
   setError: (error: string | null) => void;
-  clearDownload: () => void;
+  clearAllDownloads: () => void;
 }
 
 export const useDownloadStore = create<DownloadState>((set) => ({
-  activeDownload: null,
+  activeDownloads: [],
   isDownloading: false,
   error: null,
 
-  setLanguagePackProgress: (progress, name) =>
-    set({
-      activeDownload: { type: 'language-pack', progress, name },
-      isDownloading: true,
-      error: null
+  setLanguagePackProgress: (id, progress, name) =>
+    set((state) => {
+      const existing = state.activeDownloads.findIndex(d => d.id === id);
+      const download: ActiveDownload = {
+        id,
+        type: 'language-pack',
+        progress,
+        name
+      };
+
+      const newDownloads = existing >= 0
+        ? state.activeDownloads.map((d, i) => i === existing ? download : d)
+        : [...state.activeDownloads, download];
+
+      return {
+        activeDownloads: newDownloads,
+        isDownloading: true,
+        error: null
+      };
     }),
 
-  setModelProgress: (progress, modelName) =>
-    set({
-      activeDownload: {
+  setModelProgress: (id, progress, modelName) =>
+    set((state) => {
+      const existing = state.activeDownloads.findIndex(d => d.id === id);
+      const download: ActiveDownload = {
+        id,
         type: 'whisper-model',
-        progress: { ...progress, modelName: modelName },
+        progress: { ...progress, modelName },
         name: `Whisper ${modelName.charAt(0).toUpperCase() + modelName.slice(1)} Model`
-      },
-      isDownloading: true,
-      error: null
+      };
+
+      const newDownloads = existing >= 0
+        ? state.activeDownloads.map((d, i) => i === existing ? download : d)
+        : [...state.activeDownloads, download];
+
+      return {
+        activeDownloads: newDownloads,
+        isDownloading: true,
+        error: null
+      };
     }),
 
-  setDownloading: (isDownloading) =>
-    set({ isDownloading }),
+  removeDownload: (id) =>
+    set((state) => {
+      const newDownloads = state.activeDownloads.filter(d => d.id !== id);
+      return {
+        activeDownloads: newDownloads,
+        isDownloading: newDownloads.length > 0
+      };
+    }),
 
   setError: (error) =>
     set({ error, isDownloading: false }),
 
-  clearDownload: () =>
-    set({ activeDownload: null, isDownloading: false, error: null }),
+  clearAllDownloads: () =>
+    set({ activeDownloads: [], isDownloading: false, error: null }),
 }));
